@@ -1,0 +1,31 @@
+# permissions for end users to edit kubebmcs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: kubebmc-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: kubebmc
+    app.kubernetes.io/part-of: kubebmc
+    app.kubernetes.io/managed-by: kustomize
+  name: kubebmc-editor-role
+rules:
+- apiGroups:
+  - virtualmachine.zespre.com
+  resources:
+  - kubebmcs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - virtualmachine.zespre.com
+  resources:
+  - kubebmcs/status
+  verbs:
+  - get

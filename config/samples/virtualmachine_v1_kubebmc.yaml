@@ -1,0 +1,16 @@
+apiVersion: virtualmachine.zespre.com/v1
+kind: KubeBMC
+metadata:
+  labels:
+    app.kubernetes.io/name: kubebmc
+    app.kubernetes.io/instance: kubebmc-sample
+    app.kubernetes.io/part-of: kubebmc
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: kubebmc
+  name: kubebmc-sample
+  namespace: kubebmc-system
+spec:
+  username: admin
+  password: password
+  vmNamespace: default
+  vmName: test-vm
