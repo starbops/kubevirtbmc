@@ -128,6 +128,31 @@ You can apply the samples (examples) from the config/sample:
 kubectl apply -k config/samples/
 ```
 
+The corresponding KubeBMC object will be created automatically when the VirtualMachine object exists. It will scaffold the kbmc Pod and Service object.
+
+```sh
+$ kubectl -n kubebmc-system get svc
+NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+default-test-vm-kbmc               ClusterIP   10.53.106.65    <none>        623/UDP   3h13m
+```
+
+To access the VM's BMC, you need to be in the cluster network. Run a Pod that comes with `ipmitool` built in:
+
+```sh
+$ kubectl run -it --rm ipmitool --image=mikeynap/ipmitool --command -- /bin/sh
+```
+
+Inside the Pod, you can for example turn on the VM via `ipmitool`:
+
+```sh
+$ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.kubebmc-system.svc.cluster.local power status
+Chassis Power is off
+$ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.kubebmc-system.svc.cluster.local power on
+Chassis Power Control: Up/On
+$ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.kubebmc-system.svc.cluster.local power status
+Chassis Power is on
+```
+
 > **NOTE**: Ensure that the samples has default values to test it out.
 
 ### To Uninstall
