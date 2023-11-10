@@ -1,8 +1,8 @@
 # KubeBMC
 
-KubeBMC unleashes the power management for virtual machines on Kubernetes in a traditional way, i.e., IPMI. This allows users to power on/off/reset and set the boot device (work in progress :wink:) for the VM. It was initially designed for Tinkerbell/Seeder to provision KubeVirt VMs, just like we did in the good old days.
+KubeBMC unleashes the power management for virtual machines on Kubernetes in a traditional way, i.e., [IPMI](https://www.intel.com.tw/content/www/tw/zh/products/docs/servers/ipmi/ipmi-second-gen-interface-spec-v2-rev1-1.html). This allows users to power on/off/reset and set the boot device (work in progress :wink:) for the VM. It was initially designed for [Tinkerbell](https://github.com/tinkerbell/tink)/[Seeder](https://github.com/harvester/seeder) to provision [KubeVirt](https://github.com/kubevirt/kubevirt) VMs, just like we did in the good old days.
 
-The project was born in SUSE Hack Week 23.
+The project was born in [SUSE Hack Week 23](https://hackweek.opensuse.org/).
 
 ## Description
 
@@ -122,13 +122,28 @@ make deploy IMG=<some-registry>/kubebmc:tag
 
 **Create instances of your solution**
 
-You can apply the samples (examples) from the config/sample:
+You can apply the KubeBMC object like below:
 
-```sh
-kubectl apply -k config/samples/
+```yaml
+apiVersion: virtualmachine.zespre.com/v1
+kind: KubeBMC
+metadata:
+  name: default-test-vm
+  namespace: kubebmc-system
+spec:
+  password: password
+  username: admin
+  vmName: test-vm
+  vmNamespace: default
 ```
 
-The corresponding KubeBMC object will be created automatically when the VirtualMachine object exists. It will scaffold the kbmc Pod and Service object.
+Create the object in the cluster:
+
+```sh
+kubectl apply -f default-test-vm.yaml
+```
+
+Though you can create the KubeBMC object manually, the corresponding KubeBMC object should be created automatically when the VirtualMachine object exists. It will then scaffold the `*-kbmc` Pod and Service object.
 
 ```sh
 $ kubectl -n kubebmc-system get svc
@@ -152,8 +167,6 @@ Chassis Power Control: Up/On
 $ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.kubebmc-system.svc.cluster.local power status
 Chassis Power is on
 ```
-
-> **NOTE**: Ensure that the samples has default values to test it out.
 
 ### To Uninstall
 
