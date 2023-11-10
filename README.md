@@ -2,12 +2,88 @@
 
 KubeBMC unleashes the power management for virtual machines on Kubernetes in a traditional way, i.e., IPMI. This allows users to power on/off/reset and set the boot device (work in progress :wink:) for the VM. It was initially designed for Tinkerbell/Seeder to provision KubeVirt VMs, just like we did in the good old days.
 
+The project was born in SUSE Hack Week 23.
+
 ## Description
+
+KubeBMC was inspired by [VirtualBMC](https://opendev.org/openstack/virtualbmc). The difference between them could be illustrated below:
+
+```mermaid
+flowchart LR
+    client1[Client]
+    client2[Client]
+    BMC1[BMC]
+    VM[VM]
+    subgraph KubeBMC
+    direction LR
+    client2-->|IPMI|kBMC-->|K8s API|VM
+    end
+    subgraph VirtualBMC
+    direction LR
+    client1-->|IPMI|vBMC-->|libvirt API|BMC1
+    end
+```
+
+**Goals**
+
+- Providing BMC functionalities for virtual machines powered by KubeVirt
+- Providing in-cluster accessibility
+
+**Non-goals**
+
+- Providing BMC functionalities for bare-metal machines
 
 KubeBMC consists of two components:
 
-- kubebmc-controller: A typical Kubernetes controller built with kubebuilder that reconciles on the KubeBMC, VirtualMachine, and Service objects
-- kbmc: A BMC simulator for serving IPMI and translating the requests to native Kubernetes API requests
+- **kubebmc-controller**: A typical Kubernetes controller built with kubebuilder that reconciles on the KubeBMC, VirtualMachine, and Service objects
+- **kbmc**: A BMC simulator for serving IPMI and translating the requests to native Kubernetes API requests
+
+Below is the workflow of KubeBMC when a VirtualMachine was created and booted up:
+
+```mermaid
+flowchart LR
+    controller["kubebmc-controller"]
+    cr["kubebmc CR"]
+    kbmc-pod["kbmc Pod"]
+    kbmc-svc["kbmc Service"]
+    controller-.->|watches|cr
+    cr-.->|owns|kbmc-svc
+    cr-.->|owns|kbmc-pod
+    client--->|IPMI|kbmc-svc
+    kbmc-svc-->kbmc-pod
+    kbmc-pod-->|HTTP|apiserver
+    apiserver-->|modifies|vm
+    vm-->|creates|vmi
+```
+
+The KubeBMC CR (CustomResource):
+
+```go
+type KubeBMCSpec struct {
+	// To authenticate who the user is.
+	// +optional
+	Username string `json:"username,omitempty"`
+
+	// The credential part of the IPMI service
+	// +optional
+	Password string `json:"password,omitempty"`
+
+	// The namespace where the virtual machine is in
+	VirtualMachineNamespace string `json:"vmNamespace"`
+
+	// The actual virtual machine that this BMC controls
+	VirtualMachineName string `json:"vmName"`
+}
+
+// KubeBMCStatus defines the observed state of KubeBMC
+type KubeBMCStatus struct {
+	// The listen IP address for the IPMI service.
+	ServiceIP string `json:"serviceIP"`
+
+	// The indicator that shows the readiness of the IPMI service for the virtual machine
+	Ready bool `json:"ready"`
+}
+```
 
 ## Getting Started
 
