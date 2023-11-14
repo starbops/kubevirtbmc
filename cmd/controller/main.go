@@ -36,7 +36,9 @@ import (
 	"zespre.com/kubebmc/internal/controller/kubebmc"
 	"zespre.com/kubebmc/internal/controller/service"
 	"zespre.com/kubebmc/internal/controller/virtualmachine"
-	clischeme "zespre.com/kubebmc/pkg/generated/clientset/versioned/scheme"
+
+	// clischeme "zespre.com/kubebmc/pkg/generated/clientset/versioned/scheme"
+	kubevirtv1 "kubevirt.io/api/core/v1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -47,7 +49,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(clischeme.AddToScheme(scheme))
+	utilruntime.Must(kubevirtv1.AddToScheme(scheme))
 	utilruntime.Must(virtualmachinev1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
