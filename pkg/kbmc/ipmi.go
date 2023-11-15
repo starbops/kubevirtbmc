@@ -56,3 +56,39 @@ func (k *KBMC) chassisStatusHandler(*ipmi.Message) ipmi.Response {
 		PowerState:     ipmi.SystemPower,
 	}
 }
+
+func (k *KBMC) setSystemBootOptionsHandler(m *ipmi.Message) ipmi.Response {
+	logrus.Info("set boot device")
+
+	r := &ipmi.SetSystemBootOptionsRequest{}
+	if err := m.Request(r); err != nil {
+		return err
+	}
+
+	if r.Param != 5 {
+		return &ipmi.SetSystemBootOptionsResponse{
+			CompletionCode: ipmi.CommandCompleted,
+		}
+	}
+
+	var device BootDevice
+	switch r.Data[1] {
+	case uint8(ipmi.BootDevicePxe):
+		logrus.Infof("set bootdev pxe")
+		device = Pxe
+	case uint8(ipmi.BootDeviceDisk):
+		logrus.Infof("set bootdev disk")
+		device = Disk
+	}
+
+	err := k.setVirtualMachineBootDevice(device)
+	if err != nil {
+		return &ipmi.SetSystemBootOptionsResponse{
+			CompletionCode: ipmi.ErrUnspecified,
+		}
+	}
+
+	return &ipmi.SetSystemBootOptionsResponse{
+		CompletionCode: ipmi.CommandCompleted,
+	}
+}

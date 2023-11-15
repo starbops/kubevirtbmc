@@ -41,14 +41,15 @@ func New(ctx context.Context, options Options, inCluster bool) (*KBMC, error) {
 	}, nil
 }
 
-func (k *KBMC) initialize() {
+func (k *KBMC) register() {
 	k.sim.SetHandler(ipmi.NetworkFunctionChassis, ipmi.CommandChassisControl, k.chassisControlHandler)
 	k.sim.SetHandler(ipmi.NetworkFunctionChassis, ipmi.CommandChassisStatus, k.chassisStatusHandler)
+	k.sim.SetHandler(ipmi.NetworkFunctionChassis, ipmi.CommandSetSystemBootOptions, k.setSystemBootOptionsHandler)
 }
 
 func (k *KBMC) Run() error {
 	logrus.Info("Initializing the simulator...")
-	k.initialize()
+	k.register()
 
 	if err := k.sim.Run(); err != nil {
 		return fmt.Errorf("unable to run the ipmi simulator")

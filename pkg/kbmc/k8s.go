@@ -1,11 +1,19 @@
 package kbmc
 
 import (
+	"github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
 	kubevirtv1type "zespre.com/kubebmc/pkg/generated/clientset/versioned/typed/core/v1"
+)
+
+type BootDevice string
+
+const (
+	Pxe  BootDevice = "pxe"
+	Disk BootDevice = "disk"
 )
 
 func NewK8sClient(options Options) *kubevirtv1type.KubevirtV1Client {
@@ -15,7 +23,7 @@ func NewK8sClient(options Options) *kubevirtv1type.KubevirtV1Client {
 	)
 
 	// if options.KubeconfigPath == "" {
-	// creates the in-cluster config
+	// 	// creates the in-cluster config
 	config, err = rest.InClusterConfig()
 	if err != nil {
 		panic(err.Error())
@@ -94,5 +102,47 @@ func (k *KBMC) rebootVirtualMachine() error {
 	if err := k.kvClient.VirtualMachineInstances(k.vmNamespace).Delete(k.context, k.vmName, v1.DeleteOptions{}); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (k *KBMC) setVirtualMachineBootDevice(bd BootDevice) error {
+	logrus.Info("setVirtualMachineBootDevice")
+	vm, err := k.kvClient.VirtualMachines(k.vmNamespace).Get(k.context, k.vmName, v1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	for i, dev := range vm.Spec.Template.Spec.Domain.Devices.Disks {
+		logrus.Infof("disk: %+v", dev)
+		if dev.BootOrder == nil {
+			continue
+		}
+		newOrder := *dev.BootOrder + 1
+		vm.Spec.Template.Spec.Domain.Devices.Disks[i].BootOrder = &newOrder
+	}
+	for i, intf := range vm.Spec.Template.Spec.Domain.Devices.Interfaces {
+		logrus.Infof("interface: %+v", intf)
+		if intf.BootOrder == nil {
+			continue
+		}
+		newOrder := *intf.BootOrder + 1
+		vm.Spec.Template.Spec.Domain.Devices.Interfaces[i].BootOrder = &newOrder
+	}
+
+	var firstOrder uint = 1
+	switch bd {
+	case Pxe:
+		vm.Spec.Template.Spec.Domain.Devices.Interfaces[0].BootOrder = &firstOrder
+		logrus.Infof("To be updated vm: %+v", vm.Spec.Template.Spec.Domain.Devices.Interfaces[0])
+	case Disk:
+		vm.Spec.Template.Spec.Domain.Devices.Disks[0].BootOrder = &firstOrder
+		logrus.Infof("To be updated vm: %+v", vm.Spec.Template.Spec.Domain.Devices.Disks[0])
+	}
+
+	if _, err := k.kvClient.VirtualMachines(k.vmNamespace).Update(k.context, vm, v1.UpdateOptions{}); err != nil {
+		logrus.Errorf("update vm error: %v", err)
+		return err
+	}
+
 	return nil
 }

@@ -5,7 +5,7 @@ const (
 	DefaultPassword   = "password"
 	kbmcContainerName = "kbmc"
 	kbmcImageName     = "starbops/kbmc"
-	kbmcImageTag      = "v0.0.1"
+	kbmcImageTag      = "dev"
 	ipmiPort          = 623
 	ipmiSvcPort       = 623
 	ipmiPortName      = "ipmi"
