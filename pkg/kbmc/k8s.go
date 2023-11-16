@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
 	kubevirtv1type "zespre.com/kubebmc/pkg/generated/clientset/versioned/typed/core/v1"
@@ -22,21 +23,25 @@ func NewK8sClient(options Options) *kubevirtv1type.KubevirtV1Client {
 		err    error
 	)
 
-	// if options.KubeconfigPath == "" {
-	// 	// creates the in-cluster config
+	// creates the in-cluster config
 	config, err = rest.InClusterConfig()
+	if err != nil {
+		if err == rest.ErrNotInCluster {
+			goto localConfig
+		}
+		panic(err.Error())
+	}
+	goto genClientset
+
+localConfig:
+	// uses the current context in kubeconfig
+	// path-to-kubeconfig -- for example, /root/.kube/config
+	config, err = clientcmd.BuildConfigFromFlags("", options.KubeconfigPath)
 	if err != nil {
 		panic(err.Error())
 	}
-	// } else {
-	// 	// uses the current context in kubeconfig
-	// 	// path-to-kubeconfig -- for example, /root/.kube/config
-	// 	config, err = clientcmd.BuildConfigFromFlags("", options.KubeconfigPath)
-	// 	if err != nil {
-	// 		panic(err.Error())
-	// 	}
-	// }
 
+genClientset:
 	clientset, err := kubevirtv1type.NewForConfig(config)
 	if err != nil {
 		panic(err.Error())
