@@ -26,7 +26,7 @@ type KBMC struct {
 	sim         *ipmi.Simulator
 }
 
-func New(ctx context.Context, options Options, inCluster bool) (*KBMC, error) {
+func NewKBMC(ctx context.Context, options Options, inCluster bool) (*KBMC, error) {
 	return &KBMC{
 		context:     ctx,
 		address:     options.Address,

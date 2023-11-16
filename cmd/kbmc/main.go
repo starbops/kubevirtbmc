@@ -78,7 +78,7 @@ func run(ctx context.Context, options kbmc.Options) error {
 		os.Exit(2)
 	}()
 
-	kbmc, err := kbmc.New(ctx, options, ok)
+	kbmc, err := kbmc.NewKBMC(ctx, options, ok)
 	if err != nil {
 		return fmt.Errorf("failed to create kbmc server: %v", err)
 	}
