@@ -79,7 +79,7 @@ func (r *KubeBMCReconciler) constructPodForKubeBMC(kubeBMC *virtualmachinev1.Kub
 					},
 				},
 			},
-			ServiceAccountName: "kbmc",
+			ServiceAccountName: "kubebmc-kbmc",
 		},
 	}
 

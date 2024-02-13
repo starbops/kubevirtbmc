@@ -95,7 +95,7 @@ type KubeBMCStatus struct {
 - kubectl version v1.11.3+.
 - Access to a Kubernetes v1.11.3+ cluster.
 
-### To Deploy on The Cluster
+### Develop
 
 **Build and push the images to the location specified by `IMG`:**
 
@@ -104,14 +104,27 @@ make docker-build docker-push IMG=<some-registry>/kubebmc-controller:<tag>
 make docker-build-kbmc docker-push IMG=<some-registry>/kbmc:<tag>
 ```
 
-**NOTE:** These images ought to be published in the personal registry you specified. 
-And it is required to have access to pull the images from the working environment. 
-Make sure you have the proper permission to the registry if the above commands don’t work.
+> **NOTE:** These images ought to be published in the personal registry you specified. And it is required to have access to pull the images from the working environment. Make sure you have the proper permission to the registry if the above commands don’t work.
 
 **Install the CRDs into the cluster:**
 
 ```sh
 make install
+```
+
+**Run the controller locally**
+
+```sh
+export ENABLE_WEBHOOKS=false
+make run
+```
+
+### To Deploy on The Cluster
+
+**Deploy cert-manager**
+
+```sh
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.2/cert-manager.yaml
 ```
 
 **Deploy the Manager to the cluster with the image specified by `IMG`:**
@@ -124,25 +137,10 @@ make deploy IMG=<some-registry>/kubebmc-controller:<tag>
 
 ### To Start Using The KubeBMC
 
-You can apply the KubeBMC object like below:
-
-```yaml
-apiVersion: virtualmachine.zespre.com/v1
-kind: KubeBMC
-metadata:
-  name: default-test-vm
-  namespace: kubebmc-system
-spec:
-  password: password
-  username: admin
-  vmName: test-vm
-  vmNamespace: default
-```
-
-Create the object in the cluster:
+Create the KubeBMC object in the cluster:
 
 ```sh
-kubectl apply -f default-test-vm.yaml
+kubectl apply -f config/samples/virtualmachine_v1_kubebmc.yaml
 ```
 
 Though you can create the KubeBMC object manually, the corresponding KubeBMC object should be created automatically when the VirtualMachine object exists. It will then scaffold the `*-kbmc` Pod and Service object.
@@ -178,7 +176,7 @@ Chassis Power is on
 kubectl delete -k config/samples/
 ```
 
-**Delete the APIs(CRDs) from the cluster:**
+**Delete the APIs (CRDs) from the cluster:**
 
 ```sh
 make uninstall
