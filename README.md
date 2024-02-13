@@ -1,6 +1,6 @@
 # KubeBMC
 
-KubeBMC unleashes the power management for virtual machines on Kubernetes in a traditional way, i.e., [IPMI](https://www.intel.com.tw/content/www/tw/zh/products/docs/servers/ipmi/ipmi-second-gen-interface-spec-v2-rev1-1.html). This allows users to power on/off/reset and set the boot device (work in progress :wink:) for the VM. It was initially designed for [Tinkerbell](https://github.com/tinkerbell/tink)/[Seeder](https://github.com/harvester/seeder) to provision [KubeVirt](https://github.com/kubevirt/kubevirt) VMs, just like we did in the good old days.
+KubeBMC unleashes the power management for virtual machines on Kubernetes in a traditional way, i.e., [IPMI](https://www.intel.com.tw/content/www/tw/zh/products/docs/servers/ipmi/ipmi-second-gen-interface-spec-v2-rev1-1.html). This allows users to power on/off/reset and set the boot device for the VM. It was initially designed for [Tinkerbell](https://github.com/tinkerbell/tink)/[Seeder](https://github.com/harvester/seeder) to provision [KubeVirt](https://github.com/kubevirt/kubevirt) VMs, just like we did in the good old days.
 
 The project was born in [SUSE Hack Week 23](https://hackweek.opensuse.org/).
 
@@ -26,12 +26,13 @@ flowchart LR
 
 **Goals**
 
-- Providing BMC functionalities for virtual machines powered by KubeVirt
-- Providing in-cluster accessibility
+- Providing a subset of BMC functionalities for virtual machines powered by KubeVirt
+- Providing in-cluster accessibility to the virtual BMCs of the VMs
 
 **Non-goals**
 
 - Providing BMC functionalities for bare-metal machines
+- Providing BMC accessibility outside of the cluster via LoadBalancer or NodePort type of Services
 
 KubeBMC consists of two components:
 
@@ -94,16 +95,17 @@ type KubeBMCStatus struct {
 - kubectl version v1.11.3+.
 - Access to a Kubernetes v1.11.3+ cluster.
 
-### To Deploy on the cluster
+### To Deploy on The Cluster
 
-**Build and push your image to the location specified by `IMG`:**
+**Build and push the images to the location specified by `IMG`:**
 
 ```sh
-make docker-build docker-push IMG=<some-registry>/kubebmc:tag
+make docker-build docker-push IMG=<some-registry>/kubebmc-controller:<tag>
+make docker-build-kbmc docker-push IMG=<some-registry>/kbmc:<tag>
 ```
 
-**NOTE:** This image ought to be published in the personal registry you specified. 
-And it is required to have access to pull the image from the working environment. 
+**NOTE:** These images ought to be published in the personal registry you specified. 
+And it is required to have access to pull the images from the working environment. 
 Make sure you have the proper permission to the registry if the above commands don’t work.
 
 **Install the CRDs into the cluster:**
@@ -115,12 +117,12 @@ make install
 **Deploy the Manager to the cluster with the image specified by `IMG`:**
 
 ```sh
-make deploy IMG=<some-registry>/kubebmc:tag
+make deploy IMG=<some-registry>/kubebmc-controller:<tag>
 ```
 
 > **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin privileges or be logged in as admin.
 
-**Create instances of your solution**
+### To Start Using The KubeBMC
 
 You can apply the KubeBMC object like below:
 
@@ -188,14 +190,6 @@ make uninstall
 make undeploy
 ```
 
-## Contributing
-
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-**NOTE:** Run `make --help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
-
 ## License
 
 Copyright 2023 Zespre Chang <starbops@hey.com>
@@ -211,4 +205,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
