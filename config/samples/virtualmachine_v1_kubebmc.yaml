@@ -1,14 +1,14 @@
-apiVersion: virtualmachine.zespre.com/v1
-kind: KubeBMC
+apiVersion: virtualmachine.kubevirt.org/v1
+kind: VirtualMachineBMC
 metadata:
   labels:
-    app.kubernetes.io/name: kubebmc
-    app.kubernetes.io/instance: kubebmc-sample
-    app.kubernetes.io/part-of: kubebmc
+    app.kubernetes.io/name: virtualmachinebmc
+    app.kubernetes.io/instance: virtualmachinebmc-sample
+    app.kubernetes.io/part-of: virtualmachinebmc
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: kubebmc
-  name: kubebmc-sample
-  namespace: kubebmc-system
+    app.kubernetes.io/created-by: virtualmachinebmc
+  name: virtualmachinebmc-sample
+  namespace: virtualmachinebmc-system
 spec:
   username: admin
   password: password

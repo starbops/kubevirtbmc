@@ -18,7 +18,7 @@ limitations under the License.
 package fake
 
 import (
-	v1 "zespre.com/kubebmc/pkg/generated/clientset/versioned/typed/core/v1"
+	v1 "kubevirt.org/virtualmachinebmc/pkg/generated/clientset/versioned/typed/core/v1"
 
 	rest "k8s.io/client-go/rest"
 	testing "k8s.io/client-go/testing"

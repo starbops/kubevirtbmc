@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package kubebmc
+package virtualmachinebmc
 
 import (
 	"context"
@@ -29,11 +29,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	virtualmachinev1 "zespre.com/kubebmc/api/v1"
+	virtualmachinev1 "kubevirt.org/virtualmachinebmc/api/v1"
 )
 
-// KubeBMCReconciler reconciles a KubeBMC object
-type KubeBMCReconciler struct {
+// VirtualMachineBMCReconciler reconciles a VirtualMachineBMC object
+type VirtualMachineBMCReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
@@ -43,7 +43,7 @@ var (
 	apiGVStr = virtualmachinev1.GroupVersion.String()
 )
 
-func (r *KubeBMCReconciler) constructPodForKubeBMC(kubeBMC *virtualmachinev1.KubeBMC) (*corev1.Pod, error) {
+func (r *VirtualMachineBMCReconciler) constructPodForVirtualMachineBMC(kubeBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Pod, error) {
 	name := fmt.Sprintf("%s-kbmc", kubeBMC.Name)
 
 	pod := &corev1.Pod{
@@ -79,14 +79,14 @@ func (r *KubeBMCReconciler) constructPodForKubeBMC(kubeBMC *virtualmachinev1.Kub
 					},
 				},
 			},
-			ServiceAccountName: "kubebmc-kbmc",
+			ServiceAccountName: "virtualmachinebmc-kbmc",
 		},
 	}
 
 	return pod, nil
 }
 
-func (r *KubeBMCReconciler) constructServiceForKubeBMC(kubeBMC *virtualmachinev1.KubeBMC) (*corev1.Service, error) {
+func (r *VirtualMachineBMCReconciler) constructServiceForVirtualMachineBMC(kubeBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Service, error) {
 	name := fmt.Sprintf("%s-kbmc", kubeBMC.Name)
 
 	svc := &corev1.Service{
@@ -119,35 +119,35 @@ func (r *KubeBMCReconciler) constructServiceForKubeBMC(kubeBMC *virtualmachinev1
 	return svc, nil
 }
 
-//+kubebuilder:rbac:groups=virtualmachine.zespre.com,resources=kubebmcs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=virtualmachine.zespre.com,resources=kubebmcs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=virtualmachine.zespre.com,resources=kubebmcs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/finalizers,verbs=update
 //+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
-// the KubeBMC object against the actual cluster state, and then
+// the VirtualMachineBMC object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.3/pkg/reconcile
-func (r *KubeBMCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	var kubeBMC virtualmachinev1.KubeBMC
+	var kubeBMC virtualmachinev1.VirtualMachineBMC
 	if err := r.Get(ctx, req.NamespacedName, &kubeBMC); err != nil {
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
-		log.Error(err, "unable to fetch KubeBMC")
+		log.Error(err, "unable to fetch VirtualMachineBMC")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	// Prepare the kbmc Pod
-	pod, err := r.constructPodForKubeBMC(&kubeBMC)
+	pod, err := r.constructPodForVirtualMachineBMC(&kubeBMC)
 	if err != nil {
 		log.Error(err, "unable to construct pod from template")
 		return ctrl.Result{}, err
@@ -158,14 +158,14 @@ func (r *KubeBMCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	// Create the kbmc Pod on the cluster
 	if err := r.Create(ctx, pod); err != nil && !apierrors.IsAlreadyExists(err) {
-		log.Error(err, "unable to create Pod for KubeBMC", "pod", pod)
+		log.Error(err, "unable to create Pod for VirtualMachineBMC", "pod", pod)
 		return ctrl.Result{}, err
 	}
 
-	log.V(1).Info("created Pod for KubeBMC", "pod", pod)
+	log.V(1).Info("created Pod for VirtualMachineBMC", "pod", pod)
 
 	// Prepare the kbmc Service
-	svc, err := r.constructServiceForKubeBMC(&kubeBMC)
+	svc, err := r.constructServiceForVirtualMachineBMC(&kubeBMC)
 	if err != nil {
 		log.Error(err, "unable to construct svc from template")
 		return ctrl.Result{}, err
@@ -176,17 +176,17 @@ func (r *KubeBMCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	// Create the kbmc Service on the cluster
 	if err := r.Create(ctx, svc); err != nil && !apierrors.IsAlreadyExists(err) {
-		log.Error(err, "unable to create Service for KubeBMC", "svc", svc)
+		log.Error(err, "unable to create Service for VirtualMachineBMC", "svc", svc)
 		return ctrl.Result{}, err
 	}
 
-	log.V(1).Info("created Service for KubeBMC", "svc", svc)
+	log.V(1).Info("created Service for VirtualMachineBMC", "svc", svc)
 
 	return ctrl.Result{}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *KubeBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *VirtualMachineBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Pod{}, ownerKey, func(rawObj client.Object) []string {
 		// grab the pod object, extract the owner...
 		pod := rawObj.(*corev1.Pod)
@@ -194,8 +194,8 @@ func (r *KubeBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		if owner == nil {
 			return nil
 		}
-		// ...make sure it's a KubeBMC...
-		if owner.APIVersion != apiGVStr || owner.Kind != "KubeBMC" {
+		// ...make sure it's a VirtualMachineBMC...
+		if owner.APIVersion != apiGVStr || owner.Kind != "VirtualMachineBMC" {
 			return nil
 		}
 
@@ -212,8 +212,8 @@ func (r *KubeBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		if owner == nil {
 			return nil
 		}
-		// ...make sure it's a KubeBMC...
-		if owner.APIVersion != apiGVStr || owner.Kind != "KubeBMC" {
+		// ...make sure it's a VirtualMachineBMC...
+		if owner.APIVersion != apiGVStr || owner.Kind != "VirtualMachineBMC" {
 			return nil
 		}
 
@@ -224,7 +224,7 @@ func (r *KubeBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&virtualmachinev1.KubeBMC{}).
+		For(&virtualmachinev1.VirtualMachineBMC{}).
 		Owns(&corev1.Pod{}).
 		Owns(&corev1.Service{}).
 		Complete(r)

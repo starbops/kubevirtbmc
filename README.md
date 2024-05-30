@@ -1,12 +1,12 @@
-# KubeBMC
+# VirtualMachineBMC
 
-KubeBMC unleashes the power management for virtual machines on Kubernetes in a traditional way, i.e., [IPMI](https://www.intel.com.tw/content/www/tw/zh/products/docs/servers/ipmi/ipmi-second-gen-interface-spec-v2-rev1-1.html). This allows users to power on/off/reset and set the boot device for the VM. It was initially designed for [Tinkerbell](https://github.com/tinkerbell/tink)/[Seeder](https://github.com/harvester/seeder) to provision [KubeVirt](https://github.com/kubevirt/kubevirt) VMs, just like we did in the good old days.
+VirtualMachineBMC unleashes the power management for virtual machines on Kubernetes in a traditional way, i.e., [IPMI](https://www.intel.com.tw/content/www/tw/zh/products/docs/servers/ipmi/ipmi-second-gen-interface-spec-v2-rev1-1.html). This allows users to power on/off/reset and set the boot device for the VM. It was initially designed for [Tinkerbell](https://github.com/tinkerbell/tink)/[Seeder](https://github.com/harvester/seeder) to provision [KubeVirt](https://github.com/kubevirt/kubevirt) VMs, just like we did in the good old days.
 
 The project was born in [SUSE Hack Week 23](https://hackweek.opensuse.org/).
 
 ## Description
 
-KubeBMC was inspired by [VirtualBMC](https://opendev.org/openstack/virtualbmc). The difference between them could be illustrated below:
+VirtualMachineBMC was inspired by [VirtualBMC](https://opendev.org/openstack/virtualbmc). The difference between them could be illustrated below:
 
 ```mermaid
 flowchart LR
@@ -14,7 +14,7 @@ flowchart LR
     client2[Client]
     BMC1[BMC]
     VM[VM]
-    subgraph KubeBMC
+    subgraph VirtualMachineBMC
     direction LR
     client2-->|IPMI|kBMC-->|K8s API|VM
     end
@@ -34,17 +34,17 @@ flowchart LR
 - Providing BMC functionalities for bare-metal machines
 - Providing BMC accessibility outside of the cluster via LoadBalancer or NodePort type of Services
 
-KubeBMC consists of two components:
+VirtualMachineBMC consists of two components:
 
-- **kubebmc-controller**: A typical Kubernetes controller built with kubebuilder that reconciles on the KubeBMC, VirtualMachine, and Service objects
+- **virtualmachinebmc-controller**: A typical Kubernetes controller built with kubebuilder that reconciles on the VirtualMachineBMC, VirtualMachine, and Service objects
 - **kbmc**: A BMC simulator for serving IPMI and translating the requests to native Kubernetes API requests
 
-Below is the workflow of KubeBMC when a VirtualMachine was created and booted up:
+Below is the workflow of VirtualMachineBMC when a VirtualMachine was created and booted up:
 
 ```mermaid
 flowchart LR
-    controller["kubebmc-controller"]
-    cr["kubebmc CR"]
+    controller["virtualmachinebmc-controller"]
+    cr["virtualmachinebmc CR"]
     kbmc-pod["kbmc Pod"]
     kbmc-svc["kbmc Service"]
     controller-.->|watches|cr
@@ -57,10 +57,10 @@ flowchart LR
     vm-->|creates|vmi
 ```
 
-The KubeBMC CR (CustomResource):
+The VirtualMachineBMC CR (CustomResource):
 
 ```go
-type KubeBMCSpec struct {
+type VirtualMachineBMCSpec struct {
 	// To authenticate who the user is.
 	// +optional
 	Username string `json:"username,omitempty"`
@@ -76,8 +76,8 @@ type KubeBMCSpec struct {
 	VirtualMachineName string `json:"vmName"`
 }
 
-// KubeBMCStatus defines the observed state of KubeBMC
-type KubeBMCStatus struct {
+// VirtualMachineBMCStatus defines the observed state of VirtualMachineBMC
+type VirtualMachineBMCStatus struct {
 	// The listen IP address for the IPMI service.
 	ServiceIP string `json:"serviceIP"`
 
@@ -100,7 +100,7 @@ type KubeBMCStatus struct {
 **Build and push the images to the location specified by `IMG`:**
 
 ```sh
-make docker-build docker-push IMG=<some-registry>/kubebmc-controller:<tag>
+make docker-build docker-push IMG=<some-registry>/virtualmachinebmc-controller:<tag>
 make docker-build-kbmc docker-push IMG=<some-registry>/kbmc:<tag>
 ```
 
@@ -130,23 +130,23 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 **Deploy the Manager to the cluster with the image specified by `IMG`:**
 
 ```sh
-make deploy IMG=<some-registry>/kubebmc-controller:<tag>
+make deploy IMG=<some-registry>/virtualmachinebmc-controller:<tag>
 ```
 
 > **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin privileges or be logged in as admin.
 
-### To Start Using The KubeBMC
+### To Start Using The VirtualMachineBMC
 
-Create the KubeBMC object in the cluster:
+Create the VirtualMachineBMC object in the cluster:
 
 ```sh
-kubectl apply -f config/samples/virtualmachine_v1_kubebmc.yaml
+kubectl apply -f config/samples/virtualmachine_v1_virtualmachinebmc.yaml
 ```
 
-Though you can create the KubeBMC object manually, the corresponding KubeBMC object should be created automatically when the VirtualMachine object exists. It will then scaffold the `*-kbmc` Pod and Service object.
+Though you can create the VirtualMachineBMC object manually, the corresponding VirtualMachineBMC object should be created automatically when the VirtualMachine object exists. It will then scaffold the `*-kbmc` Pod and Service object.
 
 ```sh
-$ kubectl -n kubebmc-system get svc
+$ kubectl -n virtualmachinebmc-system get svc
 NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
 default-test-vm-kbmc               ClusterIP   10.53.106.65    <none>        623/UDP   3h13m
 ```
@@ -160,11 +160,11 @@ $ kubectl run -it --rm ipmitool --image=mikeynap/ipmitool --command -- /bin/sh
 Inside the Pod, you can for example turn on the VM via `ipmitool`:
 
 ```sh
-$ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.kubebmc-system.svc.cluster.local power status
+$ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.virtualmachinebmc-system.svc.cluster.local power status
 Chassis Power is off
-$ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.kubebmc-system.svc.cluster.local power on
+$ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.virtualmachinebmc-system.svc.cluster.local power on
 Chassis Power Control: Up/On
-$ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.kubebmc-system.svc.cluster.local power status
+$ ipmitool -I lan -U admin -P password -H default-test-vm-kbmc.virtualmachinebmc-system.svc.cluster.local power status
 Chassis Power is on
 ```
 

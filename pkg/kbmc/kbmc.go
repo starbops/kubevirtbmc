@@ -7,7 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	ipmi "github.com/vmware/goipmi"
-	kubevirtv1 "zespre.com/kubebmc/pkg/generated/clientset/versioned/typed/core/v1"
+	kubevirtv1 "kubevirt.org/virtualmachinebmc/pkg/generated/clientset/versioned/typed/core/v1"
 )
 
 type Options struct {
