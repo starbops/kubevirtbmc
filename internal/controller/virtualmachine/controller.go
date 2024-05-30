@@ -25,16 +25,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	kubevirtv1 "kubevirt.io/api/core/v1"
+	virtualmachinev1 "kubevirt.org/virtualmachinebmc/api/v1"
+	ctlvirtualmachinebmc "kubevirt.org/virtualmachinebmc/internal/controller/virtualmachinebmc"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	virtualmachinev1 "zespre.com/kubebmc/api/v1"
-	ctlkubebmc "zespre.com/kubebmc/internal/controller/kubebmc"
 )
 
 const (
-	finalizerName = "kubebmc-virtualmachine-controller"
+	finalizerName = "virtualmachinebmc-virtualmachine-controller"
 )
 
 // VirtualMachineReconciler reconciles a VirtualMachine object
@@ -63,21 +63,21 @@ func (v *VirtualMachineReconciler) handleFinalizer(ctx context.Context, vm *kube
 	return nil
 }
 
-func (v *VirtualMachineReconciler) constructKubeBMCForVirtualMachine(vm *kubevirtv1.VirtualMachine) (*virtualmachinev1.KubeBMC, error) {
+func (v *VirtualMachineReconciler) constructVirtualMachineBMCForVirtualMachine(vm *kubevirtv1.VirtualMachine) (*virtualmachinev1.VirtualMachineBMC, error) {
 	name := fmt.Sprintf("%s-%s", vm.Namespace, vm.Name)
 
-	kubeBMC := &virtualmachinev1.KubeBMC{
+	kubeBMC := &virtualmachinev1.VirtualMachineBMC{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: make(map[string]string),
 			Labels: map[string]string{
-				ctlkubebmc.ManagedByLabel: "kubebmc-controller",
+				ctlvirtualmachinebmc.ManagedByLabel: "virtualmachinebmc-controller",
 			},
 			Name:      name,
-			Namespace: ctlkubebmc.KBMCNamespace,
+			Namespace: ctlvirtualmachinebmc.KBMCNamespace,
 		},
-		Spec: virtualmachinev1.KubeBMCSpec{
-			Username:                ctlkubebmc.DefaultUsername,
-			Password:                ctlkubebmc.DefaultPassword,
+		Spec: virtualmachinev1.VirtualMachineBMCSpec{
+			Username:                ctlvirtualmachinebmc.DefaultUsername,
+			Password:                ctlvirtualmachinebmc.DefaultPassword,
 			VirtualMachineNamespace: vm.Namespace,
 			VirtualMachineName:      vm.Name,
 		},
@@ -87,9 +87,9 @@ func (v *VirtualMachineReconciler) constructKubeBMCForVirtualMachine(vm *kubevir
 }
 
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch;update;patch
-//+kubebuilder:rbac:groups=virtualmachine.zespre.com,resources=kubebmcs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=virtualmachine.zespre.com,resources=kubebmcs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=virtualmachine.zespre.com,resources=kubebmcs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/finalizers,verbs=update
 
 func (v *VirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
@@ -108,37 +108,37 @@ func (v *VirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		return ctrl.Result{}, err
 	}
 
-	// Prepare the KubeBMC
-	kubeBMC, err := v.constructKubeBMCForVirtualMachine(&vm)
+	// Prepare the VirtualMachineBMC
+	kubeBMC, err := v.constructVirtualMachineBMCForVirtualMachine(&vm)
 	if err != nil {
-		log.Error(err, "unable to construct kubebmc from template")
+		log.Error(err, "unable to construct virtualmachinebmc from template")
 		return ctrl.Result{}, err
 	}
 
-	// Create the KubeBMC on the cluster
+	// Create the VirtualMachineBMC on the cluster
 	if err := v.Create(ctx, kubeBMC); err != nil && !apierrors.IsAlreadyExists(err) {
-		log.Error(err, "unable to create KubeBMC for VirtualMachine", "kubeBMC", kubeBMC)
+		log.Error(err, "unable to create VirtualMachineBMC for VirtualMachine", "kubeBMC", kubeBMC)
 		return ctrl.Result{}, err
 	}
 
-	log.V(1).Info("created KubeBMC for VirtualMachine", "kubeBMC", kubeBMC)
+	log.V(1).Info("created VirtualMachineBMC for VirtualMachine", "kubeBMC", kubeBMC)
 
 	knn := types.NamespacedName{
-		Namespace: ctlkubebmc.KBMCNamespace,
+		Namespace: ctlvirtualmachinebmc.KBMCNamespace,
 		Name:      fmt.Sprintf("%s-%s", vm.Namespace, vm.Name),
 	}
-	var kbmc virtualmachinev1.KubeBMC
+	var kbmc virtualmachinev1.VirtualMachineBMC
 	if err := v.Get(ctx, knn, &kbmc); err != nil {
-		log.Error(err, "unable to fetch KubeBMC")
+		log.Error(err, "unable to fetch VirtualMachineBMC")
 		return ctrl.Result{}, err
 	}
 
 	if !vm.ObjectMeta.DeletionTimestamp.IsZero() {
 		if err := v.Delete(ctx, &kbmc); err != nil {
-			log.Error(err, "unable to delete KubeBMC for VirtualMachine", "kbmc", kbmc)
+			log.Error(err, "unable to delete VirtualMachineBMC for VirtualMachine", "kbmc", kbmc)
 			return ctrl.Result{}, err
 		}
-		log.V(1).Info("removed KubeBMC for VirtualMachine", "kbmc", kbmc)
+		log.V(1).Info("removed VirtualMachineBMC for VirtualMachine", "kbmc", kbmc)
 	}
 
 	return ctrl.Result{}, nil

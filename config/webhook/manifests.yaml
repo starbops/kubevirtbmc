@@ -10,19 +10,19 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /mutate-virtualmachine-zespre-com-v1-kubebmc
+      path: /mutate-virtualmachine-kubevirt-org-v1-virtualmachinebmc
   failurePolicy: Fail
-  name: mkubebmc.kb.io
+  name: mvirtualmachinebmc.kb.io
   rules:
   - apiGroups:
-    - virtualmachine.zespre.com
+    - virtualmachine.kubevirt.org
     apiVersions:
     - v1
     operations:
     - CREATE
     - UPDATE
     resources:
-    - kubebmcs
+    - virtualmachinebmcs
   sideEffects: None
 ---
 apiVersion: admissionregistration.k8s.io/v1
@@ -36,17 +36,17 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-virtualmachine-zespre-com-v1-kubebmc
+      path: /validate-virtualmachine-kubevirt-org-v1-virtualmachinebmc
   failurePolicy: Fail
-  name: vkubebmc.kb.io
+  name: vvirtualmachinebmc.kb.io
   rules:
   - apiGroups:
-    - virtualmachine.zespre.com
+    - virtualmachine.kubevirt.org
     apiVersions:
     - v1
     operations:
     - CREATE
     - UPDATE
     resources:
-    - kubebmcs
+    - virtualmachinebmcs
   sideEffects: None

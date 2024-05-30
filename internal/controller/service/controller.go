@@ -25,11 +25,11 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	virtualmachinev1 "kubevirt.org/virtualmachinebmc/api/v1"
+	ctlvirtualmachinebmc "kubevirt.org/virtualmachinebmc/internal/controller/virtualmachinebmc"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	virtualmachinev1 "zespre.com/kubebmc/api/v1"
-	ctlkubebmc "zespre.com/kubebmc/internal/controller/kubebmc"
 )
 
 // ServiceReconciler reconciles a Service object
@@ -39,8 +39,8 @@ type ServiceReconciler struct {
 }
 
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch
-//+kubebuilder:rbac:groups=virtualmachine.zespre.com,resources=kubebmcs,verbs=get;list;watch
-//+kubebuilder:rbac:groups=virtualmachine.zespre.com,resources=kubebmcs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs,verbs=get;list;watch
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/status,verbs=get;update;patch
 
 func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
@@ -57,7 +57,7 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if svc.Labels == nil {
 		return ctrl.Result{}, nil
 	}
-	kBMCName, ok := svc.Labels[ctlkubebmc.KBMCNameLabel]
+	kBMCName, ok := svc.Labels[ctlvirtualmachinebmc.KBMCNameLabel]
 	if !ok {
 		return ctrl.Result{}, nil
 	}
@@ -66,24 +66,24 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		Name:      kBMCName,
 	}
 
-	var kubeBMC virtualmachinev1.KubeBMC
+	var kubeBMC virtualmachinev1.VirtualMachineBMC
 	if err := s.Get(ctx, knn, &kubeBMC); err != nil {
-		log.Error(err, "unable to fetch KubeBMC")
+		log.Error(err, "unable to fetch VirtualMachineBMC")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Update KubeBMC status
+	// Update VirtualMachineBMC status
 	if svc.Spec.ClusterIP == "" {
 		return ctrl.Result{RequeueAfter: time.Duration(time.Second * 10)}, fmt.Errorf("clusterIP is not ready yet")
 	}
 	kubeBMC.Status.Ready = true
 	kubeBMC.Status.ServiceIP = svc.Spec.ClusterIP
 	if err := s.Status().Update(ctx, &kubeBMC); err != nil {
-		log.Error(err, "unable to update KubeBMC status")
+		log.Error(err, "unable to update VirtualMachineBMC status")
 		return ctrl.Result{}, err
 	}
 
-	log.V(1).Info("updated KubeBMC status for Service", "kubeBMC", kubeBMC)
+	log.V(1).Info("updated VirtualMachineBMC status for Service", "kubeBMC", kubeBMC)
 
 	return ctrl.Result{}, nil
 }

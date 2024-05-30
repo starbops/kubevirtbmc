@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"zespre.com/kubebmc/pkg/kbmc"
+	"kubevirt.org/virtualmachinebmc/pkg/kbmc"
 )
 
 func main() {

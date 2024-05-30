@@ -34,10 +34,10 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	virtualmachinev1 "zespre.com/kubebmc/api/v1"
-	"zespre.com/kubebmc/internal/controller/kubebmc"
-	"zespre.com/kubebmc/internal/controller/service"
-	"zespre.com/kubebmc/internal/controller/virtualmachine"
+	virtualmachinev1 "kubevirt.org/virtualmachinebmc/api/v1"
+	"kubevirt.org/virtualmachinebmc/internal/controller/service"
+	"kubevirt.org/virtualmachinebmc/internal/controller/virtualmachine"
+	"kubevirt.org/virtualmachinebmc/internal/controller/virtualmachinebmc"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -96,7 +96,7 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	err = (&kubebmc.KubeBMCReconciler{
+	err = (&virtualmachinebmc.VirtualMachineBMCReconciler{
 		Client: k8sManager.GetClient(),
 		Scheme: k8sManager.GetScheme(),
 	}).SetupWithManager(k8sManager)

@@ -7,7 +7,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
-	kubevirtv1type "zespre.com/kubebmc/pkg/generated/clientset/versioned/typed/core/v1"
+	kubevirtv1type "kubevirt.org/virtualmachinebmc/pkg/generated/clientset/versioned/typed/core/v1"
 )
 
 type BootDevice string

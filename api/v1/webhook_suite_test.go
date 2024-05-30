@@ -113,7 +113,7 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	err = (&KubeBMC{}).SetupWebhookWithManager(mgr)
+	err = (&VirtualMachineBMC{}).SetupWebhookWithManager(mgr)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:webhook

@@ -23,8 +23,8 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// KubeBMCSpec defines the desired state of KubeBMC
-type KubeBMCSpec struct {
+// VirtualMachineBMCSpec defines the desired state of VirtualMachineBMC
+type VirtualMachineBMCSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -43,8 +43,8 @@ type KubeBMCSpec struct {
 	VirtualMachineName string `json:"vmName"`
 }
 
-// KubeBMCStatus defines the observed state of KubeBMC
-type KubeBMCStatus struct {
+// VirtualMachineBMCStatus defines the observed state of VirtualMachineBMC
+type VirtualMachineBMCStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
@@ -58,24 +58,24 @@ type KubeBMCStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 
-// KubeBMC is the Schema for the kubebmcs API
-type KubeBMC struct {
+// VirtualMachineBMC is the Schema for the virtualmachinebmcs API
+type VirtualMachineBMC struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KubeBMCSpec   `json:"spec,omitempty"`
-	Status KubeBMCStatus `json:"status,omitempty"`
+	Spec   VirtualMachineBMCSpec   `json:"spec,omitempty"`
+	Status VirtualMachineBMCStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// KubeBMCList contains a list of KubeBMC
-type KubeBMCList struct {
+// VirtualMachineBMCList contains a list of VirtualMachineBMC
+type VirtualMachineBMCList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KubeBMC `json:"items"`
+	Items           []VirtualMachineBMC `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&KubeBMC{}, &KubeBMCList{})
+	SchemeBuilder.Register(&VirtualMachineBMC{}, &VirtualMachineBMCList{})
 }

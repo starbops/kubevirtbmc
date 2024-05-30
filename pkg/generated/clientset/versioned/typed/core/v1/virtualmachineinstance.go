@@ -19,8 +19,8 @@ package v1
 
 import (
 	"context"
+	scheme "kubevirt.org/virtualmachinebmc/pkg/generated/clientset/versioned/scheme"
 	"time"
-	scheme "zespre.com/kubebmc/pkg/generated/clientset/versioned/scheme"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
