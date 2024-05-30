@@ -1,4 +1,4 @@
-package kubebmc
+package virtualmachinebmc
 
 const (
 	DefaultUsername   = "admin"
@@ -10,7 +10,7 @@ const (
 	IPMISvcPort       = 623
 	ipmiPortName      = "ipmi"
 	ManagedByLabel    = "app.kubernetes.io/managed-by"
-	KBMCNameLabel     = "zespre.com/kubebmc-name"
-	VMNameLabel       = "zespre.com/vm-name"
-	KBMCNamespace     = "kubebmc-system"
+	KBMCNameLabel     = "kubevirt.org/virtualmachinebmc-name"
+	VMNameLabel       = "kubevirt.org/vm-name"
+	KBMCNamespace     = "virtualmachinebmc-system"
 )

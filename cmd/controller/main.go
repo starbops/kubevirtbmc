@@ -32,12 +32,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	virtualmachinev1 "zespre.com/kubebmc/api/v1"
-	"zespre.com/kubebmc/internal/controller/kubebmc"
-	"zespre.com/kubebmc/internal/controller/service"
-	"zespre.com/kubebmc/internal/controller/virtualmachine"
+	virtualmachinev1 "kubevirt.org/virtualmachinebmc/api/v1"
+	"kubevirt.org/virtualmachinebmc/internal/controller/service"
+	"kubevirt.org/virtualmachinebmc/internal/controller/virtualmachine"
+	"kubevirt.org/virtualmachinebmc/internal/controller/virtualmachinebmc"
 
-	// clischeme "zespre.com/kubebmc/pkg/generated/clientset/versioned/scheme"
+	// clischeme "kubevirt.org/virtualmachinebmc/pkg/generated/clientset/versioned/scheme"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	//+kubebuilder:scaffold:imports
 )
@@ -76,7 +76,7 @@ func main() {
 		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "5e66b2cf.zespre.com",
+		LeaderElectionID:       "5e66b2cf.kubevirt.org",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -94,11 +94,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&kubebmc.KubeBMCReconciler{
+	if err = (&virtualmachinebmc.VirtualMachineBMCReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "KubeBMC")
+		setupLog.Error(err, "unable to create controller", "controller", "VirtualMachineBMC")
 		os.Exit(1)
 	}
 	if err = (&service.ServiceReconciler{
@@ -116,8 +116,8 @@ func main() {
 		os.Exit(1)
 	}
 	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-		if err = (&virtualmachinev1.KubeBMC{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "KubeBMC")
+		if err = (&virtualmachinev1.VirtualMachineBMC{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "VirtualMachineBMC")
 			os.Exit(1)
 		}
 	}

@@ -39,9 +39,9 @@ rules:
   - update
   - watch
 - apiGroups:
-  - virtualmachine.zespre.com
+  - virtualmachine.kubevirt.org
   resources:
-  - kubebmcs
+  - virtualmachinebmcs
   verbs:
   - create
   - delete
@@ -51,15 +51,15 @@ rules:
   - update
   - watch
 - apiGroups:
-  - virtualmachine.zespre.com
+  - virtualmachine.kubevirt.org
   resources:
-  - kubebmcs/finalizers
+  - virtualmachinebmcs/finalizers
   verbs:
   - update
 - apiGroups:
-  - virtualmachine.zespre.com
+  - virtualmachine.kubevirt.org
   resources:
-  - kubebmcs/status
+  - virtualmachinebmcs/status
   verbs:
   - get
   - patch

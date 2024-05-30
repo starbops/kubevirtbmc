@@ -25,10 +25,10 @@ import (
 )
 
 // log is for logging in this package.
-var kubebmclog = logf.Log.WithName("kubebmc-resource")
+var virtualmachinebmclog = logf.Log.WithName("virtualmachinebmc-resource")
 
 // SetupWebhookWithManager will setup the manager to manage the webhooks
-func (r *KubeBMC) SetupWebhookWithManager(mgr ctrl.Manager) error {
+func (r *VirtualMachineBMC) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
 		Complete()
@@ -36,13 +36,13 @@ func (r *KubeBMC) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-//+kubebuilder:webhook:path=/mutate-virtualmachine-zespre-com-v1-kubebmc,mutating=true,failurePolicy=fail,sideEffects=None,groups=virtualmachine.zespre.com,resources=kubebmcs,verbs=create;update,versions=v1,name=mkubebmc.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/mutate-virtualmachine-kubevirt-org-v1-virtualmachinebmc,mutating=true,failurePolicy=fail,sideEffects=None,groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs,verbs=create;update,versions=v1,name=mvirtualmachinebmc.kb.io,admissionReviewVersions=v1
 
-var _ webhook.Defaulter = &KubeBMC{}
+var _ webhook.Defaulter = &VirtualMachineBMC{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (r *KubeBMC) Default() {
-	kubebmclog.Info("default", "name", r.Name)
+func (r *VirtualMachineBMC) Default() {
+	virtualmachinebmclog.Info("default", "name", r.Name)
 
 	// TODO(user): fill in your defaulting logic.
 	if r.Spec.Username == "" {
@@ -57,29 +57,29 @@ func (r *KubeBMC) Default() {
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
-//+kubebuilder:webhook:path=/validate-virtualmachine-zespre-com-v1-kubebmc,mutating=false,failurePolicy=fail,sideEffects=None,groups=virtualmachine.zespre.com,resources=kubebmcs,verbs=create;update,versions=v1,name=vkubebmc.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-virtualmachine-kubevirt-org-v1-virtualmachinebmc,mutating=false,failurePolicy=fail,sideEffects=None,groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs,verbs=create;update,versions=v1,name=vvirtualmachinebmc.kb.io,admissionReviewVersions=v1
 
-var _ webhook.Validator = &KubeBMC{}
+var _ webhook.Validator = &VirtualMachineBMC{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *KubeBMC) ValidateCreate() (admission.Warnings, error) {
-	kubebmclog.Info("validate create", "name", r.Name)
+func (r *VirtualMachineBMC) ValidateCreate() (admission.Warnings, error) {
+	virtualmachinebmclog.Info("validate create", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object creation.
 	return nil, nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *KubeBMC) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
-	kubebmclog.Info("validate update", "name", r.Name)
+func (r *VirtualMachineBMC) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
+	virtualmachinebmclog.Info("validate update", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object update.
 	return nil, nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *KubeBMC) ValidateDelete() (admission.Warnings, error) {
-	kubebmclog.Info("validate delete", "name", r.Name)
+func (r *VirtualMachineBMC) ValidateDelete() (admission.Warnings, error) {
+	virtualmachinebmclog.Info("validate delete", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object deletion.
 	return nil, nil

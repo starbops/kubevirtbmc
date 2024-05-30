@@ -1,4 +1,4 @@
-module zespre.com/kubebmc
+module kubevirt.org/virtualmachinebmc
 
 go 1.20
 
