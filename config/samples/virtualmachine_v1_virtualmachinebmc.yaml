@@ -4,11 +4,11 @@ metadata:
   labels:
     app.kubernetes.io/name: virtualmachinebmc
     app.kubernetes.io/instance: virtualmachinebmc-sample
-    app.kubernetes.io/part-of: virtualmachinebmc
+    app.kubernetes.io/part-of: kubevirtbmc
     app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: virtualmachinebmc
+    app.kubernetes.io/created-by: kubevirtbmc
   name: virtualmachinebmc-sample
-  namespace: virtualmachinebmc-system
+  namespace: kubevirtbmc-system
 spec:
   username: admin
   password: password

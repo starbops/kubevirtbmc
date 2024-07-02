@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	virtualmachinev1 "kubevirt.org/virtualmachinebmc/api/v1"
+	virtualmachinev1 "kubevirt.org/kubevirtbmc/api/v1"
 )
 
 // VirtualMachineBMCReconciler reconciles a VirtualMachineBMC object
@@ -44,13 +44,13 @@ var (
 )
 
 func (r *VirtualMachineBMCReconciler) constructPodForVirtualMachineBMC(kubeBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Pod, error) {
-	name := fmt.Sprintf("%s-kbmc", kubeBMC.Name)
+	name := fmt.Sprintf("%s-virt-bmc", kubeBMC.Name)
 
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: make(map[string]string),
 			Labels: map[string]string{
-				ManagedByLabel: "kbmc",
+				ManagedByLabel: "virt-bmc",
 				KBMCNameLabel:  kubeBMC.Name,
 				VMNameLabel:    kubeBMC.Spec.VirtualMachineName,
 			},
@@ -79,7 +79,7 @@ func (r *VirtualMachineBMCReconciler) constructPodForVirtualMachineBMC(kubeBMC *
 					},
 				},
 			},
-			ServiceAccountName: "virtualmachinebmc-kbmc",
+			ServiceAccountName: "kubevirtbmc-virt-bmc",
 		},
 	}
 
@@ -87,13 +87,13 @@ func (r *VirtualMachineBMCReconciler) constructPodForVirtualMachineBMC(kubeBMC *
 }
 
 func (r *VirtualMachineBMCReconciler) constructServiceForVirtualMachineBMC(kubeBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Service, error) {
-	name := fmt.Sprintf("%s-kbmc", kubeBMC.Name)
+	name := fmt.Sprintf("%s-virt-bmc", kubeBMC.Name)
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: make(map[string]string),
 			Labels: map[string]string{
-				ManagedByLabel: "kbmc",
+				ManagedByLabel: "virt-bmc",
 				KBMCNameLabel:  kubeBMC.Name,
 				VMNameLabel:    kubeBMC.Spec.VirtualMachineName,
 			},
@@ -102,7 +102,7 @@ func (r *VirtualMachineBMCReconciler) constructServiceForVirtualMachineBMC(kubeB
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				ManagedByLabel: "kbmc",
+				ManagedByLabel: "virt-bmc",
 				KBMCNameLabel:  kubeBMC.Name,
 			},
 			Ports: []corev1.ServicePort{
@@ -146,7 +146,7 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Prepare the kbmc Pod
+	// Prepare the virt-bmc Pod
 	pod, err := r.constructPodForVirtualMachineBMC(&kubeBMC)
 	if err != nil {
 		log.Error(err, "unable to construct pod from template")
@@ -156,7 +156,7 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// Create the kbmc Pod on the cluster
+	// Create the virt-bmc Pod on the cluster
 	if err := r.Create(ctx, pod); err != nil && !apierrors.IsAlreadyExists(err) {
 		log.Error(err, "unable to create Pod for VirtualMachineBMC", "pod", pod)
 		return ctrl.Result{}, err
@@ -164,7 +164,7 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	log.V(1).Info("created Pod for VirtualMachineBMC", "pod", pod)
 
-	// Prepare the kbmc Service
+	// Prepare the virt-bmc Service
 	svc, err := r.constructServiceForVirtualMachineBMC(&kubeBMC)
 	if err != nil {
 		log.Error(err, "unable to construct svc from template")
@@ -174,7 +174,7 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// Create the kbmc Service on the cluster
+	// Create the virt-bmc Service on the cluster
 	if err := r.Create(ctx, svc); err != nil && !apierrors.IsAlreadyExists(err) {
 		log.Error(err, "unable to create Service for VirtualMachineBMC", "svc", svc)
 		return ctrl.Result{}, err

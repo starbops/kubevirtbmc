@@ -85,7 +85,7 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
 	go build -o bin/manager cmd/controller/main.go
-	go build -o bin/kbmc cmd/kbmc/main.go
+	go build -o bin/virt-bmc cmd/virt-bmc/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
@@ -98,9 +98,9 @@ run: manifests generate fmt vet ## Run a controller from your host.
 docker-build: ## Build docker image with the manager.
 	$(CONTAINER_TOOL) build -t ${IMG} .
 
-.PHONY: docker-build-kbmc
-docker-build-kbmc: ## Builder docker image with the kbmc binary.
-	$(CONTAINER_TOOL) build -t ${IMG} --build-arg TARGETARCH=amd64 -f Dockerfile.kbmc .
+.PHONY: docker-build-virt-bmc
+docker-build-virt-bmc: ## Builder docker image with the virt-bmc binary.
+	$(CONTAINER_TOOL) build -t ${IMG} --build-arg TARGETARCH=amd64 -f Dockerfile.virt-bmc .
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
