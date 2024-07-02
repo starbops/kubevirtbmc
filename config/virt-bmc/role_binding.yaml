@@ -3,17 +3,17 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: clusterrolebinding
-    app.kubernetes.io/instance: kbmc-rolebinding
-    app.kubernetes.io/component: kbmc-rbac
-    app.kubernetes.io/created-by: virtualmachinebmc
-    app.kubernetes.io/part-of: virtualmachinebmc
+    app.kubernetes.io/instance: virt-bmc-rolebinding
+    app.kubernetes.io/component: virt-bmc-rbac
+    app.kubernetes.io/created-by: kubevirtbmc
+    app.kubernetes.io/part-of: kubevirtbmc
     app.kubernetes.io/managed-by: kustomize
-  name: kbmc-rolebinding
+  name: virt-bmc-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kbmc-role
+  name: virt-bmc-role
 subjects:
 - kind: ServiceAccount
-  name: kbmc
+  name: virt-bmc
   namespace: system

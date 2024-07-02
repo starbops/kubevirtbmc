@@ -29,16 +29,6 @@ rules:
   - update
   - watch
 - apiGroups:
-  - kubevirt.io
-  resources:
-  - virtualmachines
-  verbs:
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - virtualmachine.kubevirt.org
   resources:
   - virtualmachinebmcs

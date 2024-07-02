@@ -1,4 +1,4 @@
-module kubevirt.org/virtualmachinebmc
+module kubevirt.org/kubevirtbmc
 
 go 1.20
 

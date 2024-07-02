@@ -25,9 +25,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	virtualmachinev1 "kubevirt.org/virtualmachinebmc/api/v1"
-	ctlvirtualmachinebmc "kubevirt.org/virtualmachinebmc/internal/controller/virtualmachinebmc"
-	ctrl "sigs.k8s.io/controller-runtime"
+	virtualmachinev1 "kubevirt.org/kubevirtbmc/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -57,13 +55,13 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if svc.Labels == nil {
 		return ctrl.Result{}, nil
 	}
-	kBMCName, ok := svc.Labels[ctlvirtualmachinebmc.KBMCNameLabel]
+	virt - bmcName, ok := svc.Labels[ctlvirtualmachinebmc.virt-bmcNameLabel]
 	if !ok {
 		return ctrl.Result{}, nil
 	}
 	knn := types.NamespacedName{
 		Namespace: req.Namespace,
-		Name:      kBMCName,
+		Name:      virt - bmcName,
 	}
 
 	var kubeBMC virtualmachinev1.VirtualMachineBMC

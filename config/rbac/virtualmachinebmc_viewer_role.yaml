@@ -6,8 +6,8 @@ metadata:
     app.kubernetes.io/name: clusterrole
     app.kubernetes.io/instance: virtualmachinebmc-viewer-role
     app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: virtualmachinebmc
-    app.kubernetes.io/part-of: virtualmachinebmc
+    app.kubernetes.io/created-by: kubevirtbmc
+    app.kubernetes.io/part-of: kubevirtbmc
     app.kubernetes.io/managed-by: kustomize
   name: virtualmachinebmc-viewer-role
 rules:
