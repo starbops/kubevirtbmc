@@ -32,12 +32,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	virtualmachinev1 "kubevirt.org/virtualmachinebmc/api/v1"
-	"kubevirt.org/virtualmachinebmc/internal/controller/service"
-	"kubevirt.org/virtualmachinebmc/internal/controller/virtualmachine"
-	"kubevirt.org/virtualmachinebmc/internal/controller/virtualmachinebmc"
+	virtualmachinev1 "kubevirt.org/kubevirtbmc/api/v1"
+	"kubevirt.org/kubevirtbmc/internal/controller/service"
+	"kubevirt.org/kubevirtbmc/internal/controller/virtualmachine"
+	"kubevirt.org/kubevirtbmc/internal/controller/virtualmachinebmc"
 
-	// clischeme "kubevirt.org/virtualmachinebmc/pkg/generated/clientset/versioned/scheme"
+	// clischeme "kubevirt.org/kubevirtbmc/pkg/generated/clientset/versioned/scheme"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	//+kubebuilder:scaffold:imports
 )

@@ -25,8 +25,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	kubevirtv1 "kubevirt.io/api/core/v1"
-	virtualmachinev1 "kubevirt.org/virtualmachinebmc/api/v1"
-	ctlvirtualmachinebmc "kubevirt.org/virtualmachinebmc/internal/controller/virtualmachinebmc"
+	virtualmachinev1 "kubevirt.org/kubevirtbmc/api/v1"
+	ctlvirtualmachinebmc "kubevirt.org/kubevirtbmc/internal/controller/virtualmachinebmc"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -70,7 +70,7 @@ func (v *VirtualMachineReconciler) constructVirtualMachineBMCForVirtualMachine(v
 		ObjectMeta: metav1.ObjectMeta{
 			Annotations: make(map[string]string),
 			Labels: map[string]string{
-				ctlvirtualmachinebmc.ManagedByLabel: "virtualmachinebmc-controller",
+				ctlvirtualmachinebmc.ManagedByLabel: "virt-bmc-controller",
 			},
 			Name:      name,
 			Namespace: ctlvirtualmachinebmc.KBMCNamespace,
@@ -127,18 +127,18 @@ func (v *VirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 		Namespace: ctlvirtualmachinebmc.KBMCNamespace,
 		Name:      fmt.Sprintf("%s-%s", vm.Namespace, vm.Name),
 	}
-	var kbmc virtualmachinev1.VirtualMachineBMC
-	if err := v.Get(ctx, knn, &kbmc); err != nil {
+	var virt-bmc virtualmachinev1.VirtualMachineBMC
+	if err := v.Get(ctx, knn, &virt-bmc); err != nil {
 		log.Error(err, "unable to fetch VirtualMachineBMC")
 		return ctrl.Result{}, err
 	}
 
 	if !vm.ObjectMeta.DeletionTimestamp.IsZero() {
-		if err := v.Delete(ctx, &kbmc); err != nil {
-			log.Error(err, "unable to delete VirtualMachineBMC for VirtualMachine", "kbmc", kbmc)
+		if err := v.Delete(ctx, &virt-bmc); err != nil {
+			log.Error(err, "unable to delete VirtualMachineBMC for VirtualMachine", "virt-bmc", virt-bmc)
 			return ctrl.Result{}, err
 		}
-		log.V(1).Info("removed VirtualMachineBMC for VirtualMachine", "kbmc", kbmc)
+		log.V(1).Info("removed VirtualMachineBMC for VirtualMachine", "virt-bmc", virt-bmc)
 	}
 
 	return ctrl.Result{}, nil
