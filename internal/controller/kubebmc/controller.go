@@ -110,7 +110,7 @@ func (r *KubeBMCReconciler) constructServiceForKubeBMC(kubeBMC *virtualmachinev1
 					Name:       ipmiPortName,
 					Protocol:   corev1.ProtocolUDP,
 					TargetPort: intstr.FromString(ipmiPortName),
-					Port:       ipmiSvcPort,
+					Port:       IPMISvcPort,
 				},
 			},
 		},
