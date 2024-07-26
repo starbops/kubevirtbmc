@@ -17,6 +17,9 @@ endif
 # tools. (i.e. podman)
 CONTAINER_TOOL ?= docker
 
+# KUBEVIRT API version to use
+KUBEVIRT_API_VERSION = v1.1.0
+
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
 SHELL = /usr/bin/env bash -o pipefail
@@ -52,6 +55,15 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
+.PHONY: generate-kubevirt-crd
+generate-kubevirt-crd: controller-gen ## Clone KubeVirt API and generate CustomResourceDefinition objects for integration testing purposes.
+	TMP_DIR=$$(mktemp -d -p /tmp/); \
+	KUBEVIRT_API_DIR=$$TMP_DIR/kubevirt-api; \
+	git clone --depth 1 --branch $(KUBEVIRT_API_VERSION) https://github.com/kubevirt/api $$KUBEVIRT_API_DIR; \
+	$(CONTROLLER_GEN) crd:allowDangerousTypes=true paths="$$KUBEVIRT_API_DIR/core/v1/..." output:crd:artifacts:config=config/kubevirt-crd; \
+	rm -rvf $$TMP_DIR; \
+	rm -vf config/kubevirt-crd/kubevirt.io_datavolumetemplatespecs.yaml
+
 .PHONY: fmt
 fmt: ## Run go fmt against code.
 	go fmt ./...
@@ -61,7 +73,7 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: test
-test: manifests generate fmt vet envtest ## Run tests.
+test: manifests generate generate-kubevirt-crd fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
