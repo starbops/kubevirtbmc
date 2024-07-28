@@ -9,6 +9,13 @@ on:
 jobs:
   build-pr:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - dockerfile: ./Dockerfile
+          image: starbops/kubebmc-controller
+        - dockerfile: ./Dockerfile.kbmc
+          image: starbops/kbmc
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -24,30 +31,18 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: |
-            starbops/kubebmc-controller
-            starbops/kbmc
-    - name: Test
+        images: ${{ matrix.image }}
+    - name: Run tests
       run: make test
-    - name: Build
+    - name: Build binaries
       run: make build
-    - name: Docker build (controller)
+    - name: Docker build
       uses: docker/build-push-action@v6
       with:
         provenance: false
         context: .
         platforms: linux/amd64,linux/arm64
-        file: ./Dockerfile
-        push: false
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-    - name: Docker build (kbmc)
-      uses: docker/build-push-action@v6
-      with:
-        provenance: false
-        context: .
-        platforms: linux/amd64,linux/arm64
-        file: ./Dockerfile.kbmc
+        file: ${{ matrix.dockerfile }}
         push: false
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
