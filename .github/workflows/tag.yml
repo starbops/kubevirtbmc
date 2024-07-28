@@ -8,13 +8,16 @@ on:
 jobs:
   build-tag:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+        - dockerfile: ./Dockerfile
+          image: starbops/kubebmc-controller
+        - dockerfile: ./Dockerfile.kbmc
+          image: starbops/kbmc
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.22'
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
@@ -28,30 +31,14 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: |
-          starbops/kubebmc-controller
-          starbops/kbmc
-    - name: Test
-      run: make test
-    - name: Build
-      run: make build
-    - name: Docker build and push (controller)
+        images: ${{ matrix.image }}
+    - name: Docker build and push
       uses: docker/build-push-action@v6
       with:
         provenance: false
         context: .
         platforms: linux/amd64,linux/arm64
-        file: ./Dockerfile
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-    - name: Docker build and push (kbmc)
-      uses: docker/build-push-action@v6
-      with:
-        provenance: false
-        context: .
-        platforms: linux/amd64,linux/arm64
-        file: ./Dockerfile.kbmc
+        file: ${{ matrix.dockerfile }}
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
