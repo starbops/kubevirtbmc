@@ -1,4 +1,4 @@
-package kbmc
+package virtbmc
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	ipmi "github.com/vmware/goipmi"
-	kubevirtv1 "kubevirt.org/kubevirtbmc/pkg/generated/clientset/versioned/typed/core/v1"
+	kubevirtv1 "kubevirt.io/kubevirtbmc/pkg/generated/clientset/versioned/typed/core/v1"
 )
 
 type Options struct {
@@ -16,7 +16,7 @@ type Options struct {
 	Port           int
 }
 
-type KBMC struct {
+type VirtBMC struct {
 	context     context.Context
 	address     string
 	port        int
@@ -26,8 +26,8 @@ type KBMC struct {
 	sim         *ipmi.Simulator
 }
 
-func NewKBMC(ctx context.Context, options Options, inCluster bool) (*KBMC, error) {
-	return &KBMC{
+func NewVirtBMC(ctx context.Context, options Options, inCluster bool) (*VirtBMC, error) {
+	return &VirtBMC{
 		context:     ctx,
 		address:     options.Address,
 		port:        options.Port,
@@ -41,24 +41,24 @@ func NewKBMC(ctx context.Context, options Options, inCluster bool) (*KBMC, error
 	}, nil
 }
 
-func (k *KBMC) register() {
-	k.sim.SetHandler(ipmi.NetworkFunctionChassis, ipmi.CommandChassisControl, k.chassisControlHandler)
-	k.sim.SetHandler(ipmi.NetworkFunctionChassis, ipmi.CommandChassisStatus, k.chassisStatusHandler)
-	k.sim.SetHandler(ipmi.NetworkFunctionChassis, ipmi.CommandSetSystemBootOptions, k.setSystemBootOptionsHandler)
+func (b *VirtBMC) register() {
+	b.sim.SetHandler(ipmi.NetworkFunctionChassis, ipmi.CommandChassisControl, b.chassisControlHandler)
+	b.sim.SetHandler(ipmi.NetworkFunctionChassis, ipmi.CommandChassisStatus, b.chassisStatusHandler)
+	b.sim.SetHandler(ipmi.NetworkFunctionChassis, ipmi.CommandSetSystemBootOptions, b.setSystemBootOptionsHandler)
 }
 
-func (k *KBMC) Run() error {
+func (b *VirtBMC) Run() error {
 	logrus.Info("Initializing the simulator...")
-	k.register()
+	b.register()
 
-	if err := k.sim.Run(); err != nil {
+	if err := b.sim.Run(); err != nil {
 		return fmt.Errorf("unable to run the ipmi simulator")
 	}
-	logrus.Infof("Listen on %s:%d", k.address, k.port)
+	logrus.Infof("Listen on %s:%d", b.address, b.port)
 
-	<-k.context.Done()
+	<-b.context.Done()
 	logrus.Info("Gracefully shutting down IPMIService")
-	k.sim.Stop()
+	b.sim.Stop()
 
 	return nil
 }

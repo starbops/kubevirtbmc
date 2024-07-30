@@ -3,12 +3,12 @@ kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: virt-bmc-role
-    app.kubernetes.io/component: virt-bmc-rbac
+    app.kubernetes.io/instance: virtbmc-role
+    app.kubernetes.io/component: virtbmc-rbac
     app.kubernetes.io/created-by: kubevirtbmc
     app.kubernetes.io/part-of: kubevirtbmc
     app.kubernetes.io/managed-by: kustomize
-  name: virt-bmc-role
+  name: virtbmc-role
 rules:
 - apiGroups:
   - kubevirt.io

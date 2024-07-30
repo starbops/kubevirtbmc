@@ -26,19 +26,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	virtualmachinev1 "zespre.com/kubebmc/api/v1"
-	ctlkubebmc "zespre.com/kubebmc/internal/controller/kubebmc"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
+	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
 )
 
 var _ = Describe("Service Controller", func() {
 	const (
-		testKubeBMCName      = "default-test-vm"
-		testKubeBMCNamespace = "kubebmc-system"
-		testUsername         = "test-username"
-		testPassword         = "test-password"
-		testVMName           = "test-vm"
-		testVMNamespace      = "default"
-		testClusterIP        = "10.0.0.100"
+		testVirtualMachineBMCName      = "default-test-vm"
+		testVirtualMachineBMCNamespace = "kubevirtbmc-system"
+		testUsername                   = "test-username"
+		testPassword                   = "test-password"
+		testVMName                     = "test-vm"
+		testVMNamespace                = "default"
+		testClusterIP                  = "10.0.0.100"
 
 		timeout  = time.Second * 10
 		duration = time.Second * 10
@@ -46,42 +46,42 @@ var _ = Describe("Service Controller", func() {
 	)
 
 	Context("When clusterIP for the Service is ready", func() {
-		It("Should update the KubeBMC status", func() {
+		It("Should update the VirtualMachineBMC status", func() {
 			ctx := context.Background()
 
 			// we need to create the namespace in the cluster first
 			ns := &corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{Name: testKubeBMCNamespace},
+				ObjectMeta: metav1.ObjectMeta{Name: testVirtualMachineBMCNamespace},
 			}
 			Expect(k8sClient.Create(ctx, ns)).Should(Succeed())
 
-			By("Creating a new KubeBMC")
-			kubeBMC := &virtualmachinev1.KubeBMC{
+			By("Creating a new VirtualMachineBMC")
+			virtualMachineBMC := &virtualmachinev1.VirtualMachineBMC{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      testKubeBMCName,
-					Namespace: testKubeBMCNamespace,
+					Name:      testVirtualMachineBMCName,
+					Namespace: testVirtualMachineBMCNamespace,
 				},
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "zespre.com/v1",
-					Kind:       "KubeBMC",
+					APIVersion: "virtualmachine.kubevirt.io/v1",
+					Kind:       "VirtualMachineBMC",
 				},
-				Spec: virtualmachinev1.KubeBMCSpec{
+				Spec: virtualmachinev1.VirtualMachineBMCSpec{
 					Username:                testUsername,
 					Password:                testPassword,
 					VirtualMachineNamespace: testVMNamespace,
 					VirtualMachineName:      testVMName,
 				},
 			}
-			Expect(k8sClient.Create(ctx, kubeBMC)).To(Succeed())
+			Expect(k8sClient.Create(ctx, virtualMachineBMC)).To(Succeed())
 
 			By("Creating a new Service")
 			svc := &corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						ctlkubebmc.KBMCNameLabel: testKubeBMCName,
+						ctlvirtualmachinebmc.VirtualMachineBMCNameLabel: testVirtualMachineBMCName,
 					},
-					Name:      testKubeBMCName,
-					Namespace: testKubeBMCNamespace,
+					Name:      testVirtualMachineBMCName,
+					Namespace: testVirtualMachineBMCNamespace,
 				},
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "v1",
@@ -91,22 +91,22 @@ var _ = Describe("Service Controller", func() {
 					ClusterIP: testClusterIP,
 					Ports: []corev1.ServicePort{
 						{
-							Port: ctlkubebmc.IPMISvcPort,
+							Port: ctlvirtualmachinebmc.IPMISvcPort,
 						},
 					},
 				},
 			}
 			Expect(k8sClient.Create(ctx, svc)).To(Succeed())
 
-			By("Checking that the KubeBMC has ServiceIP reflected")
-			kubeBMCLookupKey := types.NamespacedName{Name: kubeBMC.Name, Namespace: kubeBMC.Namespace}
-			updatedKubeBMC := &virtualmachinev1.KubeBMC{}
+			By("Checking that the VirtualMachineBMC has ServiceIP reflected")
+			virtualMachineBMCLookupKey := types.NamespacedName{Name: virtualMachineBMC.Name, Namespace: virtualMachineBMC.Namespace}
+			updatedVirtualMachineBMC := &virtualmachinev1.VirtualMachineBMC{}
 
 			Eventually(func() bool {
-				if err := k8sClient.Get(ctx, kubeBMCLookupKey, updatedKubeBMC); err != nil {
+				if err := k8sClient.Get(ctx, virtualMachineBMCLookupKey, updatedVirtualMachineBMC); err != nil {
 					return false
 				}
-				return updatedKubeBMC.Status.ServiceIP == testClusterIP
+				return updatedVirtualMachineBMC.Status.ServiceIP == testClusterIP
 			}, timeout, interval).Should(BeTrue())
 		})
 	})

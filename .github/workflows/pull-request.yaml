@@ -13,9 +13,9 @@ jobs:
       matrix:
         include:
         - dockerfile: ./Dockerfile
-          image: starbops/kubebmc-controller
-        - dockerfile: ./Dockerfile.kbmc
-          image: starbops/kbmc
+          image: starbops/virtbmc-controller
+        - dockerfile: ./Dockerfile.virtbmc
+          image: starbops/virtbmc
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4

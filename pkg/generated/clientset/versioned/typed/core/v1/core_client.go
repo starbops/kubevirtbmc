@@ -18,7 +18,7 @@ limitations under the License.
 package v1
 
 import (
-	"kubevirt.org/virtualmachinebmc/pkg/generated/clientset/versioned/scheme"
+	"kubevirt.io/kubevirtbmc/pkg/generated/clientset/versioned/scheme"
 	"net/http"
 
 	rest "k8s.io/client-go/rest"

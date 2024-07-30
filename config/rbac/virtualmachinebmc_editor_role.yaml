@@ -12,7 +12,7 @@ metadata:
   name: virtualmachinebmc-editor-role
 rules:
 - apiGroups:
-  - virtualmachine.kubevirt.org
+  - virtualmachine.kubevirt.io
   resources:
   - virtualmachinebmcs
   verbs:
@@ -24,7 +24,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - virtualmachine.kubevirt.org
+  - virtualmachine.kubevirt.io
   resources:
   - virtualmachinebmcs/status
   verbs:

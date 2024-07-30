@@ -25,16 +25,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	kubevirtv1 "kubevirt.io/api/core/v1"
-	virtualmachinev1 "kubevirt.org/kubevirtbmc/api/v1"
-	ctlvirtualmachinebmc "kubevirt.org/kubevirtbmc/internal/controller/virtualmachinebmc"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
+	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
 )
 
 const (
-	finalizerName = "virtualmachinebmc-virtualmachine-controller"
+	finalizerName = "kubevirtbmc-virtualmachine-controller"
 )
 
 // VirtualMachineReconciler reconciles a VirtualMachine object
@@ -66,14 +67,10 @@ func (v *VirtualMachineReconciler) handleFinalizer(ctx context.Context, vm *kube
 func (v *VirtualMachineReconciler) constructVirtualMachineBMCForVirtualMachine(vm *kubevirtv1.VirtualMachine) (*virtualmachinev1.VirtualMachineBMC, error) {
 	name := fmt.Sprintf("%s-%s", vm.Namespace, vm.Name)
 
-	kubeBMC := &virtualmachinev1.VirtualMachineBMC{
+	virtualMachineBMC := &virtualmachinev1.VirtualMachineBMC{
 		ObjectMeta: metav1.ObjectMeta{
-			Annotations: make(map[string]string),
-			Labels: map[string]string{
-				ctlvirtualmachinebmc.ManagedByLabel: "virt-bmc-controller",
-			},
 			Name:      name,
-			Namespace: ctlvirtualmachinebmc.KBMCNamespace,
+			Namespace: ctlvirtualmachinebmc.VirtualMachineBMCNamespace,
 		},
 		Spec: virtualmachinev1.VirtualMachineBMCSpec{
 			Username:                ctlvirtualmachinebmc.DefaultUsername,
@@ -83,13 +80,13 @@ func (v *VirtualMachineReconciler) constructVirtualMachineBMCForVirtualMachine(v
 		},
 	}
 
-	return kubeBMC, nil
+	return virtualMachineBMC, nil
 }
 
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch;update;patch
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs/finalizers,verbs=update
 
 func (v *VirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
@@ -109,36 +106,36 @@ func (v *VirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Prepare the VirtualMachineBMC
-	kubeBMC, err := v.constructVirtualMachineBMCForVirtualMachine(&vm)
+	virtualMachineBMC, err := v.constructVirtualMachineBMCForVirtualMachine(&vm)
 	if err != nil {
 		log.Error(err, "unable to construct virtualmachinebmc from template")
 		return ctrl.Result{}, err
 	}
 
 	// Create the VirtualMachineBMC on the cluster
-	if err := v.Create(ctx, kubeBMC); err != nil && !apierrors.IsAlreadyExists(err) {
-		log.Error(err, "unable to create VirtualMachineBMC for VirtualMachine", "kubeBMC", kubeBMC)
+	if err := v.Create(ctx, virtualMachineBMC); err != nil && !apierrors.IsAlreadyExists(err) {
+		log.Error(err, "unable to create VirtualMachineBMC for VirtualMachine", "virtualMachineBMC", virtualMachineBMC)
 		return ctrl.Result{}, err
 	}
 
-	log.V(1).Info("created VirtualMachineBMC for VirtualMachine", "kubeBMC", kubeBMC)
-
-	knn := types.NamespacedName{
-		Namespace: ctlvirtualmachinebmc.KBMCNamespace,
-		Name:      fmt.Sprintf("%s-%s", vm.Namespace, vm.Name),
-	}
-	var virt-bmc virtualmachinev1.VirtualMachineBMC
-	if err := v.Get(ctx, knn, &virt-bmc); err != nil {
-		log.Error(err, "unable to fetch VirtualMachineBMC")
-		return ctrl.Result{}, err
-	}
+	log.V(1).Info("created VirtualMachineBMC for VirtualMachine", "virtualMachineBMC", virtualMachineBMC)
 
 	if !vm.ObjectMeta.DeletionTimestamp.IsZero() {
-		if err := v.Delete(ctx, &virt-bmc); err != nil {
-			log.Error(err, "unable to delete VirtualMachineBMC for VirtualMachine", "virt-bmc", virt-bmc)
+		virtualMachineBMCNamespacedName := types.NamespacedName{
+			Namespace: ctlvirtualmachinebmc.VirtualMachineBMCNamespace,
+			Name:      fmt.Sprintf("%s-%s", vm.Namespace, vm.Name),
+		}
+		var virtualMachineBMC virtualmachinev1.VirtualMachineBMC
+		if err := v.Get(ctx, virtualMachineBMCNamespacedName, &virtualMachineBMC); err != nil {
+			log.Error(err, "unable to fetch VirtualMachineBMC")
 			return ctrl.Result{}, err
 		}
-		log.V(1).Info("removed VirtualMachineBMC for VirtualMachine", "virt-bmc", virt-bmc)
+
+		if err := v.Delete(ctx, &virtualMachineBMC); err != nil {
+			log.Error(err, "unable to delete VirtualMachineBMC for VirtualMachine", "virtualMachineBMC", virtualMachineBMC)
+			return ctrl.Result{}, err
+		}
+		log.V(1).Info("removed VirtualMachineBMC for VirtualMachine", "virtualMachineBMC", virtualMachineBMC)
 	}
 
 	return ctrl.Result{}, nil

@@ -32,12 +32,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	virtualmachinev1 "kubevirt.org/kubevirtbmc/api/v1"
-	"kubevirt.org/kubevirtbmc/internal/controller/service"
-	"kubevirt.org/kubevirtbmc/internal/controller/virtualmachine"
-	"kubevirt.org/kubevirtbmc/internal/controller/virtualmachinebmc"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
+	ctlservice "kubevirt.io/kubevirtbmc/internal/controller/service"
+	ctlvirtualmachine "kubevirt.io/kubevirtbmc/internal/controller/virtualmachine"
+	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
 
-	// clischeme "kubevirt.org/kubevirtbmc/pkg/generated/clientset/versioned/scheme"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	//+kubebuilder:scaffold:imports
 )
@@ -76,7 +75,7 @@ func main() {
 		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "5e66b2cf.kubevirt.org",
+		LeaderElectionID:       "5e66b2cf.kubevirt.io",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -94,21 +93,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&virtualmachinebmc.VirtualMachineBMCReconciler{
+	if err = (&ctlvirtualmachinebmc.VirtualMachineBMCReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "VirtualMachineBMC")
 		os.Exit(1)
 	}
-	if err = (&service.ServiceReconciler{
+	if err = (&ctlservice.ServiceReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Service")
 		os.Exit(1)
 	}
-	if err = (&virtualmachine.VirtualMachineReconciler{
+	if err = (&ctlvirtualmachine.VirtualMachineReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {

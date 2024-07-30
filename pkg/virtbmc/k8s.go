@@ -1,4 +1,4 @@
-package kbmc
+package virtbmc
 
 import (
 	"github.com/sirupsen/logrus"
@@ -7,7 +7,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
-	kubevirtv1type "kubevirt.org/kubevirtbmc/pkg/generated/clientset/versioned/typed/core/v1"
+	kubevirtv1type "kubevirt.io/kubevirtbmc/pkg/generated/clientset/versioned/typed/core/v1"
 )
 
 type BootDevice string
@@ -50,24 +50,24 @@ genClientset:
 	return clientset
 }
 
-func (k *KBMC) getVirtualMachine(namespace, name string) (*kubevirtv1.VirtualMachine, error) {
-	vm, err := k.kvClient.VirtualMachines(namespace).Get(k.context, name, v1.GetOptions{})
+func (b *VirtBMC) getVirtualMachine(namespace, name string) (*kubevirtv1.VirtualMachine, error) {
+	vm, err := b.kvClient.VirtualMachines(namespace).Get(b.context, name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 	return vm, nil
 }
 
-func (k *KBMC) getVirtualMachineInstance(namespace, name string) (*kubevirtv1.VirtualMachineInstance, error) {
-	vmi, err := k.kvClient.VirtualMachineInstances(namespace).Get(k.context, name, v1.GetOptions{})
+func (b *VirtBMC) getVirtualMachineInstance(namespace, name string) (*kubevirtv1.VirtualMachineInstance, error) {
+	vmi, err := b.kvClient.VirtualMachineInstances(namespace).Get(b.context, name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 	return vmi, nil
 }
 
-func (k *KBMC) getVirtualMachinePowerStatus() (bool, error) {
-	vm, err := k.kvClient.VirtualMachines(k.vmNamespace).Get(k.context, k.vmName, v1.GetOptions{})
+func (b *VirtBMC) getVirtualMachinePowerStatus() (bool, error) {
+	vm, err := b.kvClient.VirtualMachines(b.vmNamespace).Get(b.context, b.vmName, v1.GetOptions{})
 	if err != nil {
 		return false, err
 	}
@@ -77,42 +77,42 @@ func (k *KBMC) getVirtualMachinePowerStatus() (bool, error) {
 	return true, nil
 }
 
-func (k *KBMC) stopVirtualMachine() error {
-	vm, err := k.kvClient.VirtualMachines(k.vmNamespace).Get(k.context, k.vmName, v1.GetOptions{})
+func (b *VirtBMC) stopVirtualMachine() error {
+	vm, err := b.kvClient.VirtualMachines(b.vmNamespace).Get(b.context, b.vmName, v1.GetOptions{})
 	if err != nil {
 		return err
 	}
 	runStrategy := kubevirtv1.RunStrategyHalted
 	vm.Spec.RunStrategy = &runStrategy
-	if _, err := k.kvClient.VirtualMachines(k.vmNamespace).Update(k.context, vm, v1.UpdateOptions{}); err != nil {
+	if _, err := b.kvClient.VirtualMachines(b.vmNamespace).Update(b.context, vm, v1.UpdateOptions{}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (k *KBMC) startVirtualMachine() error {
-	vm, err := k.kvClient.VirtualMachines(k.vmNamespace).Get(k.context, k.vmName, v1.GetOptions{})
+func (b *VirtBMC) startVirtualMachine() error {
+	vm, err := b.kvClient.VirtualMachines(b.vmNamespace).Get(b.context, b.vmName, v1.GetOptions{})
 	if err != nil {
 		return err
 	}
 	runStrategy := kubevirtv1.RunStrategyRerunOnFailure
 	vm.Spec.RunStrategy = &runStrategy
-	if _, err := k.kvClient.VirtualMachines(k.vmNamespace).Update(k.context, vm, v1.UpdateOptions{}); err != nil {
+	if _, err := b.kvClient.VirtualMachines(b.vmNamespace).Update(b.context, vm, v1.UpdateOptions{}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (k *KBMC) rebootVirtualMachine() error {
-	if err := k.kvClient.VirtualMachineInstances(k.vmNamespace).Delete(k.context, k.vmName, v1.DeleteOptions{}); err != nil {
+func (b *VirtBMC) rebootVirtualMachine() error {
+	if err := b.kvClient.VirtualMachineInstances(b.vmNamespace).Delete(b.context, b.vmName, v1.DeleteOptions{}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (k *KBMC) setVirtualMachineBootDevice(bd BootDevice) error {
+func (b *VirtBMC) setVirtualMachineBootDevice(bd BootDevice) error {
 	logrus.Info("setVirtualMachineBootDevice")
-	vm, err := k.kvClient.VirtualMachines(k.vmNamespace).Get(k.context, k.vmName, v1.GetOptions{})
+	vm, err := b.kvClient.VirtualMachines(b.vmNamespace).Get(b.context, b.vmName, v1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func (k *KBMC) setVirtualMachineBootDevice(bd BootDevice) error {
 		logrus.Infof("To be updated vm: %+v", vm.Spec.Template.Spec.Domain.Devices.Disks[0])
 	}
 
-	if _, err := k.kvClient.VirtualMachines(k.vmNamespace).Update(k.context, vm, v1.UpdateOptions{}); err != nil {
+	if _, err := b.kvClient.VirtualMachines(b.vmNamespace).Update(b.context, vm, v1.UpdateOptions{}); err != nil {
 		logrus.Errorf("update vm error: %v", err)
 		return err
 	}

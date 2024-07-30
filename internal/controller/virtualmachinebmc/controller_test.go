@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package kubebmc
+package virtualmachinebmc
 
 import (
 	"context"
@@ -26,54 +26,54 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
-	virtualmachinev1 "zespre.com/kubebmc/api/v1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
 )
 
-var _ = Describe("KubeBMC Controller", func() {
+var _ = Describe("VirtualMachineBMC Controller", func() {
 	const (
-		testKubeBMCName      = "default-test-vm"
-		testKubeBMCNamespace = "kubebmc-system"
-		testUsername         = "test-username"
-		testPassword         = "test-password"
-		testVMName           = "test-vm"
-		testVMNamespace      = "default"
+		testVirtualMachineBMCName      = "default-test-vm"
+		testVirtualMachineBMCNamespace = "kubevirtbmc-system"
+		testUsername                   = "test-username"
+		testPassword                   = "test-password"
+		testVMName                     = "test-vm"
+		testVMNamespace                = "default"
 
 		timeout  = time.Second * 10
 		duration = time.Second * 10
 		interval = time.Millisecond * 250
 	)
 
-	Context("When creating an KubeBMC", func() {
+	Context("When creating an VirtualMachineBMC", func() {
 		It("Should create a Pod and a Service", func() {
 			ctx := context.Background()
 
 			// we need to create the namespace in the cluster first
 			ns := &corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{Name: testKubeBMCNamespace},
+				ObjectMeta: metav1.ObjectMeta{Name: testVirtualMachineBMCNamespace},
 			}
 			Expect(k8sClient.Create(ctx, ns)).Should(Succeed())
 
-			By("Creating a new KubeBMC")
-			kubeBMC := &virtualmachinev1.KubeBMC{
+			By("Creating a new VirtualMachineBMC")
+			virtualMachineBMC := &virtualmachinev1.VirtualMachineBMC{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      testKubeBMCName,
-					Namespace: testKubeBMCNamespace,
+					Name:      testVirtualMachineBMCName,
+					Namespace: testVirtualMachineBMCNamespace,
 				},
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "zespre.com/v1",
-					Kind:       "KubeBMC",
+					APIVersion: "virtualmachine.kubevirt.io/v1",
+					Kind:       "VirtualMachineBMC",
 				},
-				Spec: virtualmachinev1.KubeBMCSpec{
+				Spec: virtualmachinev1.VirtualMachineBMCSpec{
 					Username:                testUsername,
 					Password:                testPassword,
 					VirtualMachineNamespace: testVMNamespace,
 					VirtualMachineName:      testVMName,
 				},
 			}
-			Expect(k8sClient.Create(ctx, kubeBMC)).To(Succeed())
+			Expect(k8sClient.Create(ctx, virtualMachineBMC)).To(Succeed())
 
 			By("Checking that the Pod is created")
-			podLookupKey := types.NamespacedName{Name: kubeBMC.Name + "-kbmc", Namespace: kubeBMC.Namespace}
+			podLookupKey := types.NamespacedName{Name: virtualMachineBMC.Name + "-virtbmc", Namespace: virtualMachineBMC.Namespace}
 			createdPod := &corev1.Pod{}
 
 			Eventually(func() bool {
@@ -82,7 +82,7 @@ var _ = Describe("KubeBMC Controller", func() {
 			}, timeout, interval).Should(BeTrue())
 
 			By("Checking that the Service is created")
-			svcLookupKey := types.NamespacedName{Name: kubeBMC.Name + "-kbmc", Namespace: kubeBMC.Namespace}
+			svcLookupKey := types.NamespacedName{Name: virtualMachineBMC.Name + "-virtbmc", Namespace: virtualMachineBMC.Namespace}
 			createdSvc := &corev1.Service{}
 
 			Eventually(func() bool {

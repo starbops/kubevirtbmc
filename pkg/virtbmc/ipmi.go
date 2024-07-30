@@ -1,11 +1,11 @@
-package kbmc
+package virtbmc
 
 import (
 	"github.com/sirupsen/logrus"
 	ipmi "github.com/vmware/goipmi"
 )
 
-func (k *KBMC) chassisControlHandler(m *ipmi.Message) ipmi.Response {
+func (b *VirtBMC) chassisControlHandler(m *ipmi.Message) ipmi.Response {
 	r := &ipmi.ChassisControlRequest{}
 	if err := m.Request(r); err != nil {
 		return err
@@ -16,13 +16,13 @@ func (k *KBMC) chassisControlHandler(m *ipmi.Message) ipmi.Response {
 	switch r.ChassisControl {
 	case ipmi.ControlPowerDown, ipmi.ControlPowerAcpiSoft:
 		logrus.Info("power off")
-		err = k.stopVirtualMachine()
+		err = b.stopVirtualMachine()
 	case ipmi.ControlPowerUp:
 		logrus.Info("power on")
-		err = k.startVirtualMachine()
+		err = b.startVirtualMachine()
 	case ipmi.ControlPowerCycle, ipmi.ControlPowerHardReset:
 		logrus.Info("power cycle")
-		err = k.rebootVirtualMachine()
+		err = b.rebootVirtualMachine()
 	}
 
 	if err != nil {
@@ -36,10 +36,10 @@ func (k *KBMC) chassisControlHandler(m *ipmi.Message) ipmi.Response {
 	}
 }
 
-func (k *KBMC) chassisStatusHandler(*ipmi.Message) ipmi.Response {
+func (b *VirtBMC) chassisStatusHandler(*ipmi.Message) ipmi.Response {
 	logrus.Info("power status")
 
-	isUp, err := k.getVirtualMachinePowerStatus()
+	isUp, err := b.getVirtualMachinePowerStatus()
 	if err != nil {
 		return &ipmi.ChassisStatusResponse{
 			CompletionCode: ipmi.ErrInvalidState,
@@ -57,7 +57,7 @@ func (k *KBMC) chassisStatusHandler(*ipmi.Message) ipmi.Response {
 	}
 }
 
-func (k *KBMC) setSystemBootOptionsHandler(m *ipmi.Message) ipmi.Response {
+func (b *VirtBMC) setSystemBootOptionsHandler(m *ipmi.Message) ipmi.Response {
 	logrus.Info("set boot device")
 
 	r := &ipmi.SetSystemBootOptionsRequest{}
@@ -81,7 +81,7 @@ func (k *KBMC) setSystemBootOptionsHandler(m *ipmi.Message) ipmi.Response {
 		device = Disk
 	}
 
-	err := k.setVirtualMachineBootDevice(device)
+	err := b.setVirtualMachineBootDevice(device)
 	if err != nil {
 		return &ipmi.SetSystemBootOptionsResponse{
 			CompletionCode: ipmi.ErrUnspecified,

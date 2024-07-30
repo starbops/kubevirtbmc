@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package kubebmc
+package virtualmachinebmc
 
 import (
 	"context"
@@ -35,8 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	virtualmachinev1 "kubevirt.org/kubevirtbmc/api/v1"
-	"kubevirt.org/kubevirtbmc/internal/controller/virtualmachinebmc"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -51,10 +50,10 @@ var (
 	cancel    context.CancelFunc
 )
 
-func TestKubeBMCControllers(t *testing.T) {
+func TestVirtualMachineBMCControllers(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	RunSpecs(t, "KubeBMC Controller Suite")
+	RunSpecs(t, "VirtualMachineBMC Controller Suite")
 }
 
 var _ = BeforeSuite(func() {
@@ -98,7 +97,7 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
-	err = (&virtualmachinebmc.VirtualMachineBMCReconciler{
+	err = (&VirtualMachineBMCReconciler{
 		Client: k8sManager.GetClient(),
 		Scheme: k8sManager.GetScheme(),
 	}).SetupWithManager(k8sManager)

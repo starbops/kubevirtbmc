@@ -36,23 +36,23 @@ flowchart LR
 
 KubeVirtBMC consists of two components:
 
-- **virt-bmc-controller**: A typical Kubernetes controller built with kubebuilder that reconciles on the VirtualMachineBMC, VirtualMachine, and Service objects
-- **virt-bmc**: A BMC simulator for serving IPMI and translating the requests to native Kubernetes API requests
+- **virtbmc-controller**: A typical Kubernetes controller built with kubebuilder that reconciles on the VirtualMachineBMC, VirtualMachine, and Service objects
+- **virtbmc**: A BMC simulator for serving IPMI and translating the requests to native Kubernetes API requests
 
 Below is the workflow of KubeVirtBMC when a VirtualMachine was created and booted up:
 
 ```mermaid
 flowchart LR
-    controller["virt-bmc-controller"]
+    controller["virtbmc-controller"]
     cr["virtualmachinebmc CR"]
-    virt-bmc-pod["virt-bmc Pod"]
-    virt-bmc-svc["virt-bmc Service"]
+    virtbmc-pod["virtbmc Pod"]
+    virtbmc-svc["virtbmc Service"]
     controller-.->|watches|cr
-    cr-.->|owns|virt-bmc-svc
-    cr-.->|owns|virt-bmc-pod
-    client--->|IPMI|virt-bmc-svc
-    virt-bmc-svc-->virt-bmc-pod
-    virt-bmc-pod-->|HTTP|apiserver
+    cr-.->|owns|virtbmc-svc
+    cr-.->|owns|virtbmc-pod
+    client--->|IPMI|virtbmc-svc
+    virtbmc-svc-->virtbmc-pod
+    virtbmc-pod-->|HTTP|apiserver
     apiserver-->|modifies|vm
     vm-->|creates|vmi
 ```
@@ -100,8 +100,8 @@ type VirtualMachineBMCStatus struct {
 **Build and push the images to the location specified by `IMG`:**
 
 ```sh
-make docker-build docker-push IMG=<some-registry>/virt-bmc-controller:<tag>
-make docker-build-virt-bmc docker-push IMG=<some-registry>/virt-bmc:<tag>
+make docker-build docker-push IMG=<some-registry>/virtbmc-controller:<tag>
+make docker-build-virtbmc docker-push IMG=<some-registry>/virtbmc:<tag>
 ```
 
 > **NOTE:** These images ought to be published in the personal registry you specified. And it is required to have access to pull the images from the working environment. Make sure you have the proper permission to the registry if the above commands don’t work.
@@ -130,7 +130,7 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 **Deploy the Manager to the cluster with the image specified by `IMG`:**
 
 ```sh
-make deploy IMG=<some-registry>/virt-bmc-controller:<tag>
+make deploy IMG=<some-registry>/virtbmc-controller:<tag>
 ```
 
 > **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin privileges or be logged in as admin.
@@ -143,12 +143,12 @@ Create the VirtualMachineBMC object in the cluster:
 kubectl apply -f config/samples/virtualmachine_v1_virtualmachinebmc.yaml
 ```
 
-Though you can create the VirtualMachineBMC object manually, the corresponding VirtualMachineBMC object should be created automatically when the VirtualMachine object exists. It will then scaffold the `*-virt-bmc` Pod and Service object.
+Though you can create the VirtualMachineBMC object manually, the corresponding VirtualMachineBMC object should be created automatically when the VirtualMachine object exists. It will then scaffold the `*-virtbmc` Pod and Service object.
 
 ```sh
 $ kubectl -n kubevirtbmc-system get svc
 NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
-default-test-vm-virt-bmc               ClusterIP   10.53.106.65    <none>        623/UDP   3h13m
+default-test-vm-virtbmc               ClusterIP   10.53.106.65    <none>        623/UDP   3h13m
 ```
 
 To access the VM's BMC, you need to be in the cluster network. Run a Pod that comes with `ipmitool` built in:
@@ -160,11 +160,11 @@ $ kubectl run -it --rm ipmitool --image=mikeynap/ipmitool --command -- /bin/sh
 Inside the Pod, you can for example turn on the VM via `ipmitool`:
 
 ```sh
-$ ipmitool -I lan -U admin -P password -H default-test-vm-virt-bmc.kubevirtbmc-system.svc.cluster.local power status
+$ ipmitool -I lan -U admin -P password -H default-test-vm-virtbmc.kubevirtbmc-system.svc.cluster.local power status
 Chassis Power is off
-$ ipmitool -I lan -U admin -P password -H default-test-vm-virt-bmc.kubevirtbmc-system.svc.cluster.local power on
+$ ipmitool -I lan -U admin -P password -H default-test-vm-virtbmc.kubevirtbmc-system.svc.cluster.local power on
 Chassis Power Control: Up/On
-$ ipmitool -I lan -U admin -P password -H default-test-vm-virt-bmc.kubevirtbmc-system.svc.cluster.local power status
+$ ipmitool -I lan -U admin -P password -H default-test-vm-virtbmc.kubevirtbmc-system.svc.cluster.local power status
 Chassis Power is on
 ```
 

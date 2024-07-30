@@ -12,7 +12,7 @@ metadata:
   name: virtualmachinebmc-viewer-role
 rules:
 - apiGroups:
-  - virtualmachine.kubevirt.org
+  - virtualmachine.kubevirt.io
   resources:
   - virtualmachinebmcs
   verbs:
@@ -20,7 +20,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - virtualmachine.kubevirt.org
+  - virtualmachine.kubevirt.io
   resources:
   - virtualmachinebmcs/status
   verbs:
