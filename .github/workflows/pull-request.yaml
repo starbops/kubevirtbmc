@@ -32,6 +32,8 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: ${{ matrix.image }}
+    - name: Lint
+      run: make lint
     - name: Run tests
       run: make test
     - name: Build binaries
