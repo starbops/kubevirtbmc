@@ -41,8 +41,8 @@ func main() {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			ctx := context.WithValue(cCtx.Context, "VMNamespace", cCtx.Args().Get(0))
-			ctx = context.WithValue(ctx, "VMName", cCtx.Args().Get(1))
+			ctx := context.WithValue(cCtx.Context, virtbmc.VMNamespaceKey{}, cCtx.Args().Get(0))
+			ctx = context.WithValue(ctx, virtbmc.VMNameKey{}, cCtx.Args().Get(1))
 			return run(ctx, options)
 		},
 	}

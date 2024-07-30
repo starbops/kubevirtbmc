@@ -75,7 +75,7 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	// Update VirtualMachineBMC status
 	if svc.Spec.ClusterIP == "" {
-		return ctrl.Result{RequeueAfter: time.Duration(time.Second * 10)}, fmt.Errorf("clusterIP is not ready yet")
+		return ctrl.Result{RequeueAfter: time.Second * 10}, fmt.Errorf("clusterIP is not ready yet")
 	}
 	virtualMachineBMC.Status.Ready = true
 	virtualMachineBMC.Status.ServiceIP = svc.Spec.ClusterIP

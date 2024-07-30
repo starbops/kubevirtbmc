@@ -50,22 +50,6 @@ genClientset:
 	return clientset
 }
 
-func (b *VirtBMC) getVirtualMachine(namespace, name string) (*kubevirtv1.VirtualMachine, error) {
-	vm, err := b.kvClient.VirtualMachines(namespace).Get(b.context, name, v1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return vm, nil
-}
-
-func (b *VirtBMC) getVirtualMachineInstance(namespace, name string) (*kubevirtv1.VirtualMachineInstance, error) {
-	vmi, err := b.kvClient.VirtualMachineInstances(namespace).Get(b.context, name, v1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	return vmi, nil
-}
-
 func (b *VirtBMC) getVirtualMachinePowerStatus() (bool, error) {
 	vm, err := b.kvClient.VirtualMachines(b.vmNamespace).Get(b.context, b.vmName, v1.GetOptions{})
 	if err != nil {
@@ -104,10 +88,7 @@ func (b *VirtBMC) startVirtualMachine() error {
 }
 
 func (b *VirtBMC) rebootVirtualMachine() error {
-	if err := b.kvClient.VirtualMachineInstances(b.vmNamespace).Delete(b.context, b.vmName, v1.DeleteOptions{}); err != nil {
-		return err
-	}
-	return nil
+	return b.kvClient.VirtualMachineInstances(b.vmNamespace).Delete(b.context, b.vmName, v1.DeleteOptions{})
 }
 
 func (b *VirtBMC) setVirtualMachineBootDevice(bd BootDevice) error {
