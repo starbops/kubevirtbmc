@@ -10,6 +10,10 @@ import (
 	kubevirtv1 "kubevirt.io/kubevirtbmc/pkg/generated/clientset/versioned/typed/core/v1"
 )
 
+type VMNameKey struct{}
+
+type VMNamespaceKey struct{}
+
 type Options struct {
 	KubeconfigPath string
 	Address        string
@@ -31,8 +35,8 @@ func NewVirtBMC(ctx context.Context, options Options, inCluster bool) (*VirtBMC,
 		context:     ctx,
 		address:     options.Address,
 		port:        options.Port,
-		vmNamespace: ctx.Value("VMNamespace").(string),
-		vmName:      ctx.Value("VMName").(string),
+		vmNamespace: ctx.Value(VMNamespaceKey{}).(string),
+		vmName:      ctx.Value(VMNameKey{}).(string),
 		kvClient:    NewK8sClient(options),
 		sim: ipmi.NewSimulator(net.UDPAddr{
 			IP:   net.ParseIP(options.Address).To4(),

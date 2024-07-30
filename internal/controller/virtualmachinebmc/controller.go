@@ -43,7 +43,7 @@ var (
 	apiGVStr = virtualmachinev1.GroupVersion.String()
 )
 
-func (r *VirtualMachineBMCReconciler) constructPodForVirtualMachineBMC(virtualMachineBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Pod, error) {
+func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualMachineBMC *virtualmachinev1.VirtualMachineBMC) *corev1.Pod {
 	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Name)
 
 	pod := &corev1.Pod{
@@ -81,10 +81,10 @@ func (r *VirtualMachineBMCReconciler) constructPodForVirtualMachineBMC(virtualMa
 		},
 	}
 
-	return pod, nil
+	return pod
 }
 
-func (r *VirtualMachineBMCReconciler) constructServiceForVirtualMachineBMC(virtualMachineBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Service, error) {
+func (r *VirtualMachineBMCReconciler) constructServiceFromVirtualMachineBMC(virtualMachineBMC *virtualmachinev1.VirtualMachineBMC) *corev1.Service {
 	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Name)
 
 	svc := &corev1.Service{
@@ -111,7 +111,7 @@ func (r *VirtualMachineBMCReconciler) constructServiceForVirtualMachineBMC(virtu
 		},
 	}
 
-	return svc, nil
+	return svc
 }
 
 //+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
@@ -142,11 +142,7 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Prepare the virtBMC Pod
-	pod, err := r.constructPodForVirtualMachineBMC(&virtualMachineBMC)
-	if err != nil {
-		log.Error(err, "unable to construct pod from template")
-		return ctrl.Result{}, err
-	}
+	pod := r.constructPodFromVirtualMachineBMC(&virtualMachineBMC)
 	if err := ctrl.SetControllerReference(&virtualMachineBMC, pod, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -160,11 +156,7 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	log.V(1).Info("created Pod for VirtualMachineBMC", "pod", pod)
 
 	// Prepare the virtBMC Service
-	svc, err := r.constructServiceForVirtualMachineBMC(&virtualMachineBMC)
-	if err != nil {
-		log.Error(err, "unable to construct svc from template")
-		return ctrl.Result{}, err
-	}
+	svc := r.constructServiceFromVirtualMachineBMC(&virtualMachineBMC)
 	if err := ctrl.SetControllerReference(&virtualMachineBMC, svc, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}

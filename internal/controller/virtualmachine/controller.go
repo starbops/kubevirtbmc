@@ -64,7 +64,7 @@ func (v *VirtualMachineReconciler) handleFinalizer(ctx context.Context, vm *kube
 	return nil
 }
 
-func (v *VirtualMachineReconciler) constructVirtualMachineBMCForVirtualMachine(vm *kubevirtv1.VirtualMachine) (*virtualmachinev1.VirtualMachineBMC, error) {
+func (v *VirtualMachineReconciler) constructVirtualMachineBMCFromVirtualMachine(vm *kubevirtv1.VirtualMachine) *virtualmachinev1.VirtualMachineBMC {
 	name := fmt.Sprintf("%s-%s", vm.Namespace, vm.Name)
 
 	virtualMachineBMC := &virtualmachinev1.VirtualMachineBMC{
@@ -80,7 +80,7 @@ func (v *VirtualMachineReconciler) constructVirtualMachineBMCForVirtualMachine(v
 		},
 	}
 
-	return virtualMachineBMC, nil
+	return virtualMachineBMC
 }
 
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch;update;patch
@@ -106,11 +106,7 @@ func (v *VirtualMachineReconciler) Reconcile(ctx context.Context, req ctrl.Reque
 	}
 
 	// Prepare the VirtualMachineBMC
-	virtualMachineBMC, err := v.constructVirtualMachineBMCForVirtualMachine(&vm)
-	if err != nil {
-		log.Error(err, "unable to construct virtualmachinebmc from template")
-		return ctrl.Result{}, err
-	}
+	virtualMachineBMC := v.constructVirtualMachineBMCFromVirtualMachine(&vm)
 
 	// Create the VirtualMachineBMC on the cluster
 	if err := v.Create(ctx, virtualMachineBMC); err != nil && !apierrors.IsAlreadyExists(err) {
