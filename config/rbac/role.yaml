@@ -29,7 +29,17 @@ rules:
   - update
   - watch
 - apiGroups:
-  - virtualmachine.kubevirt.org
+  - kubevirt.io
+  resources:
+  - virtualmachines
+  verbs:
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - virtualmachine.kubevirt.io
   resources:
   - virtualmachinebmcs
   verbs:
@@ -41,13 +51,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - virtualmachine.kubevirt.org
+  - virtualmachine.kubevirt.io
   resources:
   - virtualmachinebmcs/finalizers
   verbs:
   - update
 - apiGroups:
-  - virtualmachine.kubevirt.org
+  - virtualmachine.kubevirt.io
   resources:
   - virtualmachinebmcs/status
   verbs:

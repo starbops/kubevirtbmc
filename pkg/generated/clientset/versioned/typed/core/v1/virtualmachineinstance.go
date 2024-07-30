@@ -19,7 +19,7 @@ package v1
 
 import (
 	"context"
-	scheme "kubevirt.org/virtualmachinebmc/pkg/generated/clientset/versioned/scheme"
+	scheme "kubevirt.io/kubevirtbmc/pkg/generated/clientset/versioned/scheme"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

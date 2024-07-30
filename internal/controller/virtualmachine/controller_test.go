@@ -27,17 +27,17 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
-	virtualmachinev1 "zespre.com/kubebmc/api/v1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
 )
 
 var _ = Describe("VirtualMachine Controller", func() {
 	const (
-		testVMName           = "test-vm"
-		testVMNamespace      = "default"
-		testKubeBMCName      = "default-test-vm"
-		testKubeBMCNamespace = "kubebmc-system"
-		testUsername         = "test-username"
-		testPassword         = "test-password"
+		testVMName                     = "test-vm"
+		testVMNamespace                = "default"
+		testVirtualMachineBMCName      = "default-test-vm"
+		testVirtualMachineBMCNamespace = "kubevirtbmc-system"
+		testUsername                   = "test-username"
+		testPassword                   = "test-password"
 
 		timeout  = time.Second * 10
 		duration = time.Second * 10
@@ -45,12 +45,12 @@ var _ = Describe("VirtualMachine Controller", func() {
 	)
 
 	Context("When creating a VirtualMachine", func() {
-		It("Should create a KubeBMC", func() {
+		It("Should create a VirtualMachineBMC", func() {
 			ctx := context.Background()
 
 			// we need to create the namespace in the cluster first
 			ns := corev1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{Name: testKubeBMCNamespace},
+				ObjectMeta: metav1.ObjectMeta{Name: testVirtualMachineBMCNamespace},
 			}
 			Expect(k8sClient.Create(ctx, &ns)).Should(Succeed())
 
@@ -70,12 +70,12 @@ var _ = Describe("VirtualMachine Controller", func() {
 			}
 			Expect(k8sClient.Create(ctx, vm)).To(Succeed())
 
-			By("Checking that the KubeBMC is created")
-			kubeBMCLookupKey := types.NamespacedName{Name: testKubeBMCName, Namespace: testKubeBMCNamespace}
-			createdKubeBMC := &virtualmachinev1.KubeBMC{}
+			By("Checking that the VirtualMachineBMC is created")
+			virtualMachineBMCLookupKey := types.NamespacedName{Name: testVirtualMachineBMCName, Namespace: testVirtualMachineBMCNamespace}
+			createdVirtualMachineBMC := &virtualmachinev1.VirtualMachineBMC{}
 
 			Eventually(func() bool {
-				err := k8sClient.Get(ctx, kubeBMCLookupKey, createdKubeBMC)
+				err := k8sClient.Get(ctx, virtualMachineBMCLookupKey, createdVirtualMachineBMC)
 				return err == nil
 			}, timeout, interval).Should(BeTrue())
 		})

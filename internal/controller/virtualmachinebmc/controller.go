@@ -29,7 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	virtualmachinev1 "kubevirt.org/kubevirtbmc/api/v1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
 )
 
 // VirtualMachineBMCReconciler reconciles a VirtualMachineBMC object
@@ -43,32 +43,30 @@ var (
 	apiGVStr = virtualmachinev1.GroupVersion.String()
 )
 
-func (r *VirtualMachineBMCReconciler) constructPodForVirtualMachineBMC(kubeBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Pod, error) {
-	name := fmt.Sprintf("%s-virt-bmc", kubeBMC.Name)
+func (r *VirtualMachineBMCReconciler) constructPodForVirtualMachineBMC(virtualMachineBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Pod, error) {
+	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Name)
 
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Annotations: make(map[string]string),
 			Labels: map[string]string{
-				ManagedByLabel: "virt-bmc",
-				KBMCNameLabel:  kubeBMC.Name,
-				VMNameLabel:    kubeBMC.Spec.VirtualMachineName,
+				VirtualMachineBMCNameLabel: virtualMachineBMC.Name,
+				VMNameLabel:                virtualMachineBMC.Spec.VirtualMachineName,
 			},
 			Name:      name,
-			Namespace: KBMCNamespace,
+			Namespace: VirtualMachineBMCNamespace,
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:  kbmcContainerName,
-					Image: fmt.Sprintf("%s:%s", kbmcImageName, kbmcImageTag),
+					Name:  virtBMCContainerName,
+					Image: fmt.Sprintf("%s:%s", virtBMCImageName, virtBMCImageTag),
 					Args: []string{
 						"--address",
 						"0.0.0.0",
 						"--port",
 						"623",
-						kubeBMC.Spec.VirtualMachineNamespace,
-						kubeBMC.Spec.VirtualMachineName,
+						virtualMachineBMC.Spec.VirtualMachineNamespace,
+						virtualMachineBMC.Spec.VirtualMachineName,
 					},
 					Ports: []corev1.ContainerPort{
 						{
@@ -79,31 +77,28 @@ func (r *VirtualMachineBMCReconciler) constructPodForVirtualMachineBMC(kubeBMC *
 					},
 				},
 			},
-			ServiceAccountName: "kubevirtbmc-virt-bmc",
+			ServiceAccountName: "kubevirtbmc-virtbmc",
 		},
 	}
 
 	return pod, nil
 }
 
-func (r *VirtualMachineBMCReconciler) constructServiceForVirtualMachineBMC(kubeBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Service, error) {
-	name := fmt.Sprintf("%s-virt-bmc", kubeBMC.Name)
+func (r *VirtualMachineBMCReconciler) constructServiceForVirtualMachineBMC(virtualMachineBMC *virtualmachinev1.VirtualMachineBMC) (*corev1.Service, error) {
+	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Name)
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Annotations: make(map[string]string),
 			Labels: map[string]string{
-				ManagedByLabel: "virt-bmc",
-				KBMCNameLabel:  kubeBMC.Name,
-				VMNameLabel:    kubeBMC.Spec.VirtualMachineName,
+				VirtualMachineBMCNameLabel: virtualMachineBMC.Name,
+				VMNameLabel:                virtualMachineBMC.Spec.VirtualMachineName,
 			},
 			Name:      name,
-			Namespace: KBMCNamespace,
+			Namespace: VirtualMachineBMCNamespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
-				ManagedByLabel: "virt-bmc",
-				KBMCNameLabel:  kubeBMC.Name,
+				VirtualMachineBMCNameLabel: virtualMachineBMC.Name,
 			},
 			Ports: []corev1.ServicePort{
 				{
@@ -119,9 +114,9 @@ func (r *VirtualMachineBMCReconciler) constructServiceForVirtualMachineBMC(kubeB
 	return svc, nil
 }
 
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs/finalizers,verbs=update
 //+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 
@@ -137,8 +132,8 @@ func (r *VirtualMachineBMCReconciler) constructServiceForVirtualMachineBMC(kubeB
 func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	var kubeBMC virtualmachinev1.VirtualMachineBMC
-	if err := r.Get(ctx, req.NamespacedName, &kubeBMC); err != nil {
+	var virtualMachineBMC virtualmachinev1.VirtualMachineBMC
+	if err := r.Get(ctx, req.NamespacedName, &virtualMachineBMC); err != nil {
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
@@ -146,17 +141,17 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Prepare the virt-bmc Pod
-	pod, err := r.constructPodForVirtualMachineBMC(&kubeBMC)
+	// Prepare the virtBMC Pod
+	pod, err := r.constructPodForVirtualMachineBMC(&virtualMachineBMC)
 	if err != nil {
 		log.Error(err, "unable to construct pod from template")
 		return ctrl.Result{}, err
 	}
-	if err := ctrl.SetControllerReference(&kubeBMC, pod, r.Scheme); err != nil {
+	if err := ctrl.SetControllerReference(&virtualMachineBMC, pod, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// Create the virt-bmc Pod on the cluster
+	// Create the virtBMC Pod on the cluster
 	if err := r.Create(ctx, pod); err != nil && !apierrors.IsAlreadyExists(err) {
 		log.Error(err, "unable to create Pod for VirtualMachineBMC", "pod", pod)
 		return ctrl.Result{}, err
@@ -164,17 +159,17 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	log.V(1).Info("created Pod for VirtualMachineBMC", "pod", pod)
 
-	// Prepare the virt-bmc Service
-	svc, err := r.constructServiceForVirtualMachineBMC(&kubeBMC)
+	// Prepare the virtBMC Service
+	svc, err := r.constructServiceForVirtualMachineBMC(&virtualMachineBMC)
 	if err != nil {
 		log.Error(err, "unable to construct svc from template")
 		return ctrl.Result{}, err
 	}
-	if err := ctrl.SetControllerReference(&kubeBMC, svc, r.Scheme); err != nil {
+	if err := ctrl.SetControllerReference(&virtualMachineBMC, svc, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// Create the virt-bmc Service on the cluster
+	// Create the virtBMC Service on the cluster
 	if err := r.Create(ctx, svc); err != nil && !apierrors.IsAlreadyExists(err) {
 		log.Error(err, "unable to create Service for VirtualMachineBMC", "svc", svc)
 		return ctrl.Result{}, err

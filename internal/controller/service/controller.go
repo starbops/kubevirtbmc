@@ -25,9 +25,12 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	virtualmachinev1 "kubevirt.org/kubevirtbmc/api/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
+	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
 )
 
 // ServiceReconciler reconciles a Service object
@@ -37,8 +40,8 @@ type ServiceReconciler struct {
 }
 
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs,verbs=get;list;watch
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.org,resources=virtualmachinebmcs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch
+//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs/status,verbs=get;update;patch
 
 func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
@@ -55,17 +58,17 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if svc.Labels == nil {
 		return ctrl.Result{}, nil
 	}
-	virt - bmcName, ok := svc.Labels[ctlvirtualmachinebmc.virt-bmcNameLabel]
+	virtualMachineBMCName, ok := svc.Labels[ctlvirtualmachinebmc.VirtualMachineBMCNameLabel]
 	if !ok {
 		return ctrl.Result{}, nil
 	}
-	knn := types.NamespacedName{
+	virtualMachineBMCNamespacedName := types.NamespacedName{
 		Namespace: req.Namespace,
-		Name:      virt - bmcName,
+		Name:      virtualMachineBMCName,
 	}
 
-	var kubeBMC virtualmachinev1.VirtualMachineBMC
-	if err := s.Get(ctx, knn, &kubeBMC); err != nil {
+	var virtualMachineBMC virtualmachinev1.VirtualMachineBMC
+	if err := s.Get(ctx, virtualMachineBMCNamespacedName, &virtualMachineBMC); err != nil {
 		log.Error(err, "unable to fetch VirtualMachineBMC")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -74,14 +77,14 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if svc.Spec.ClusterIP == "" {
 		return ctrl.Result{RequeueAfter: time.Duration(time.Second * 10)}, fmt.Errorf("clusterIP is not ready yet")
 	}
-	kubeBMC.Status.Ready = true
-	kubeBMC.Status.ServiceIP = svc.Spec.ClusterIP
-	if err := s.Status().Update(ctx, &kubeBMC); err != nil {
+	virtualMachineBMC.Status.Ready = true
+	virtualMachineBMC.Status.ServiceIP = svc.Spec.ClusterIP
+	if err := s.Status().Update(ctx, &virtualMachineBMC); err != nil {
 		log.Error(err, "unable to update VirtualMachineBMC status")
 		return ctrl.Result{}, err
 	}
 
-	log.V(1).Info("updated VirtualMachineBMC status for Service", "kubeBMC", kubeBMC)
+	log.V(1).Info("updated VirtualMachineBMC status for Service", "virtualMachineBMC", virtualMachineBMC)
 
 	return ctrl.Result{}, nil
 }

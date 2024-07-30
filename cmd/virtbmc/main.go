@@ -8,14 +8,14 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	"kubevirt.org/virtualmachinebmc/pkg/virt-bmc"
-	"kubevirt.org/kubevirtbmc/pkg/kbmc"
+	"kubevirt.io/kubevirtbmc/pkg/virtbmc"
+)
 
 func main() {
-	var options virt-bmc.Options
+	var options virtbmc.Options
 
 	app := &cli.App{
-		Name:  "virt-bmc",
+		Name:  "virtbmc",
 		Usage: "receive ipmi requests and traslate them into native k8s api calls",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -52,8 +52,8 @@ func main() {
 	}
 }
 
-func run(ctx context.Context, options virt-bmc.Options) error {
-	logrus.Info("Starting virt-bmc")
+func run(ctx context.Context, options virtbmc.Options) error {
+	logrus.Info("Starting virtbmc")
 
 	// TODO: check kubeconfig flag instead
 	// check whether we're in a cluster or not
@@ -77,10 +77,10 @@ func run(ctx context.Context, options virt-bmc.Options) error {
 		os.Exit(2)
 	}()
 
-	virt-bmc, err := virt-bmc.Newvirt-bmc(ctx, options, ok)
+	virtBMC, err := virtbmc.NewVirtBMC(ctx, options, ok)
 	if err != nil {
-		return fmt.Errorf("failed to create virt-bmc server: %v", err)
+		return fmt.Errorf("failed to create virtbmc server: %v", err)
 	}
 
-	return virt-bmc.Run()
+	return virtBMC.Run()
 }

@@ -19,7 +19,7 @@ package versioned
 
 import (
 	"fmt"
-	kubevirtv1 "kubevirt.org/virtualmachinebmc/pkg/generated/clientset/versioned/typed/core/v1"
+	kubevirtv1 "kubevirt.io/kubevirtbmc/pkg/generated/clientset/versioned/typed/core/v1"
 	"net/http"
 
 	discovery "k8s.io/client-go/discovery"
