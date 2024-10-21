@@ -66,8 +66,15 @@ func (b *VirtBMC) stopVirtualMachine() error {
 	if err != nil {
 		return err
 	}
-	runStrategy := kubevirtv1.RunStrategyHalted
-	vm.Spec.RunStrategy = &runStrategy
+	if vm.Spec.RunStrategy == nil {
+		running := func(b bool) *bool { return &b }(false)
+		vm.Spec.Running = running
+	} else {
+		runStrategy := func(rs kubevirtv1.VirtualMachineRunStrategy) *kubevirtv1.VirtualMachineRunStrategy {
+			return &rs
+		}(kubevirtv1.RunStrategyHalted)
+		vm.Spec.RunStrategy = runStrategy
+	}
 	if _, err := b.kvClient.VirtualMachines(b.vmNamespace).Update(b.context, vm, v1.UpdateOptions{}); err != nil {
 		return err
 	}
@@ -79,8 +86,15 @@ func (b *VirtBMC) startVirtualMachine() error {
 	if err != nil {
 		return err
 	}
-	runStrategy := kubevirtv1.RunStrategyRerunOnFailure
-	vm.Spec.RunStrategy = &runStrategy
+	if vm.Spec.RunStrategy == nil {
+		running := func(b bool) *bool { return &b }(true)
+		vm.Spec.Running = running
+	} else {
+		runStrategy := func(rs kubevirtv1.VirtualMachineRunStrategy) *kubevirtv1.VirtualMachineRunStrategy {
+			return &rs
+		}(kubevirtv1.RunStrategyRerunOnFailure)
+		vm.Spec.RunStrategy = runStrategy
+	}
 	if _, err := b.kvClient.VirtualMachines(b.vmNamespace).Update(b.context, vm, v1.UpdateOptions{}); err != nil {
 		return err
 	}
