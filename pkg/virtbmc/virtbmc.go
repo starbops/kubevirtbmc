@@ -20,13 +20,18 @@ type Options struct {
 	Port           int
 }
 
+type KubeVirtClientInterface interface {
+	VirtualMachines(namespace string) kubevirtv1.VirtualMachineInterface
+	VirtualMachineInstances(namespace string) kubevirtv1.VirtualMachineInstanceInterface
+}
+
 type VirtBMC struct {
 	context     context.Context
 	address     string
 	port        int
 	vmNamespace string
 	vmName      string
-	kvClient    *kubevirtv1.KubevirtV1Client
+	kvClient    KubeVirtClientInterface
 	sim         *ipmi.Simulator
 }
 
