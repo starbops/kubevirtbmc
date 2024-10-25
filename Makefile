@@ -18,7 +18,7 @@ endif
 CONTAINER_TOOL ?= docker
 
 # KUBEVIRT API version to use
-KUBEVIRT_API_VERSION = v1.1.0
+KUBEVIRT_API_VERSION = v1.2.0
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.

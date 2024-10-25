@@ -621,9 +621,8 @@ spec:
                                 or DE-AD-00-00-BE-AF.'
                               type: string
                             macvtap:
-                              description: InterfaceMacvtap connects to a given network
-                                by extending the Kubernetes node's L2 networks via
-                                a macvtap interface.
+                              description: Deprecated, please refer to Kubevirt user
+                                guide for alternatives.
                               type: object
                             masquerade:
                               description: InterfaceMasquerade connects to a given
@@ -642,7 +641,8 @@ spec:
                                 Must match the Name of a Network.
                               type: string
                             passt:
-                              description: InterfacePasst connects to a given network.
+                              description: Deprecated, please refer to Kubevirt user
+                                guide for alternatives.
                               type: object
                             pciAddress:
                               description: 'If specified, the virtual network interface
@@ -1009,6 +1009,16 @@ spec:
                   firmware:
                     description: Firmware.
                     properties:
+                      acpi:
+                        description: Information that can be set in the ACPI table
+                        properties:
+                          slicNameRef:
+                            description: |-
+                              SlicNameRef should match the volume name of a secret object. The data in the secret should
+                              be a binary blob that follows the ACPI SLIC standard, see:
+                              https://learn.microsoft.com/en-us/previous-versions/windows/hardware/design/dn653305(v=vs.85)
+                            type: string
+                        type: object
                       bootloader:
                         description: Settings to control the bootloader that is used.
                         properties:
