@@ -1,6 +1,6 @@
 module kubevirt.io/kubevirtbmc
 
-go 1.22
+go 1.23.2
 
 require (
 	github.com/onsi/ginkgo/v2 v2.11.0
