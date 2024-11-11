@@ -4,8 +4,7 @@ const (
 	DefaultUsername            = "admin"
 	DefaultPassword            = "password"
 	virtBMCContainerName       = "virtbmc"
-	virtBMCImageName           = "starbops/virtbmc"
-	virtBMCImageTag            = "dev"
+	VirtBMCImageName           = "starbops/virtbmc"
 	ipmiPort                   = 10623
 	IPMISvcPort                = 623
 	ipmiPortName               = "ipmi"

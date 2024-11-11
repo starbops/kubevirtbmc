@@ -100,11 +100,11 @@ type VirtualMachineBMCStatus struct {
 
 ### Develop
 
-**Build and push the images to the location specified by `IMG`:**
+**Build and push the images:**
 
 ```sh
-make docker-build docker-push IMG=<some-registry>/virtbmc-controller:<tag>
-make docker-build-virtbmc docker-push IMG=<some-registry>/virtbmc:<tag>
+export PUSH=true
+make docker-build
 ```
 
 > **NOTE:** These images ought to be published in the personal registry you specified. And it is required to have access to pull the images from the working environment. Make sure you have the proper permission to the registry if the above commands don’t work.

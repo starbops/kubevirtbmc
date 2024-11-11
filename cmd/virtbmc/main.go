@@ -11,6 +11,11 @@ import (
 	"kubevirt.io/kubevirtbmc/pkg/virtbmc"
 )
 
+var (
+	AppVersion = "dev"
+	GitCommit  = "none"
+)
+
 func main() {
 	var options virtbmc.Options
 
@@ -38,6 +43,19 @@ func main() {
 				Value:       10623,
 				Usage:       "listen on `PORT`",
 				Destination: &options.Port,
+			},
+			&cli.BoolFlag{
+				Name:    "version",
+				Aliases: []string{"v"},
+				Usage:   "print the version",
+				Action: func(c *cli.Context, b bool) error {
+					if b {
+						fmt.Println("Version:", AppVersion)
+						fmt.Println("Git commit:", GitCommit)
+						os.Exit(0)
+					}
+					return nil
+				},
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
