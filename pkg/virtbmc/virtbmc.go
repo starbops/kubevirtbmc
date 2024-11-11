@@ -61,7 +61,7 @@ func (b *VirtBMC) Run() error {
 	b.register()
 
 	if err := b.sim.Run(); err != nil {
-		return fmt.Errorf("unable to run the ipmi simulator")
+		return fmt.Errorf("unable to run the ipmi simulator: %v", err)
 	}
 	logrus.Infof("Listen on %s:%d", b.address, b.port)
 

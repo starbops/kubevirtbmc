@@ -19,6 +19,7 @@ package virtualmachinebmc
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -64,7 +65,7 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 						"--address",
 						"0.0.0.0",
 						"--port",
-						"623",
+						strconv.Itoa(ipmiPort),
 						virtualMachineBMC.Spec.VirtualMachineNamespace,
 						virtualMachineBMC.Spec.VirtualMachineName,
 					},
