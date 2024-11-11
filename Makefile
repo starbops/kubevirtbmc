@@ -8,8 +8,12 @@ REPO ?= starbops
 # Image URL to use all building/pushing image targets
 MGR_IMG ?= $(REPO)/virtbmc-controller:$(VERSION)
 AGT_IMG ?= $(REPO)/virtbmc:$(VERSION)
+
+K8S_VERSION = 1.28.13
+KIND_K8S_VERSION = v$(shell echo $(K8S_VERSION))
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.28.0
+ENVTEST_K8S_VERSION = 1.28.x
+export CERT_MANAGER_VERSION = v1.14.2
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -81,7 +85,7 @@ vet: ## Run go vet against code.
 
 .PHONY: test
 test: manifests generate generate-kubevirt-crd fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test $(shell go list ./... | grep -v /test/) -coverprofile cover.out
 
 GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
 GOLANGCI_LINT_VERSION ?= v1.61.0
@@ -90,6 +94,29 @@ golangci-lint:
 	set -e ;\
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
 	}
+
+## Decide the image tag based on git state for e2e tests usage
+VERSION = $(shell git rev-parse --short HEAD)
+DIRTY :=
+ifneq ($(shell git status --porcelain --untracked-files=no),)
+    DIRTY := -dirty
+endif
+export TAG = $(VERSION)$(DIRTY)
+
+.PHONY: e2e-setup
+e2e-setup: kind ## Setup end-to-end test environment.
+	$(KIND) create cluster --name kvbmc-e2e --config test/e2e/kind-config.yaml --image=kindest/node:$(KIND_K8S_VERSION)
+
+.PHONY: e2e-teardown
+e2e-teardown: kind ## Teardown end-to-end test environment.
+	$(KIND) delete cluster --name kvbmc-e2e
+
+.PHONY: e2e-test
+e2e-test: generate fmt vet kind ## Run end-to-end tests.
+	go test -v ./test/...
+
+.PHONY: local-e2e-test
+local-e2e-test: e2e-setup e2e-test e2e-teardown ## Run end-to-end tests locally.
 
 .PHONY: lint
 lint: golangci-lint ## Run golangci-lint linter & yamllint
@@ -180,10 +207,12 @@ KUBECTL ?= kubectl
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
+KIND ?= $(LOCALBIN)/kind
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.2.1
 CONTROLLER_TOOLS_VERSION ?= v0.15.0
+KIND_VERSION ?= v0.24.0
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. If wrong version is installed, it will be removed before downloading.
@@ -204,3 +233,9 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+.PHONY: kind
+kind: $(KIND) ## Download kind locally if necessary.
+$(KIND): $(LOCALBIN)
+	test -s $(LOCALBIN)/kind || GOBIN=$(LOCALBIN) GO111MODULE=on go install sigs.k8s.io/kind@$(KIND_VERSION)
+
