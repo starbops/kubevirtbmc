@@ -66,18 +66,8 @@ func TestE2E(t *testing.T) {
 var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
-	By("building the controller-manager image")
-	cmd := exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", controllerManagerImage))
-	_, err := util.Run(cmd)
-	Expect(err).ToNot(HaveOccurred())
-
-	By("building the agent image")
-	cmd = exec.Command("make", "docker-build-virtbmc", fmt.Sprintf("IMG=%s", agentImage))
-	_, err = util.Run(cmd)
-	Expect(err).ToNot(HaveOccurred())
-
 	By("loading the built images to the Kind cluster")
-	err = util.LoadImageToKindClusterWithName(controllerManagerImage)
+	err := util.LoadImageToKindClusterWithName(controllerManagerImage)
 	Expect(err).ToNot(HaveOccurred())
 	err = util.LoadImageToKindClusterWithName(agentImage)
 	Expect(err).ToNot(HaveOccurred())
@@ -125,7 +115,7 @@ var _ = BeforeSuite(func() {
 	}
 
 	By("deploying the controller-manager")
-	cmd = exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", controllerManagerImage))
+	cmd := exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", controllerManagerImage))
 	_, err = util.Run(cmd)
 	Expect(err).ToNot(HaveOccurred())
 })

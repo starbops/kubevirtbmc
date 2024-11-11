@@ -3,11 +3,19 @@
 VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "$(shell git rev-parse --abbrev-ref HEAD)-head")
 COMMIT ?= $(shell git rev-parse HEAD)
 
+DIRTY :=
+ifneq ($(shell git status --porcelain --untracked-files=no),)
+DIRTY := -dirty
+endif
+VERSION := $(VERSION)$(DIRTY)
+# Export the tag to be used in the e2e tests
+export TAG = $(VERSION)
+
 REPO ?= starbops
 
 # Image URL to use all building/pushing image targets
-MGR_IMG ?= $(REPO)/virtbmc-controller:$(VERSION)
-AGT_IMG ?= $(REPO)/virtbmc:$(VERSION)
+MGR_IMG ?= $(REPO)/virtbmc-controller:$(TAG)
+AGT_IMG ?= $(REPO)/virtbmc:$(TAG)
 
 K8S_VERSION = 1.28.13
 KIND_K8S_VERSION = v$(shell echo $(K8S_VERSION))
@@ -94,14 +102,6 @@ golangci-lint:
 	set -e ;\
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
 	}
-
-## Decide the image tag based on git state for e2e tests usage
-VERSION = $(shell git rev-parse --short HEAD)
-DIRTY :=
-ifneq ($(shell git status --porcelain --untracked-files=no),)
-    DIRTY := -dirty
-endif
-export TAG = $(VERSION)$(DIRTY)
 
 .PHONY: e2e-setup
 e2e-setup: kind ## Setup end-to-end test environment.

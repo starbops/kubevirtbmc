@@ -21,7 +21,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.22'
+        go-version: '1.23'
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
@@ -44,9 +44,9 @@ jobs:
         context: .
         build-args: |
           LINKFLAGS=-X main.AppVersion=${{ env.VERSION }} -X main.GitCommit=${{ env.GIT_COMMIT }}
-        platforms: linux/amd64,linux/arm64
         file: Dockerfile
         push: false
+        load: true
         tags: ${{ env.REPO }}/${{ env.MANAGER }}:${{ env.VERSION }}
         labels: ${{ steps.meta.outputs.labels }}
     - name: Docker build agent
@@ -56,8 +56,11 @@ jobs:
         context: .
         build-args: |
           LINKFLAGS=-X main.AppVersion=${{ env.VERSION }} -X main.GitCommit=${{ env.GIT_COMMIT }}
-        platforms: linux/amd64,linux/arm64
         file: Dockerfile.virtbmc
         push: false
+        load: true
         tags: ${{ env.REPO }}/${{ env.AGENT }}:${{ env.VERSION }}
         labels: ${{ steps.meta.outputs.labels }}
+    - name: Run end-to-end testing
+      run: make local-e2e-test
+
