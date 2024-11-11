@@ -6,7 +6,7 @@ const (
 	virtBMCContainerName       = "virtbmc"
 	virtBMCImageName           = "starbops/virtbmc"
 	virtBMCImageTag            = "dev"
-	ipmiPort                   = 623
+	ipmiPort                   = 10623
 	IPMISvcPort                = 623
 	ipmiPortName               = "ipmi"
 	VirtualMachineBMCNameLabel = "kubevirt.io/virtualmachinebmc-name"
