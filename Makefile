@@ -1,6 +1,13 @@
+# VERSION and COMMIT are set by the CI/CD pipeline. If not set, they are set to
+# the current branch and commit.
+VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "$(shell git rev-parse --abbrev-ref HEAD)-head")
+COMMIT ?= $(shell git rev-parse --short HEAD)
+
+REPO ?= starbops
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+MGR_IMG ?= $(REPO)/virtbmc-controller:$(VERSION)
+AGT_IMG ?= $(REPO)/virtbmc:$(VERSION)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.28.0
 
@@ -94,10 +101,12 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 
 ##@ Build
 
+LINKFLAGS := "-X main.AppVersion=$(VERSION) -X main.GitCommit=$(COMMIT)"
+
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
-	go build -o bin/manager cmd/controller/main.go
-	go build -o bin/virtbmc cmd/virtbmc/main.go
+	go build -ldflags $(LINKFLAGS) -o bin/manager cmd/controller/main.go
+	go build -ldflags $(LINKFLAGS) -o bin/virtbmc cmd/virtbmc/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
@@ -107,16 +116,13 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
-docker-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} .
-
-.PHONY: docker-build-virtbmc
-docker-build-virtbmc: ## Builder docker image with the virtbmc binary.
-	$(CONTAINER_TOOL) build -t ${IMG} --build-arg TARGETARCH=amd64 -f Dockerfile.virtbmc .
-
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	$(CONTAINER_TOOL) push ${IMG}
+docker-build: ## Build docker images with the manager and the agent respectively.
+	$(CONTAINER_TOOL) build -t $(MGR_IMG) --build-arg LINKFLAGS=$(LINKFLAGS) .
+	$(CONTAINER_TOOL) build -t $(AGT_IMG) --build-arg LINKFLAGS=$(LINKFLAGS) --build-arg TARGETARCH=amd64 -f Dockerfile.virtbmc .
+ifeq ($(PUSH),true)
+	$(CONTAINER_TOOL) push $(MGR_IMG)
+	$(CONTAINER_TOOL) push $(AGT_IMG)
+endif
 
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -129,11 +135,14 @@ PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 docker-buildx: ## Build and push docker image for the manager for cross-platform support
 	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
 	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile.virtbmc > Dockerfile.virtbmc.cross
 	- $(CONTAINER_TOOL) buildx create --name project-v3-builder
 	$(CONTAINER_TOOL) buildx use project-v3-builder
-	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
+	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --build-arg LINKFLAGS=$(LINKFLAGS) --tag $(MGR_IMG) -f Dockerfile.cross .
+	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --build-arg LINKFLAGS=$(LINKFLAGS) --tag $(AGT_IMG) -f Dockerfile.virtbmc.cross .
 	- $(CONTAINER_TOOL) buildx rm project-v3-builder
 	rm Dockerfile.cross
+	rm Dockerfile.virtbmc.cross
 
 ##@ Deployment
 
@@ -149,6 +158,7 @@ install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
+IMG ?= $(MGR_IMG)
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}

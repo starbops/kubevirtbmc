@@ -37,6 +37,9 @@ import (
 type VirtualMachineBMCReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+
+	AgentImageName string
+	AgentImageTag  string
 }
 
 var (
@@ -60,7 +63,7 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 			Containers: []corev1.Container{
 				{
 					Name:  virtBMCContainerName,
-					Image: fmt.Sprintf("%s:%s", virtBMCImageName, virtBMCImageTag),
+					Image: fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag),
 					Args: []string{
 						"--address",
 						"0.0.0.0",
