@@ -1,7 +1,7 @@
 # VERSION and COMMIT are set by the CI/CD pipeline. If not set, they are set to
 # the current branch and commit.
 VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "$(shell git rev-parse --abbrev-ref HEAD)-head")
-COMMIT ?= $(shell git rev-parse --short HEAD)
+COMMIT ?= $(shell git rev-parse HEAD)
 
 REPO ?= starbops
 
