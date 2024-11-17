@@ -9,13 +9,12 @@ on:
 jobs:
   build-pr:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-        - dockerfile: ./Dockerfile
-          image: starbops/virtbmc-controller
-        - dockerfile: ./Dockerfile.virtbmc
-          image: starbops/virtbmc
+    env:
+      REPO: starbops
+      MANAGER: virtbmc-controller
+      AGENT: virtbmc
+      VERSION: ${{ github.event.pull_request.head.ref }}-head
+      GIT_COMMIT: ${{ github.sha }}
     steps:
     - name: Check out repository code
       uses: actions/checkout@v4
@@ -38,18 +37,27 @@ jobs:
       run: make test
     - name: Build binaries
       run: make build
-    - name: Docker build
+    - name: Docker build manager
       uses: docker/build-push-action@v6
-      env:
-        VERSION: ${{ github.event.pull_request.head.ref }}-head
-        GIT_COMMIT: ${{ github.sha }}
       with:
         provenance: false
         context: .
         build-args: |
           LINKFLAGS=-X main.AppVersion=${{ env.VERSION }} -X main.GitCommit=${{ env.GIT_COMMIT }}
         platforms: linux/amd64,linux/arm64
-        file: ${{ matrix.dockerfile }}
+        file: Dockerfile
         push: false
-        tags: ${{ env.VERSION }}
+        tags: ${{ env.REPO }}/${{ env.MANAGER }}:${{ env.VERSION }}
+        labels: ${{ steps.meta.outputs.labels }}
+    - name: Docker build agent
+      uses: docker/build-push-action@v6
+      with:
+        provenance: false
+        context: .
+        build-args: |
+          LINKFLAGS=-X main.AppVersion=${{ env.VERSION }} -X main.GitCommit=${{ env.GIT_COMMIT }}
+        platforms: linux/amd64,linux/arm64
+        file: Dockerfile.virtbmc
+        push: false
+        tags: ${{ env.REPO }}/${{ env.AGENT }}:${{ env.VERSION }}
         labels: ${{ steps.meta.outputs.labels }}
