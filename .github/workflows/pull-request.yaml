@@ -40,11 +40,16 @@ jobs:
       run: make build
     - name: Docker build
       uses: docker/build-push-action@v6
+      env:
+        VERSION: ${{ github.event.pull_request.head.ref }}-head
+        GIT_COMMIT: ${{ github.sha }}
       with:
         provenance: false
         context: .
+        build-args: |
+          LINKFLAGS=-X main.AppVersion=${{ env.VERSION }} -X main.GitCommit=${{ env.GIT_COMMIT }}
         platforms: linux/amd64,linux/arm64
         file: ${{ matrix.dockerfile }}
         push: false
-        tags: ${{ steps.meta.outputs.tags }}
+        tags: ${{ env.VERSION }}
         labels: ${{ steps.meta.outputs.labels }}
