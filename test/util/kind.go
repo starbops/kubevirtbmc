@@ -5,12 +5,12 @@ import (
 	"os/exec"
 )
 
-func LoadImageToKindClusterWithName(name string) error {
+func LoadImageToKindClusterWithName(names ...string) error {
 	cluster := "kvbmc-e2e"
 	if v, ok := os.LookupEnv("KIND_CLUSTER"); ok {
 		cluster = v
 	}
-	kindOptions := []string{"load", "docker-image", name, "--name", cluster}
+	kindOptions := append([]string{"load", "docker-image", "--name", cluster}, names...)
 	cmd := exec.Command("kind", kindOptions...)
 	_, err := Run(cmd)
 	return err
