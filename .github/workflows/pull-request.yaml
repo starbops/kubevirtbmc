@@ -37,6 +37,8 @@ jobs:
       run: make test
     - name: Build binaries
       run: make build
+    # The docker daemon does not support tags pointing at a manifest list, rather than a manifest. Ref: https://github.com/docker/buildx/issues/59
+    # Images built in this pipeline are meant to be used for the end-to-end testing, so it's tolerable to build the images for single platform.
     - name: Docker build manager
       uses: docker/build-push-action@v6
       with:

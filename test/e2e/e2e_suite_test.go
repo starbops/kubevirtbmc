@@ -67,9 +67,7 @@ var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	By("loading the built images to the Kind cluster")
-	err := util.LoadImageToKindClusterWithName(controllerManagerImage)
-	Expect(err).ToNot(HaveOccurred())
-	err = util.LoadImageToKindClusterWithName(agentImage)
+	err := util.LoadImageToKindClusterWithName(controllerManagerImage, agentImage)
 	Expect(err).ToNot(HaveOccurred())
 
 	By("creating the clientsets")
