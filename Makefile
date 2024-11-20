@@ -83,6 +83,10 @@ generate-kubevirt-crd: controller-gen ## Clone KubeVirt API and generate CustomR
 	rm -rvf $$TMP_DIR; \
 	rm -vf config/kubevirt-crd/kubevirt.io_datavolumetemplatespecs.yaml
 
+.PHONY: generate-redfish-api
+generate-redfish-api: ## Generate Redfish API server.
+	./hack/redfish/generate.sh
+
 .PHONY: fmt
 fmt: ## Run go fmt against code.
 	go fmt ./...
