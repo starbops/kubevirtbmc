@@ -1,0 +1,1188 @@
+components:
+  schemas:
+    RedfishError:
+      description: The error payload from a Redfish service.
+      properties:
+        error:
+          description: The properties that describe an error from a Redfish service.
+          properties:
+            '@Message.ExtendedInfo':
+              description: An array of messages describing one or more error messages.
+              items:
+                $ref: http://redfish.dmtf.org/schemas/v1/Message.v1_2_1.yaml#/components/schemas/Message_v1_2_1_Message
+              type: array
+              x-longDescription: This property shall be an array of message objects
+                describing one or more error messages.
+            code:
+              description: A string indicating a specific `MessageId` from a message
+                registry.
+              readOnly: true
+              type: string
+              x-longDescription: This property shall contain a string indicating a
+                specific `MessageId` from a message registry.
+            message:
+              description: A human-readable error message corresponding to the message
+                in a message registry.
+              readOnly: true
+              type: string
+              x-longDescription: This property shall contain a human-readable error
+                message corresponding to the message in a message registry.
+          required:
+          - code
+          - message
+          type: object
+          x-longDescription: The Redfish Specification-described type shall contain
+            properties that describe an error from a Redfish service.
+      required:
+      - error
+      type: object
+      x-longDescription: The Redfish Specification-described type shall contain an
+        error payload from a Redfish service.
+info:
+  contact:
+    name: DMTF
+    url: https://www.dmtf.org/standards/redfish
+  description: This contains the definition of a Redfish service.
+  title: Redfish
+  version: '2024.3'
+  x-copyright: Copyright 2024 DMTF. For the full DMTF copyright policy, see http://www.dmtf.org/about/policies/copyright
+openapi: 3.0.1
+paths:
+  /redfish/v1:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ServiceRoot.v1_17_0.yaml#/components/schemas/ServiceRoot_v1_17_0_ServiceRoot
+          description: The response contains a representation of the ServiceRoot resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/$metadata:
+    get:
+      responses:
+        '200':
+          content:
+            application/xml: {}
+          description: OData $metadata.
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Managers:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ManagerCollection.yaml#/components/schemas/ManagerCollection_ManagerCollection
+          description: The response contains a representation of the ManagerCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Managers/{ManagerId}:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Manager.v1_19_2.yaml#/components/schemas/Manager_v1_19_2_Manager
+          description: The response contains a representation of the Manager resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the Manager resource
+      in: path
+      name: ManagerId
+      required: true
+      schema:
+        type: string
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/Manager.v1_19_2.yaml#/components/schemas/Manager_v1_19_2_Manager
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Manager.v1_19_2.yaml#/components/schemas/Manager_v1_19_2_Manager
+          description: The response contains a representation of the Manager resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/Manager.v1_19_2.yaml#/components/schemas/Manager_v1_19_2_Manager
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Manager.v1_19_2.yaml#/components/schemas/Manager_v1_19_2_Manager
+          description: The response contains a representation of the Manager resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Managers/{ManagerId}/VirtualMedia:
+    get:
+      deprecated: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/VirtualMediaCollection.yaml#/components/schemas/VirtualMediaCollection_VirtualMediaCollection
+          description: The response contains a representation of the VirtualMediaCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the Manager resource
+      in: path
+      name: ManagerId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Managers/{ManagerId}/VirtualMedia/{VirtualMediaId}:
+    get:
+      deprecated: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+          description: The response contains a representation of the VirtualMedia
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the Manager resource
+      in: path
+      name: ManagerId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the VirtualMedia resource
+      in: path
+      name: VirtualMediaId
+      required: true
+      schema:
+        type: string
+    patch:
+      deprecated: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+          description: The response contains a representation of the VirtualMedia
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    put:
+      deprecated: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+          description: The response contains a representation of the VirtualMedia
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Managers/{ManagerId}/VirtualMedia/{VirtualMediaId}/Actions/VirtualMedia.EjectMedia:
+    parameters:
+    - description: The value of the Id property of the Manager resource
+      in: path
+      name: ManagerId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the VirtualMedia resource
+      in: path
+      name: VirtualMediaId
+      required: true
+      schema:
+        type: string
+    post:
+      deprecated: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_EjectMediaRequestBody
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the EjectMedia action
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the EjectMedia action
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Managers/{ManagerId}/VirtualMedia/{VirtualMediaId}/Actions/VirtualMedia.InsertMedia:
+    parameters:
+    - description: The value of the Id property of the Manager resource
+      in: path
+      name: ManagerId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the VirtualMedia resource
+      in: path
+      name: VirtualMediaId
+      required: true
+      schema:
+        type: string
+    post:
+      deprecated: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_InsertMediaRequestBody
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the InsertMedia action
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the InsertMedia action
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/SessionService:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/SessionService.v1_1_9.yaml#/components/schemas/SessionService_v1_1_9_SessionService
+          description: The response contains a representation of the SessionService
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/SessionService.v1_1_9.yaml#/components/schemas/SessionService_v1_1_9_SessionService
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/SessionService.v1_1_9.yaml#/components/schemas/SessionService_v1_1_9_SessionService
+          description: The response contains a representation of the SessionService
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/SessionService.v1_1_9.yaml#/components/schemas/SessionService_v1_1_9_SessionService
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/SessionService.v1_1_9.yaml#/components/schemas/SessionService_v1_1_9_SessionService
+          description: The response contains a representation of the SessionService
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/SessionService/Sessions:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/SessionCollection.yaml#/components/schemas/SessionCollection_SessionCollection
+          description: The response contains a representation of the SessionCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/Session.v1_7_2.yaml#/components/schemas/Session_v1_7_2_Session
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Session.v1_7_2.yaml#/components/schemas/Session_v1_7_2_Session
+          description: A resource of type Session has been created
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/SessionService/Sessions/{SessionId}:
+    delete:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Session.v1_7_2.yaml#/components/schemas/Session_v1_7_2_Session
+          description: The response contains a representation of the Session resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Session.v1_7_2.yaml#/components/schemas/Session_v1_7_2_Session
+          description: The response contains a representation of the Session resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the Session resource
+      in: path
+      name: SessionId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Systems:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystemCollection.yaml#/components/schemas/ComputerSystemCollection_ComputerSystemCollection
+          description: The response contains a representation of the ComputerSystemCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_ComputerSystem
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_ComputerSystem
+          description: A resource of type ComputerSystem has been created
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}:
+    delete:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_ComputerSystem
+          description: The response contains a representation of the ComputerSystem
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_ComputerSystem
+          description: The response contains a representation of the ComputerSystem
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_ComputerSystem
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_ComputerSystem
+          description: The response contains a representation of the ComputerSystem
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_ComputerSystem
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_ComputerSystem
+          description: The response contains a representation of the ComputerSystem
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/Actions/ComputerSystem.Reset:
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_ResetRequestBody
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/Actions/ComputerSystem.SetDefaultBootOrder:
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_23_0.yaml#/components/schemas/ComputerSystem_v1_23_0_SetDefaultBootOrderRequestBody
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the SetDefaultBootOrder
+            action
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the SetDefaultBootOrder
+            action
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/BootOptions:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/BootOptionCollection.yaml#/components/schemas/BootOptionCollection_BootOptionCollection
+          description: The response contains a representation of the BootOptionCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/BootOption.v1_0_6.yaml#/components/schemas/BootOption_v1_0_6_BootOption
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/BootOption.v1_0_6.yaml#/components/schemas/BootOption_v1_0_6_BootOption
+          description: A resource of type BootOption has been created
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/BootOptions/{BootOptionId}:
+    delete:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/BootOption.v1_0_6.yaml#/components/schemas/BootOption_v1_0_6_BootOption
+          description: The response contains a representation of the BootOption resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/BootOption.v1_0_6.yaml#/components/schemas/BootOption_v1_0_6_BootOption
+          description: The response contains a representation of the BootOption resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the BootOption resource
+      in: path
+      name: BootOptionId
+      required: true
+      schema:
+        type: string
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/BootOption.v1_0_6.yaml#/components/schemas/BootOption_v1_0_6_BootOption
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/BootOption.v1_0_6.yaml#/components/schemas/BootOption_v1_0_6_BootOption
+          description: The response contains a representation of the BootOption resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/BootOption.v1_0_6.yaml#/components/schemas/BootOption_v1_0_6_BootOption
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/BootOption.v1_0_6.yaml#/components/schemas/BootOption_v1_0_6_BootOption
+          description: The response contains a representation of the BootOption resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/VirtualMedia:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/VirtualMediaCollection.yaml#/components/schemas/VirtualMediaCollection_VirtualMediaCollection
+          description: The response contains a representation of the VirtualMediaCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Systems/{ComputerSystemId}/VirtualMedia/{VirtualMediaId}:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+          description: The response contains a representation of the VirtualMedia
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the VirtualMedia resource
+      in: path
+      name: VirtualMediaId
+      required: true
+      schema:
+        type: string
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+          description: The response contains a representation of the VirtualMedia
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_VirtualMedia
+          description: The response contains a representation of the VirtualMedia
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/VirtualMedia/{VirtualMediaId}/Actions/VirtualMedia.EjectMedia:
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the VirtualMedia resource
+      in: path
+      name: VirtualMediaId
+      required: true
+      schema:
+        type: string
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_EjectMediaRequestBody
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the EjectMedia action
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the EjectMedia action
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/VirtualMedia/{VirtualMediaId}/Actions/VirtualMedia.InsertMedia:
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the VirtualMedia resource
+      in: path
+      name: VirtualMediaId
+      required: true
+      schema:
+        type: string
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/VirtualMedia.v1_6_4.yaml#/components/schemas/VirtualMedia_v1_6_4_InsertMediaRequestBody
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the InsertMedia action
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the InsertMedia action
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/odata:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                description: The OData service document from a Redfish service.
+                properties:
+                  '@odata.context':
+                    $ref: http://redfish.dmtf.org/schemas/v1/odata-v4.yaml#/components/schemas/odata-v4_context
+                  value:
+                    description: The list of services provided by the Redfish service.
+                    items:
+                      properties:
+                        kind:
+                          description: Type of resource.  Value is `Singleton` for
+                            all cases defined by Redfish.
+                          readOnly: true
+                          type: string
+                        name:
+                          description: User-friendly resource name of the resource.
+                          readOnly: true
+                          type: string
+                        url:
+                          description: Relative URL for the top-level resource.
+                          readOnly: true
+                          type: string
+                      required:
+                      - name
+                      - kind
+                      - url
+                      type: object
+                    type: array
+                required:
+                - '@odata.context'
+                - value
+                type: object
+          description: OData service document
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
