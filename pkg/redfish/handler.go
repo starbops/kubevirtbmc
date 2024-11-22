@@ -98,10 +98,11 @@ func (h *ResourceHandler) GetManager() (*server.ManagerV1192Manager, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := manager.(*server.ManagerV1192Manager); !ok {
+	adapter, ok := manager.(*resourcemanager.ManagerV1192Adapter)
+	if !ok {
 		return nil, fmt.Errorf("unexpected manager type: %T", manager)
 	}
-	return manager.(*server.ManagerV1192Manager), nil
+	return adapter.GetManager(), nil
 }
 
 func (h *ResourceHandler) GetVirtualMediaCollection() *server.VirtualMediaCollectionVirtualMediaCollection {
@@ -162,10 +163,11 @@ func (h *ResourceHandler) GetComputerSystem() (*server.ComputerSystemV1230Comput
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := computerSystem.(*server.ComputerSystemV1230ComputerSystem); !ok {
+	adapter, ok := computerSystem.(*resourcemanager.ComputerSystemV1230Adapter)
+	if !ok {
 		return nil, fmt.Errorf("unexpected computer system type: %T", computerSystem)
 	}
-	return computerSystem.(*server.ComputerSystemV1230ComputerSystem), nil
+	return adapter.GetComputerSystem(), nil
 }
 
 func (h *ResourceHandler) ComputerSystemReset(resetType server.ResourceResetType) error {

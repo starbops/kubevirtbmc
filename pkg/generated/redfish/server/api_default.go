@@ -216,6 +216,81 @@ func (c *DefaultAPIController) Routes() Routes {
 			"/redfish/v1/Systems/{ComputerSystemId}/BootOptions/{BootOptionId}",
 			c.RedfishV1SystemsComputerSystemIdBootOptionsBootOptionIdPatch,
 		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemGet": Route{
+			strings.ToUpper("Get"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemGet,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsGet": Route{
+			strings.ToUpper("Get"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Applications",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsGet,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdGet": Route{
+			strings.ToUpper("Get"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Applications/{ApplicationId}",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdGet,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdActionsApplicationResetPost": Route{
+			strings.ToUpper("Post"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Applications/{ApplicationId}/Actions/Application.Reset",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdActionsApplicationResetPost,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesGet": Route{
+			strings.ToUpper("Get"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/ContainerImages",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesGet,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesContainerImageIdGet": Route{
+			strings.ToUpper("Get"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/ContainerImages/{ContainerImageId}",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesContainerImageIdGet,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainersGet": Route{
+			strings.ToUpper("Get"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainersGet,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesGet": Route{
+			strings.ToUpper("Get"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesGet,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesPost": Route{
+			strings.ToUpper("Post"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesPost,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdGet": Route{
+			strings.ToUpper("Get"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces/{EthernetInterfaceId}",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdGet,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPut": Route{
+			strings.ToUpper("Put"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces/{EthernetInterfaceId}",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPut,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdDelete": Route{
+			strings.ToUpper("Delete"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces/{EthernetInterfaceId}",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdDelete,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPatch": Route{
+			strings.ToUpper("Patch"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces/{EthernetInterfaceId}",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPatch,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdGet": Route{
+			strings.ToUpper("Get"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/{ContainerId}",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdGet,
+		},
+		"RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdActionsContainerResetPost": Route{
+			strings.ToUpper("Post"),
+			"/redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/{ContainerId}/Actions/Container.Reset",
+			c.RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdActionsContainerResetPost,
+		},
 		"RedfishV1SystemsComputerSystemIdVirtualMediaGet": Route{
 			strings.ToUpper("Get"),
 			"/redfish/v1/Systems/{ComputerSystemId}/VirtualMedia",
@@ -1069,6 +1144,396 @@ func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdBootOptionsBootOp
 		return
 	}
 	result, err := c.service.RedfishV1SystemsComputerSystemIdBootOptionsBootOptionIdPatch(r.Context(), computerSystemIdParam, bootOptionIdParam, bootOptionV106BootOptionParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemGet -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemGet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemGet(r.Context(), computerSystemIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsGet -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsGet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsGet(r.Context(), computerSystemIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdGet -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdGet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	applicationIdParam := params["ApplicationId"]
+	if applicationIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ApplicationId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdGet(r.Context(), computerSystemIdParam, applicationIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdActionsApplicationResetPost -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdActionsApplicationResetPost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	applicationIdParam := params["ApplicationId"]
+	if applicationIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ApplicationId"}, nil)
+		return
+	}
+	applicationV101ResetRequestBodyParam := ApplicationV101ResetRequestBody{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&applicationV101ResetRequestBodyParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertApplicationV101ResetRequestBodyRequired(applicationV101ResetRequestBodyParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertApplicationV101ResetRequestBodyConstraints(applicationV101ResetRequestBodyParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdActionsApplicationResetPost(r.Context(), computerSystemIdParam, applicationIdParam, applicationV101ResetRequestBodyParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesGet -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesGet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesGet(r.Context(), computerSystemIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesContainerImageIdGet -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesContainerImageIdGet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	containerImageIdParam := params["ContainerImageId"]
+	if containerImageIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ContainerImageId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesContainerImageIdGet(r.Context(), computerSystemIdParam, containerImageIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainersGet -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainersGet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainersGet(r.Context(), computerSystemIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesGet -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesGet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesGet(r.Context(), computerSystemIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesPost -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesPost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	ethernetInterfaceV1122EthernetInterfaceParam := EthernetInterfaceV1122EthernetInterface{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&ethernetInterfaceV1122EthernetInterfaceParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertEthernetInterfaceV1122EthernetInterfaceRequired(ethernetInterfaceV1122EthernetInterfaceParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertEthernetInterfaceV1122EthernetInterfaceConstraints(ethernetInterfaceV1122EthernetInterfaceParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesPost(r.Context(), computerSystemIdParam, ethernetInterfaceV1122EthernetInterfaceParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdGet -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdGet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	ethernetInterfaceIdParam := params["EthernetInterfaceId"]
+	if ethernetInterfaceIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"EthernetInterfaceId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdGet(r.Context(), computerSystemIdParam, ethernetInterfaceIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPut -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPut(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	ethernetInterfaceIdParam := params["EthernetInterfaceId"]
+	if ethernetInterfaceIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"EthernetInterfaceId"}, nil)
+		return
+	}
+	ethernetInterfaceV1122EthernetInterfaceParam := EthernetInterfaceV1122EthernetInterface{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&ethernetInterfaceV1122EthernetInterfaceParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertEthernetInterfaceV1122EthernetInterfaceRequired(ethernetInterfaceV1122EthernetInterfaceParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertEthernetInterfaceV1122EthernetInterfaceConstraints(ethernetInterfaceV1122EthernetInterfaceParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPut(r.Context(), computerSystemIdParam, ethernetInterfaceIdParam, ethernetInterfaceV1122EthernetInterfaceParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdDelete -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdDelete(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	ethernetInterfaceIdParam := params["EthernetInterfaceId"]
+	if ethernetInterfaceIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"EthernetInterfaceId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdDelete(r.Context(), computerSystemIdParam, ethernetInterfaceIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPatch -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPatch(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	ethernetInterfaceIdParam := params["EthernetInterfaceId"]
+	if ethernetInterfaceIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"EthernetInterfaceId"}, nil)
+		return
+	}
+	ethernetInterfaceV1122EthernetInterfaceParam := EthernetInterfaceV1122EthernetInterface{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&ethernetInterfaceV1122EthernetInterfaceParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertEthernetInterfaceV1122EthernetInterfaceRequired(ethernetInterfaceV1122EthernetInterfaceParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertEthernetInterfaceV1122EthernetInterfaceConstraints(ethernetInterfaceV1122EthernetInterfaceParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPatch(r.Context(), computerSystemIdParam, ethernetInterfaceIdParam, ethernetInterfaceV1122EthernetInterfaceParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdGet -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdGet(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	containerIdParam := params["ContainerId"]
+	if containerIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ContainerId"}, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdGet(r.Context(), computerSystemIdParam, containerIdParam)
+	// If an error occurred, encode the error with the status code
+	if err != nil {
+		c.errorHandler(w, r, err, &result)
+		return
+	}
+	// If no error, encode the body and the result code
+	_ = EncodeJSONResponse(result.Body, &result.Code, w)
+}
+
+// RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdActionsContainerResetPost -
+func (c *DefaultAPIController) RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdActionsContainerResetPost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	computerSystemIdParam := params["ComputerSystemId"]
+	if computerSystemIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ComputerSystemId"}, nil)
+		return
+	}
+	containerIdParam := params["ContainerId"]
+	if containerIdParam == "" {
+		c.errorHandler(w, r, &RequiredError{"ContainerId"}, nil)
+		return
+	}
+	containerV101ResetRequestBodyParam := ContainerV101ResetRequestBody{}
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+	if err := d.Decode(&containerV101ResetRequestBodyParam); err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	if err := AssertContainerV101ResetRequestBodyRequired(containerV101ResetRequestBodyParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	if err := AssertContainerV101ResetRequestBodyConstraints(containerV101ResetRequestBodyParam); err != nil {
+		c.errorHandler(w, r, err, nil)
+		return
+	}
+	result, err := c.service.RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdActionsContainerResetPost(r.Context(), computerSystemIdParam, containerIdParam, containerV101ResetRequestBodyParam)
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

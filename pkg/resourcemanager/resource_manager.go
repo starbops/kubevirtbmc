@@ -9,8 +9,8 @@ const (
 )
 
 type ResourceManager interface {
-	GetComputerSystem() (interface{}, error)
-	GetManager() (interface{}, error)
+	GetComputerSystem() (ComputerSystemInterface, error)
+	GetManager() (ManagerInterface, error)
 
 	GetPowerStatus() (bool, error)
 	PowerOn() error
