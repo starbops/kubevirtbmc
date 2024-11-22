@@ -1075,6 +1075,534 @@ paths:
               schema:
                 $ref: '#/components/schemas/RedfishError'
           description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem:
+    get:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperatingSystem_v1_0_2_OperatingSystem'
+          description: The response contains a representation of the OperatingSystem
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Applications:
+    get:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationCollection_ApplicationCollection'
+          description: The response contains a representation of the ApplicationCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Applications/{ApplicationId}:
+    get:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The value of the Id property of the Application resource
+        explode: false
+        in: path
+        name: ApplicationId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application_v1_0_1_Application'
+          description: The response contains a representation of the Application resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Applications/{ApplicationId}/Actions/Application.Reset:
+    post:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The value of the Id property of the Application resource
+        explode: false
+        in: path
+        name: ApplicationId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Application_v1_0_1_ResetRequestBody'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task_v1_7_4_Task'
+          description: Accepted; a task has been generated
+        "204":
+          description: "Success, but no response data"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/ContainerImages:
+    get:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContainerImageCollection_ContainerImageCollection'
+          description: The response contains a representation of the ContainerImageCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/ContainerImages/{ContainerImageId}:
+    get:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The value of the Id property of the ContainerImage resource
+        explode: false
+        in: path
+        name: ContainerImageId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContainerImage_v1_0_1_ContainerImage'
+          description: The response contains a representation of the ContainerImage
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers:
+    get:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContainerCollection_ContainerCollection'
+          description: The response contains a representation of the ContainerCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces:
+    get:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EthernetInterfaceCollection_EthernetInterfaceCollection'
+          description: The response contains a representation of the EthernetInterfaceCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    post:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface'
+          description: A resource of type EthernetInterface has been created
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task_v1_7_4_Task'
+          description: Accepted; a task has been generated
+        "204":
+          description: "Success, but no response data"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces/{EthernetInterfaceId}:
+    delete:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The value of the Id property of the EthernetInterface resource
+        explode: false
+        in: path
+        name: EthernetInterfaceId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface'
+          description: The response contains a representation of the EthernetInterface
+            resource
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task_v1_7_4_Task'
+          description: Accepted; a task has been generated
+        "204":
+          description: "Success, but no response data"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    get:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The value of the Id property of the EthernetInterface resource
+        explode: false
+        in: path
+        name: EthernetInterfaceId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface'
+          description: The response contains a representation of the EthernetInterface
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    patch:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The value of the Id property of the EthernetInterface resource
+        explode: false
+        in: path
+        name: EthernetInterfaceId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface'
+          description: The response contains a representation of the EthernetInterface
+            resource
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task_v1_7_4_Task'
+          description: Accepted; a task has been generated
+        "204":
+          description: "Success, but no response data"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    put:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The value of the Id property of the EthernetInterface resource
+        explode: false
+        in: path
+        name: EthernetInterfaceId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface'
+          description: The response contains a representation of the EthernetInterface
+            resource
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task_v1_7_4_Task'
+          description: Accepted; a task has been generated
+        "204":
+          description: "Success, but no response data"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/{ContainerId}:
+    get:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The value of the Id property of the Container resource
+        explode: false
+        in: path
+        name: ContainerId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Container_v1_0_1_Container'
+          description: The response contains a representation of the Container resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/{ContainerId}/Actions/Container.Reset:
+    post:
+      parameters:
+      - description: The value of the Id property of the ComputerSystem resource
+        explode: false
+        in: path
+        name: ComputerSystemId
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: The value of the Id property of the Container resource
+        explode: false
+        in: path
+        name: ContainerId
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Container_v1_0_1_ResetRequestBody'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task_v1_7_4_Task'
+          description: Accepted; a task has been generated
+        "204":
+          description: "Success, but no response data"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
   /redfish/v1/Systems/{ComputerSystemId}/VirtualMedia:
     get:
       parameters:
@@ -13295,6 +13823,3964 @@ components:
       x-patternProperties:
         ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
           description: This property shall specify a valid odata or Redfish property.
+    OperatingSystem_v1_0_2_OperatingSystem:
+      additionalProperties: false
+      description: The `OperatingSystem` schema represents the operating system and
+        software running on a computer system.
+      example:
+        Status:
+          HealthRollup: null
+          Health: null
+          Oem:
+            key: ""
+          State: Enabled
+          Conditions:
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+        Description: Description
+        Applications:
+          '@odata.id': '@odata.id'
+        Actions:
+          Oem:
+            key: ""
+        '@odata.type': '@odata.type'
+        '@odata.etag': '@odata.etag'
+        Containers:
+          '@odata.id': '@odata.id'
+        '@odata.context': '@odata.context'
+        UptimeSeconds: 0
+        Name: Name
+        '@odata.id': '@odata.id'
+        Type: Linux
+        Oem:
+          key: ""
+        ContainerImages:
+          '@odata.id': '@odata.id'
+        Links:
+          SoftwareImage:
+            '@odata.id': '@odata.id'
+          Oem:
+            key: ""
+        Id: Id
+        ContainerEngines:
+        - Type: Docker
+          ManagementURIs:
+          - ManagementURIs
+          - ManagementURIs
+          SupportedImageTypes:
+          - DockerV1
+          - DockerV1
+          Version: Version
+        - Type: Docker
+          ManagementURIs:
+          - ManagementURIs
+          - ManagementURIs
+          SupportedImageTypes:
+          - DockerV1
+          - DockerV1
+          Version: Version
+        Kernel:
+          Version: Version
+          Machine: Machine
+          Release: Release
+          Name: Name
+        VirtualMachineEngines:
+        - Type: VMwareESX
+          ManagementURIs:
+          - ManagementURIs
+          - ManagementURIs
+          SupportedImageTypes:
+          - Raw
+          - Raw
+          Version: Version
+        - Type: VMwareESX
+          ManagementURIs:
+          - ManagementURIs
+          - ManagementURIs
+          SupportedImageTypes:
+          - Raw
+          - Raw
+          Version: Version
+      properties:
+        '@odata.context':
+          description: The OData description of a payload.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the context URL that
+            describes the resource according to OData-Protocol and shall be of the
+            form defined in the Redfish specification.
+        '@odata.etag':
+          description: The current ETag of the resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a string that is
+            defined by the ETag HTTP header definition in RFC7232.
+        '@odata.id':
+          description: The unique identifier for a resource.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the unique identifier
+            for the resource and it shall be of the form defined in the Redfish specification.
+        '@odata.type':
+          description: The type of a resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a URI fragment that
+            specifies the type of the resource and it shall be of the form defined
+            in the Redfish specification.
+        Actions:
+          $ref: '#/components/schemas/OperatingSystem_v1_0_2_Actions'
+        Applications:
+          $ref: '#/components/schemas/odata-v4_idRef'
+        ContainerEngines:
+          description: The container engines running in this operating system.
+          items:
+            $ref: '#/components/schemas/OperatingSystem_v1_0_2_OperatingSystem_ContainerEngines_inner'
+          type: array
+          x-longDescription: This property shall contain the container engines running
+            in this operating system.
+        ContainerImages:
+          $ref: '#/components/schemas/odata-v4_idRef'
+        Containers:
+          $ref: '#/components/schemas/odata-v4_idRef'
+        Description:
+          description: The description of this resource.  Used for commonality in
+            the schema definitions.
+          type: string
+          x-longDescription: This property shall contain the description of this resource.  The
+            value shall conform with the 'Description' clause of the Redfish Specification.
+        Id:
+          description: The unique identifier for this resource within the collection
+            of similar resources.
+          type: string
+          x-longDescription: This property shall contain the identifier for this resource.  The
+            value shall conform with the 'Id' clause of the Redfish Specification.
+        Kernel:
+          $ref: '#/components/schemas/OperatingSystem_v1_0_2_Kernel'
+        Links:
+          $ref: '#/components/schemas/OperatingSystem_v1_0_2_Links'
+        Name:
+          description: The name of the resource or array member.
+          type: string
+          x-longDescription: This property shall contain the name of this resource
+            or array member.  The value shall conform with the 'Name' clause of the
+            Redfish Specification.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        Status:
+          $ref: '#/components/schemas/Resource_Status'
+        Type:
+          $ref: '#/components/schemas/OperatingSystem_v1_0_2_OperatingSystemTypes'
+        UptimeSeconds:
+          description: The wall-clock time this operating system has been running
+            in seconds.
+          format: int64
+          nullable: true
+          readOnly: true
+          type: integer
+          x-longDescription: This property shall contain the wall-clock time this
+            operating system has been running in seconds.
+        VirtualMachineEngines:
+          description: The virtual machine engines running in this operating system.
+          items:
+            $ref: '#/components/schemas/OperatingSystem_v1_0_2_OperatingSystem_VirtualMachineEngines_inner'
+          type: array
+          x-longDescription: This property shall contain the virtual machine engines
+            running in this operating system.
+      required:
+      - '@odata.id'
+      - '@odata.type'
+      - Id
+      - Name
+      type: object
+      x-longDescription: This resource shall represent the operating system and software
+        running on a computer system.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    OperatingSystem_v1_0_2_Actions:
+      additionalProperties: false
+      description: The available actions for this resource.
+      example:
+        Oem:
+          key: ""
+      properties:
+        Oem:
+          additionalProperties: true
+          description: The available OEM-specific actions for this resource.
+          properties: {}
+          type: object
+          x-longDescription: This type shall contain the available OEM-specific actions
+            for this resource.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+      type: object
+      x-longDescription: This type shall contain the available actions for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    OperatingSystem_v1_0_2_OemActions:
+      additionalProperties: true
+      description: The available OEM-specific actions for this resource.
+      properties: {}
+      type: object
+      x-longDescription: This type shall contain the available OEM-specific actions
+        for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    OperatingSystem_v1_0_2_ContainerEngine:
+      additionalProperties: false
+      description: A container engine running in an operating system.
+      example:
+        Type: Docker
+        ManagementURIs:
+        - ManagementURIs
+        - ManagementURIs
+        SupportedImageTypes:
+        - DockerV1
+        - DockerV1
+        Version: Version
+      properties:
+        ManagementURIs:
+          description: The URIs to manage this container engine.
+          format: uri-reference
+          items:
+            nullable: true
+            type: string
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of URIs to management
+            interfaces for this container engine.  This is typically a web UI or API
+            provided by the container engine.
+        SupportedImageTypes:
+          description: The supported image types for this container engine.
+          items:
+            $ref: '#/components/schemas/OperatingSystem_v1_0_2_ContainerEngine_SupportedImageTypes_inner'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain the supported image types
+            for this container engine.
+        Type:
+          $ref: '#/components/schemas/OperatingSystem_v1_0_2_ContainerEngineTypes'
+        Version:
+          description: The version of this container engine.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the version of this container
+            engine.
+      type: object
+      x-longDescription: This type shall contain a container engine running in an
+        operating system.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    ContainerImage_ImageTypes:
+      enum:
+      - DockerV1
+      - DockerV2
+      - OCI
+      type: string
+      x-enumDescriptions:
+        DockerV1: Docker V1.
+        DockerV2: Docker V2.
+        OCI: OCI (Open Container Initiative).
+      x-enumLongDescriptions:
+        DockerV1: This value shall indicate a Docker Image Specification Version 1-defined
+          Docker image.
+        DockerV2: This value shall indicate a Docker Image Manifest Version 2-defined
+          Docker image.
+        OCI: This value shall indicate an Open Container Specification-defined OCI
+          (Open Container Initiative) image.
+    OperatingSystem_v1_0_2_ContainerEngineTypes:
+      enum:
+      - Docker
+      - containerd
+      - CRIO
+      type: string
+      x-enumDescriptions:
+        CRIO: CRI-O.
+        Docker: Docker.
+        containerd: containerd.
+      x-enumLongDescriptions:
+        CRIO: This value shall indicate the container engine is CRI-O.
+        Docker: This value shall indicate the container engine is Docker.
+        containerd: This value shall indicate the container engine is containerd.
+    OperatingSystem_v1_0_2_Kernel:
+      additionalProperties: false
+      description: The kernel information for an operating system.
+      example:
+        Version: Version
+        Machine: Machine
+        Release: Release
+        Name: Name
+      properties:
+        Machine:
+          description: The machine hardware name of the kernel.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: "This property shall contain the machine hardware name\
+            \ of the kernel.  For strict POSIX operating systems, the value shall\
+            \ contain the output of `uname -m`."
+        Name:
+          description: The name of the kernel.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: "This property shall contain the name of the kernel.\
+            \  For strict POSIX operating systems, the value shall contain the output\
+            \ of `uname -s`.  For Microsoft Windows, the value shall contain the string\
+            \ name from the output of `ver`, from Command Prompt, prior to the first\
+            \ square brace (`[`), which is typically `Microsoft Windows`."
+        Release:
+          description: The release of the kernel.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: "This property shall contain the release of the kernel.\
+            \  For strict POSIX operating systems, the value shall contain the output\
+            \ of `uname -r`.  For Microsoft Windows, the value shall contain the decimal-delimited\
+            \ version from the output of `ver`, from Command Prompt, within the square\
+            \ braces (`[` and `]`), following the regular expression `^\\d+\\.\\d+\\\
+            .\\d+\\.\\d+$`."
+        Version:
+          description: The version of the kernel.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: "This property shall contain the version of the kernel.\
+            \  For strict POSIX operating systems, the value shall contain the output\
+            \ of `uname -v`."
+      type: object
+      x-longDescription: This type shall contain the kernel information for an operating
+        system.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    OperatingSystem_v1_0_2_Links:
+      additionalProperties: false
+      description: The links to other resources that are related to this resource.
+      example:
+        SoftwareImage:
+          '@odata.id': '@odata.id'
+        Oem:
+          key: ""
+      properties:
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        SoftwareImage:
+          $ref: '#/components/schemas/odata-v4_idRef'
+      type: object
+      x-longDescription: "This Redfish Specification-described type shall contain\
+        \ links to resources that are related to but are not contained by, or subordinate\
+        \ to, this resource."
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    OperatingSystem_v1_0_2_OperatingSystemTypes:
+      enum:
+      - Linux
+      - Windows
+      - Solaris
+      - HPUX
+      - AIX
+      - BSD
+      - macOS
+      - IBMi
+      - Hypervisor
+      type: string
+      x-enumDescriptions:
+        AIX: IBM AIX.
+        BSD: Berkeley Software Distribution.
+        HPUX: HPE HP-UX.
+        Hypervisor: A bare-metal hypervisor.
+        IBMi: IBM i.
+        Linux: Linux.
+        Solaris: Oracle Solaris.
+        Windows: Microsoft Windows.
+        macOS: Apple macOS.
+    OperatingSystem_v1_0_2_VirtualMachineEngine:
+      additionalProperties: false
+      description: A virtual machine engine running in an operating system.
+      example:
+        Type: VMwareESX
+        ManagementURIs:
+        - ManagementURIs
+        - ManagementURIs
+        SupportedImageTypes:
+        - Raw
+        - Raw
+        Version: Version
+      properties:
+        ManagementURIs:
+          description: The URIs to manage this virtual machine engine.
+          format: uri-reference
+          items:
+            nullable: true
+            type: string
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of URIs to management
+            interfaces for this virtual machine engine.  This is typically a web UI
+            or API provided by the virtual machine engine.
+        SupportedImageTypes:
+          description: The supported image types for this container engine.
+          items:
+            $ref: '#/components/schemas/OperatingSystem_v1_0_2_VirtualMachineEngine_SupportedImageTypes_inner'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain the supported image types
+            for this container engine.
+        Type:
+          $ref: '#/components/schemas/OperatingSystem_v1_0_2_VirtualMachineEngineTypes'
+        Version:
+          description: The version of this virtual machine engine.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the version of this virtual
+            machine engine.
+      type: object
+      x-longDescription: This type shall contain a virtual machine engine running
+        in an operating system.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    OperatingSystem_v1_0_2_VirtualMachineImageTypes:
+      enum:
+      - Raw
+      - OVF
+      - OVA
+      - VHD
+      - VMDK
+      - VDI
+      - QCOW
+      - QCOW2
+      type: string
+      x-enumDescriptions:
+        OVA: OVA (Open Virtual Appliance).
+        OVF: OVF (Open Virtualization Format).
+        QCOW: QCOW (QEMU Copy-on-Write).
+        QCOW2: QCOW2 (QEMU Copy-on-Write version 2).
+        Raw: Raw disk image.
+        VDI: VDI (Virtual Disk Image).
+        VHD: VHD (Virtual Hard Disk).
+        VMDK: VMDK (Virtual Machine Disk).
+      x-enumLongDescriptions:
+        OVA: This value shall indicate a DSP0243-defined OVA (Open Virtual Appliance)
+          image.
+        OVF: This value shall indicate a DSP0243-defined OVF (Open Virtualization
+          Format) image.
+        QCOW: This value shall indicate a QEMU-defined QCOW (QEMU Copy-on-Write) image.
+        QCOW2: This value shall indicate a QEMU-defined QCOW2 (QEMU Copy-on-Write
+          version 2) image.
+        Raw: This value shall indicate a raw disk image.
+        VDI: This value shall indicate an Oracle VM VirtualBox-defined VDI (Virtual
+          Disk Image).
+        VHD: This value shall indicate a Microsoft Open Specification Promise-defined
+          VHD (Virtual Hard Disk) image.
+        VMDK: This value shall indicate a VMware-defined VMDK (Virtual Machine Disk)
+          image.
+    OperatingSystem_v1_0_2_VirtualMachineEngineTypes:
+      enum:
+      - VMwareESX
+      - HyperV
+      - Xen
+      - KVM
+      - QEMU
+      - VirtualBox
+      - PowerVM
+      type: string
+      x-enumDescriptions:
+        HyperV: Microsoft Hyper-V.
+        KVM: KVM (Kernel-based Virtual Machine).
+        PowerVM: IBM PowerVM.
+        QEMU: QEMU (Quick Emulator).
+        VMwareESX: VMware ESX or ESXi.
+        VirtualBox: Oracle VM VirtualBox.
+        Xen: Xen.
+      x-enumLongDescriptions:
+        HyperV: This value shall indicate the virtual machine engine is Microsoft
+          Hyper-V.
+        KVM: This value shall indicate the virtual machine engine is Linux KVM (Kernel-based
+          Virtual Machine).
+        PowerVM: This value shall indicate the virtual machine engine is IBM PowerVM.
+        QEMU: "This value shall indicate the virtual machine engine is QEMU (Quick\
+          \ Emulator).  If QEMU is acting as a frontend for another virtual machine\
+          \ engine, such as Xen or KVM, VirtualMachineEngines should contain additional\
+          \ entries to represent the backend virtual machine engines."
+        VMwareESX: This value shall indicate the virtual machine engine is VMware
+          ESX or ESXi.
+        VirtualBox: "This value shall indicate the virtual machine engine is Oracle\
+          \ VM VirtualBox.  If VirtualBox is acting as a frontend for another virtual\
+          \ machine engine, such as HyperV, VirtualMachineEngines should contain additional\
+          \ entries to represent the backend virtual machine engines."
+        Xen: This value shall indicate the virtual machine engine is Xen.
+    ApplicationCollection_ApplicationCollection:
+      additionalProperties: false
+      description: The collection of `Application` resource instances.
+      example:
+        '@odata.id': '@odata.id'
+        Description: Description
+        '@odata.type': '@odata.type'
+        Oem:
+          key: ""
+        Members@odata.count: 0
+        '@odata.etag': '@odata.etag'
+        '@odata.context': '@odata.context'
+        Members@odata.nextLink: Members@odata.nextLink
+        Members:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+        Name: Name
+      properties:
+        '@odata.context':
+          description: The OData description of a payload.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the context URL that
+            describes the resource according to OData-Protocol and shall be of the
+            form defined in the Redfish specification.
+        '@odata.etag':
+          description: The current ETag of the resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a string that is
+            defined by the ETag HTTP header definition in RFC7232.
+        '@odata.id':
+          description: The unique identifier for a resource.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the unique identifier
+            for the resource and it shall be of the form defined in the Redfish specification.
+        '@odata.type':
+          description: The type of a resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a URI fragment that
+            specifies the type of the resource and it shall be of the form defined
+            in the Redfish specification.
+        Description:
+          description: The description of this resource.  Used for commonality in
+            the schema definitions.
+          type: string
+          x-longDescription: This property shall contain the description of this resource.  The
+            value shall conform with the 'Description' clause of the Redfish Specification.
+        Members:
+          description: The members of this collection.
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of links to the
+            members of this collection.
+        Members@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+        Members@odata.nextLink:
+          description: The URI to the resource containing the next set of partial
+            members.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: "The value of this property shall be a URI to a resource,\
+            \ with the same @odata.type, containing the next set of partial members."
+        Name:
+          description: The name of the resource or array member.
+          type: string
+          x-longDescription: This property shall contain the name of this resource
+            or array member.  The value shall conform with the 'Name' clause of the
+            Redfish Specification.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+      required:
+      - '@odata.id'
+      - '@odata.type'
+      - Members
+      - Members@odata.count
+      - Name
+      type: object
+      x-longDescription: This resource shall represent a resource collection of `Application`
+        instances for a Redfish implementation.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Application_v1_0_1_Application:
+      additionalProperties: false
+      description: The `Application` schema represents an application or service running
+        on a computer system.
+      example:
+        Status:
+          HealthRollup: null
+          Health: null
+          Oem:
+            key: ""
+          State: Enabled
+          Conditions:
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+        Description: Description
+        Actions:
+          Oem:
+            key: ""
+          '#Application.Reset':
+            title: title
+            target: target
+        '@odata.type': '@odata.type'
+        '@odata.etag': '@odata.etag'
+        StartTime: 2000-01-23T04:56:07.000+00:00
+        '@odata.context': '@odata.context'
+        Vendor: Vendor
+        MetricsURIs:
+        - MetricsURIs
+        - MetricsURIs
+        Name: Name
+        DestinationURIs:
+        - DestinationURIs
+        - DestinationURIs
+        '@odata.id': '@odata.id'
+        Version: Version
+        Oem:
+          key: ""
+        Links:
+          SoftwareImage:
+            '@odata.id': '@odata.id'
+          Oem:
+            key: ""
+        Id: Id
+      properties:
+        '@odata.context':
+          description: The OData description of a payload.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the context URL that
+            describes the resource according to OData-Protocol and shall be of the
+            form defined in the Redfish specification.
+        '@odata.etag':
+          description: The current ETag of the resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a string that is
+            defined by the ETag HTTP header definition in RFC7232.
+        '@odata.id':
+          description: The unique identifier for a resource.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the unique identifier
+            for the resource and it shall be of the form defined in the Redfish specification.
+        '@odata.type':
+          description: The type of a resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a URI fragment that
+            specifies the type of the resource and it shall be of the form defined
+            in the Redfish specification.
+        Actions:
+          $ref: '#/components/schemas/Application_v1_0_1_Actions'
+        Description:
+          description: The description of this resource.  Used for commonality in
+            the schema definitions.
+          type: string
+          x-longDescription: This property shall contain the description of this resource.  The
+            value shall conform with the 'Description' clause of the Redfish Specification.
+        DestinationURIs:
+          description: The URIs to which this application pushes data.
+          format: uri-reference
+          items:
+            nullable: true
+            type: string
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of URIs to which
+            this application pushes data.  This is typically for applications that
+            act as logging or metric agents that transmit data captured to remote
+            servers.
+        Id:
+          description: The unique identifier for this resource within the collection
+            of similar resources.
+          type: string
+          x-longDescription: This property shall contain the identifier for this resource.  The
+            value shall conform with the 'Id' clause of the Redfish Specification.
+        Links:
+          $ref: '#/components/schemas/Application_v1_0_1_Links'
+        MetricsURIs:
+          description: The URIs that provide access to data or other information in
+            this application.
+          format: uri-reference
+          items:
+            nullable: true
+            type: string
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of URIs that provide
+            access to data or other information in this application.  This is typically
+            for applications that allow external users to perform requests to pull
+            data from the application.
+        Name:
+          description: The name of the resource or array member.
+          type: string
+          x-longDescription: This property shall contain the name of this resource
+            or array member.  The value shall conform with the 'Name' clause of the
+            Redfish Specification.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        StartTime:
+          description: The date and time when the application started running.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall indicate the date and time when the
+            application started running.
+        Status:
+          $ref: '#/components/schemas/Resource_Status'
+        Vendor:
+          description: The vendor of this application.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the name of the company that
+            provides this application.
+        Version:
+          description: The version of this application.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the version of this application.
+      required:
+      - '@odata.id'
+      - '@odata.type'
+      - Id
+      - Name
+      type: object
+      x-longDescription: This resource shall represent an application or service running
+        on a computer system.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Application_v1_0_1_Actions:
+      additionalProperties: false
+      description: The available actions for this resource.
+      example:
+        Oem:
+          key: ""
+        '#Application.Reset':
+          title: title
+          target: target
+      properties:
+        '#Application.Reset':
+          $ref: '#/components/schemas/Application_v1_0_1_Reset'
+        Oem:
+          additionalProperties: true
+          description: The available OEM-specific actions for this resource.
+          properties: {}
+          type: object
+          x-longDescription: This type shall contain the available OEM-specific actions
+            for this resource.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+      type: object
+      x-longDescription: This type shall contain the available actions for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Application_v1_0_1_Reset:
+      additionalProperties: false
+      description: This action resets the application.
+      example:
+        title: title
+        target: target
+      properties:
+        target:
+          description: Link to invoke action
+          format: uri-reference
+          type: string
+        title:
+          description: Friendly action name
+          type: string
+      type: object
+      x-longDescription: This action shall reset the application.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Application_v1_0_1_OemActions:
+      additionalProperties: true
+      description: The available OEM-specific actions for this resource.
+      properties: {}
+      type: object
+      x-longDescription: This type shall contain the available OEM-specific actions
+        for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Application_v1_0_1_Links:
+      additionalProperties: false
+      description: The links to other resources that are related to this resource.
+      example:
+        SoftwareImage:
+          '@odata.id': '@odata.id'
+        Oem:
+          key: ""
+      properties:
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        SoftwareImage:
+          $ref: '#/components/schemas/odata-v4_idRef'
+      type: object
+      x-longDescription: "This Redfish Specification-described type shall contain\
+        \ links to resources that are related to but are not contained by, or subordinate\
+        \ to, this resource."
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Application_v1_0_1_ResetRequestBody:
+      additionalProperties: false
+      description: This action resets the application.
+      properties:
+        ResetType:
+          $ref: '#/components/schemas/Resource_ResetType'
+      type: object
+      x-longDescription: This action shall reset the application.
+    ContainerImageCollection_ContainerImageCollection:
+      additionalProperties: false
+      description: The collection of `ContainerImage` resource instances.
+      example:
+        '@odata.id': '@odata.id'
+        Description: Description
+        '@odata.type': '@odata.type'
+        Oem:
+          key: ""
+        Members@odata.count: 0
+        '@odata.etag': '@odata.etag'
+        '@odata.context': '@odata.context'
+        Members@odata.nextLink: Members@odata.nextLink
+        Members:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+        Name: Name
+      properties:
+        '@odata.context':
+          description: The OData description of a payload.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the context URL that
+            describes the resource according to OData-Protocol and shall be of the
+            form defined in the Redfish specification.
+        '@odata.etag':
+          description: The current ETag of the resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a string that is
+            defined by the ETag HTTP header definition in RFC7232.
+        '@odata.id':
+          description: The unique identifier for a resource.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the unique identifier
+            for the resource and it shall be of the form defined in the Redfish specification.
+        '@odata.type':
+          description: The type of a resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a URI fragment that
+            specifies the type of the resource and it shall be of the form defined
+            in the Redfish specification.
+        Description:
+          description: The description of this resource.  Used for commonality in
+            the schema definitions.
+          type: string
+          x-longDescription: This property shall contain the description of this resource.  The
+            value shall conform with the 'Description' clause of the Redfish Specification.
+        Members:
+          description: The members of this collection.
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of links to the
+            members of this collection.
+        Members@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+        Members@odata.nextLink:
+          description: The URI to the resource containing the next set of partial
+            members.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: "The value of this property shall be a URI to a resource,\
+            \ with the same @odata.type, containing the next set of partial members."
+        Name:
+          description: The name of the resource or array member.
+          type: string
+          x-longDescription: This property shall contain the name of this resource
+            or array member.  The value shall conform with the 'Name' clause of the
+            Redfish Specification.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+      required:
+      - '@odata.id'
+      - '@odata.type'
+      - Members
+      - Members@odata.count
+      - Name
+      type: object
+      x-longDescription: This resource shall represent a resource collection of `ContainerImage`
+        instances for a Redfish implementation.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    ContainerImage_v1_0_1_ContainerImage:
+      additionalProperties: false
+      description: The `ContainerImage` schema represents a container image available
+        to a computer system.
+      example:
+        Status:
+          HealthRollup: null
+          Health: null
+          Oem:
+            key: ""
+          State: Enabled
+          Conditions:
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+        Description: Description
+        Actions:
+          Oem:
+            key: ""
+        '@odata.type': '@odata.type'
+        CreateTime: 2000-01-23T04:56:07.000+00:00
+        ProgrammaticId: ProgrammaticId
+        '@odata.etag': '@odata.etag'
+        '@odata.context': '@odata.context'
+        Name: Name
+        '@odata.id': '@odata.id'
+        Type: DockerV1
+        Version: Version
+        Oem:
+          key: ""
+        Links:
+          Containers@odata.count: 0
+          SoftwareImage:
+            '@odata.id': '@odata.id'
+          Oem:
+            key: ""
+          Containers:
+          - '@odata.id': '@odata.id'
+          - '@odata.id': '@odata.id'
+        Id: Id
+        SizeBytes: 6
+      properties:
+        '@odata.context':
+          description: The OData description of a payload.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the context URL that
+            describes the resource according to OData-Protocol and shall be of the
+            form defined in the Redfish specification.
+        '@odata.etag':
+          description: The current ETag of the resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a string that is
+            defined by the ETag HTTP header definition in RFC7232.
+        '@odata.id':
+          description: The unique identifier for a resource.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the unique identifier
+            for the resource and it shall be of the form defined in the Redfish specification.
+        '@odata.type':
+          description: The type of a resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a URI fragment that
+            specifies the type of the resource and it shall be of the form defined
+            in the Redfish specification.
+        Actions:
+          $ref: '#/components/schemas/ContainerImage_v1_0_1_Actions'
+        CreateTime:
+          description: The date and time when the container image was created.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall indicate the date and time when the
+            container image was created.
+        Description:
+          description: The description of this resource.  Used for commonality in
+            the schema definitions.
+          type: string
+          x-longDescription: This property shall contain the description of this resource.  The
+            value shall conform with the 'Description' clause of the Redfish Specification.
+        Id:
+          description: The unique identifier for this resource within the collection
+            of similar resources.
+          type: string
+          x-longDescription: This property shall contain the identifier for this resource.  The
+            value shall conform with the 'Id' clause of the Redfish Specification.
+        Links:
+          $ref: '#/components/schemas/ContainerImage_v1_0_1_Links'
+        Name:
+          description: The name of the resource or array member.
+          type: string
+          x-longDescription: This property shall contain the name of this resource
+            or array member.  The value shall conform with the 'Name' clause of the
+            Redfish Specification.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        ProgrammaticId:
+          description: The programmatic identifier for this container image.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the programmatic identifier
+            for this container image.  This is typically a hash string that represents
+            the identifier of this container image.
+        SizeBytes:
+          description: The size of this container image in bytes.
+          format: int64
+          nullable: true
+          readOnly: true
+          type: integer
+          x-longDescription: This property shall contain the size of this container
+            image in bytes.
+          x-units: By
+        Status:
+          $ref: '#/components/schemas/Resource_Status'
+        Type:
+          $ref: '#/components/schemas/ContainerImage_ImageTypes'
+        Version:
+          description: The version of this application.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the version of this application.
+      required:
+      - '@odata.id'
+      - '@odata.type'
+      - Id
+      - Name
+      type: object
+      x-longDescription: This resource shall represent a container image available
+        to a computer system.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    ContainerImage_v1_0_1_Actions:
+      additionalProperties: false
+      description: The available actions for this resource.
+      example:
+        Oem:
+          key: ""
+      properties:
+        Oem:
+          additionalProperties: true
+          description: The available OEM-specific actions for this resource.
+          properties: {}
+          type: object
+          x-longDescription: This type shall contain the available OEM-specific actions
+            for this resource.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+      type: object
+      x-longDescription: This type shall contain the available actions for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    ContainerImage_v1_0_1_OemActions:
+      additionalProperties: true
+      description: The available OEM-specific actions for this resource.
+      properties: {}
+      type: object
+      x-longDescription: This type shall contain the available OEM-specific actions
+        for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    ContainerImage_v1_0_1_Links:
+      additionalProperties: false
+      description: The links to other resources that are related to this resource.
+      example:
+        Containers@odata.count: 0
+        SoftwareImage:
+          '@odata.id': '@odata.id'
+        Oem:
+          key: ""
+        Containers:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+      properties:
+        Containers:
+          description: The array of links to the containers running from this container
+            image.
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of links to resources
+            of type `Container` that represent the container instances running from
+            this container image.
+        Containers@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        SoftwareImage:
+          $ref: '#/components/schemas/odata-v4_idRef'
+      type: object
+      x-longDescription: "This Redfish Specification-described type shall contain\
+        \ links to resources that are related to but are not contained by, or subordinate\
+        \ to, this resource."
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    ContainerCollection_ContainerCollection:
+      additionalProperties: false
+      description: The collection of `Container` resource instances.
+      example:
+        '@odata.id': '@odata.id'
+        Description: Description
+        '@odata.type': '@odata.type'
+        Oem:
+          key: ""
+        Members@odata.count: 0
+        '@odata.etag': '@odata.etag'
+        '@odata.context': '@odata.context'
+        Members@odata.nextLink: Members@odata.nextLink
+        Members:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+        Name: Name
+      properties:
+        '@odata.context':
+          description: The OData description of a payload.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the context URL that
+            describes the resource according to OData-Protocol and shall be of the
+            form defined in the Redfish specification.
+        '@odata.etag':
+          description: The current ETag of the resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a string that is
+            defined by the ETag HTTP header definition in RFC7232.
+        '@odata.id':
+          description: The unique identifier for a resource.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the unique identifier
+            for the resource and it shall be of the form defined in the Redfish specification.
+        '@odata.type':
+          description: The type of a resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a URI fragment that
+            specifies the type of the resource and it shall be of the form defined
+            in the Redfish specification.
+        Description:
+          description: The description of this resource.  Used for commonality in
+            the schema definitions.
+          type: string
+          x-longDescription: This property shall contain the description of this resource.  The
+            value shall conform with the 'Description' clause of the Redfish Specification.
+        Members:
+          description: The members of this collection.
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of links to the
+            members of this collection.
+        Members@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+        Members@odata.nextLink:
+          description: The URI to the resource containing the next set of partial
+            members.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: "The value of this property shall be a URI to a resource,\
+            \ with the same @odata.type, containing the next set of partial members."
+        Name:
+          description: The name of the resource or array member.
+          type: string
+          x-longDescription: This property shall contain the name of this resource
+            or array member.  The value shall conform with the 'Name' clause of the
+            Redfish Specification.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+      required:
+      - '@odata.id'
+      - '@odata.type'
+      - Members
+      - Members@odata.count
+      - Name
+      type: object
+      x-longDescription: This resource shall represent a resource collection of `Container`
+        instances for a Redfish implementation.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    EthernetInterfaceCollection_EthernetInterfaceCollection:
+      additionalProperties: false
+      description: The collection of `EthernetInterface` resource instances.
+      example:
+        '@odata.id': '@odata.id'
+        Description: Description
+        '@odata.type': '@odata.type'
+        Oem:
+          key: ""
+        Members@odata.count: 0
+        '@odata.etag': '@odata.etag'
+        '@odata.context': '@odata.context'
+        Members@odata.nextLink: Members@odata.nextLink
+        Members:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+        Name: Name
+      properties:
+        '@odata.context':
+          description: The OData description of a payload.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the context URL that
+            describes the resource according to OData-Protocol and shall be of the
+            form defined in the Redfish specification.
+        '@odata.etag':
+          description: The current ETag of the resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a string that is
+            defined by the ETag HTTP header definition in RFC7232.
+        '@odata.id':
+          description: The unique identifier for a resource.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the unique identifier
+            for the resource and it shall be of the form defined in the Redfish specification.
+        '@odata.type':
+          description: The type of a resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a URI fragment that
+            specifies the type of the resource and it shall be of the form defined
+            in the Redfish specification.
+        Description:
+          description: The description of this resource.  Used for commonality in
+            the schema definitions.
+          type: string
+          x-longDescription: This property shall contain the description of this resource.  The
+            value shall conform with the 'Description' clause of the Redfish Specification.
+        Members:
+          description: The members of this collection.
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of links to the
+            members of this collection.
+        Members@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+        Members@odata.nextLink:
+          description: The URI to the resource containing the next set of partial
+            members.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: "The value of this property shall be a URI to a resource,\
+            \ with the same @odata.type, containing the next set of partial members."
+        Name:
+          description: The name of the resource or array member.
+          type: string
+          x-longDescription: This property shall contain the name of this resource
+            or array member.  The value shall conform with the 'Name' clause of the
+            Redfish Specification.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+      required:
+      - '@odata.id'
+      - '@odata.type'
+      - Members
+      - Members@odata.count
+      - Name
+      type: object
+      x-longDescription: This resource shall represent a resource collection of `EthernetInterface`
+        instances for a Redfish implementation.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    EthernetInterface_v1_12_2_EthernetInterface:
+      additionalProperties: false
+      description: "The `EthernetInterface` schema represents a single, logical Ethernet\
+        \ interface or network interface controller (NIC)."
+      example:
+        Description: Description
+        MTUSize: 4
+        EthernetInterfaceType: Physical
+        '@odata.type': '@odata.type'
+        IPv4StaticAddresses:
+        - Address: Address
+          Gateway: Gateway
+          Oem:
+            key: ""
+          AddressOrigin: Static
+          SubnetMask: SubnetMask
+        - Address: Address
+          Gateway: Gateway
+          Oem:
+            key: ""
+          AddressOrigin: Static
+          SubnetMask: SubnetMask
+        PermanentMACAddress: PermanentMACAddress
+        VLAN:
+          VLANId: 419
+          Tagged: true
+          VLANPriority: 1
+          VLANEnable: true
+        Name: Name
+        '@odata.id': '@odata.id'
+        SpeedMbps: 1
+        InterfaceEnabled: true
+        NameServers:
+        - NameServers
+        - NameServers
+        HostName: HostName
+        IPv6Addresses:
+        - Address: Address
+          Oem:
+            key: ""
+          AddressOrigin: Static
+          PrefixLength: 18
+          AddressState: Preferred
+        - Address: Address
+          Oem:
+            key: ""
+          AddressOrigin: Static
+          PrefixLength: 18
+          AddressState: Preferred
+        StaticNameServers:
+        - StaticNameServers
+        - StaticNameServers
+        Status:
+          HealthRollup: null
+          Health: null
+          Oem:
+            key: ""
+          State: Enabled
+          Conditions:
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+        LinkStatus: LinkUp
+        RoutingScope: External
+        IPv6StaticDefaultGateways:
+        - Address: Address
+          Oem:
+            key: ""
+          PrefixLength: 72
+        - Address: Address
+          Oem:
+            key: ""
+          PrefixLength: 72
+        TeamMode: None
+        IPv6DefaultGateway: IPv6DefaultGateway
+        UefiDevicePath: UefiDevicePath
+        Actions:
+          Oem:
+            key: ""
+        FullDuplex: true
+        IPv6StaticAddresses:
+        - Address: Address
+          Oem:
+            key: ""
+          PrefixLength: 76
+        - Address: Address
+          Oem:
+            key: ""
+          PrefixLength: 76
+        StatelessAddressAutoConfig:
+          IPv4AutoConfigEnabled: true
+          IPv6AutoConfigEnabled: true
+        IPv6Enabled: true
+        '@odata.etag': '@odata.etag'
+        '@odata.context': '@odata.context'
+        DHCPv6:
+          OperatingMode: Stateful
+          UseDomainName: true
+          UseNTPServers: true
+          UseRapidCommit: true
+          UseDNSServers: true
+        VLANs:
+          '@odata.id': '@odata.id'
+        DHCPv4:
+          FallbackAddress: Static
+          UseGateway: true
+          UseDomainName: true
+          UseNTPServers: true
+          DHCPEnabled: true
+          UseDNSServers: true
+          UseStaticRoutes: true
+        AutoNeg: true
+        MACAddress: MACAddress
+        FQDN: FQDN
+        IPv4Addresses:
+        - Address: Address
+          Gateway: Gateway
+          Oem:
+            key: ""
+          AddressOrigin: Static
+          SubnetMask: SubnetMask
+        - Address: Address
+          Gateway: Gateway
+          Oem:
+            key: ""
+          AddressOrigin: Static
+          SubnetMask: SubnetMask
+        Oem:
+          key: ""
+        Links:
+          Chassis:
+            '@odata.id': '@odata.id'
+          RelatedInterfaces:
+          - '@odata.id': '@odata.id'
+          - '@odata.id': '@odata.id'
+          Endpoints@odata.count: 7
+          Ports:
+          - '@odata.id': '@odata.id'
+          - '@odata.id': '@odata.id'
+          Ports@odata.count: 3
+          Endpoints:
+          - '@odata.id': '@odata.id'
+          - '@odata.id': '@odata.id'
+          NetworkDeviceFunctions:
+          - '@odata.id': '@odata.id'
+          - '@odata.id': '@odata.id'
+          AffiliatedInterfaces@odata.count: 2
+          Oem:
+            key: ""
+          NetworkDeviceFunction:
+            '@odata.id': '@odata.id'
+          HostInterface:
+            '@odata.id': '@odata.id'
+          NetworkDeviceFunctions@odata.count: 9
+          AffiliatedInterfaces:
+          - '@odata.id': '@odata.id'
+          - '@odata.id': '@odata.id'
+          RelatedInterfaces@odata.count: 2
+        Id: Id
+        IPv6AddressPolicyTable:
+        - Label: 8
+          Prefix: Prefix
+          Precedence: 60
+        - Label: 8
+          Prefix: Prefix
+          Precedence: 60
+        MaxIPv6StaticAddresses: 7
+      properties:
+        '@odata.context':
+          description: The OData description of a payload.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the context URL that
+            describes the resource according to OData-Protocol and shall be of the
+            form defined in the Redfish specification.
+        '@odata.etag':
+          description: The current ETag of the resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a string that is
+            defined by the ETag HTTP header definition in RFC7232.
+        '@odata.id':
+          description: The unique identifier for a resource.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the unique identifier
+            for the resource and it shall be of the form defined in the Redfish specification.
+        '@odata.type':
+          description: The type of a resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a URI fragment that
+            specifies the type of the resource and it shall be of the form defined
+            in the Redfish specification.
+        Actions:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_Actions'
+        AutoNeg:
+          description: An indication of whether the speed and duplex are automatically
+            negotiated and configured on this interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the speed and duplex
+            are automatically negotiated and configured on this interface.
+        DHCPv4:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_DHCPv4Configuration'
+        DHCPv6:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_DHCPv6Configuration'
+        Description:
+          description: The description of this resource.  Used for commonality in
+            the schema definitions.
+          type: string
+          x-longDescription: This property shall contain the description of this resource.  The
+            value shall conform with the 'Description' clause of the Redfish Specification.
+        EthernetInterfaceType:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetDeviceType'
+        FQDN:
+          description: "The complete, fully qualified domain name that DNS obtains\
+            \ for this interface."
+          nullable: true
+          readOnly: false
+          type: string
+          x-longDescription: This property shall contain the fully qualified domain
+            name that DNS obtains for this interface.
+        FullDuplex:
+          description: An indication of whether full-duplex mode is enabled on the
+            Ethernet connection for this interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether full-duplex mode
+            is enabled on the Ethernet connection for this interface.
+        HostName:
+          description: "The DNS host name, without any domain information."
+          nullable: true
+          readOnly: false
+          type: string
+          x-longDescription: "This property shall contain the DNS host name for this\
+            \ interface.  Modifying this property may modify the `HostName` in one\
+            \ or more `EthernetInterface` resources that belong to the same system,\
+            \ manager, or other device.  If this interface is subordinate to a `ComputerSystem`\
+            \ resource, modifying this property may modify the `HostName` of the `ComputerSystem`\
+            \ resource that contains this interface.  If this interface is subordinate\
+            \ to a `Manager` resource, modifying this property may modify the `HostName`\
+            \ of the `ManagerNetworkProtocol` resource of the `Manager` resource that\
+            \ contains this interface.  Services should ignore this property in modification\
+            \ requests if `FQDN` is also provided in the same request."
+        IPv4Addresses:
+          description: The IPv4 addresses currently in use by this interface.
+          items:
+            $ref: '#/components/schemas/IPAddresses_IPv4Address'
+          type: array
+          x-longDescription: This property shall contain an array of objects that
+            represent the IPv4 connection characteristics currently in use by this
+            interface for any value of `AddressOrigin`.  It is recommended that this
+            property be regarded as read-only with configuration of static addresses
+            performed by updating the values within `IPv4StaticAddresses`.  Services
+            may reject updates to this array for this reason.
+        IPv4StaticAddresses:
+          description: The IPv4 static addresses assigned to this interface.  See
+            `IPv4Addresses` for the addresses in use by this interface.
+          items:
+            $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface_IPv4StaticAddresses_inner'
+          type: array
+          x-longDescription: "This property shall contain an array of objects that\
+            \ represent all IPv4 static addresses assigned to, but not necessarily\
+            \ in use by, this interface.  The `IPv4Addresses` property shall also\
+            \ list the addresses that this interface uses."
+          x-versionAdded: v1_4_0
+        IPv6AddressPolicyTable:
+          description: An array that represents the RFC6724-defined address selection
+            policy table.
+          items:
+            $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface_IPv6AddressPolicyTable_inner'
+          type: array
+          x-longDescription: This property shall contain an array of objects that
+            represent the RFC6724-defined address selection policy table.
+        IPv6Addresses:
+          description: The IPv6 addresses currently in use by this interface.
+          items:
+            $ref: '#/components/schemas/IPAddresses_IPv6Address'
+          type: array
+          x-longDescription: This property shall contain an array of objects that
+            represent the IPv6 connection characteristics for this interface for any
+            value of  `AddressOrigin`.
+        IPv6DefaultGateway:
+          description: The IPv6 default gateway address in use on this interface.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the current IPv6 default
+            gateway address in use on this interface.
+        IPv6Enabled:
+          description: An indication of whether IPv6 is enabled on this interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: "This property shall indicate whether IPv6 is enabled\
+            \ on this interface.  If this property contains `false`, the interface\
+            \ shall not contain any assigned IPv6 addresses, shall not initiate DHCPv6\
+            \ requests, and shall not send or process ICMPv6 packets.  If this property\
+            \ is not present, but this interface contains other IPv6 properties, the\
+            \ value shall be assumed to be `true`."
+          x-versionAdded: v1_12_0
+        IPv6StaticAddresses:
+          description: The IPv6 static addresses assigned to this interface.  See
+            `IPv6Addresses` for the addresses in use by this interface.
+          items:
+            $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface_IPv6StaticAddresses_inner'
+          type: array
+          x-longDescription: This property shall contain an array of objects that
+            represent the IPv6 static connection characteristics for this interface.
+        IPv6StaticDefaultGateways:
+          description: The IPv6 static default gateways for this interface.
+          items:
+            $ref: '#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface_IPv6StaticDefaultGateways_inner'
+          type: array
+          x-longDescription: The values in this array shall represent the IPv6 static
+            default gateway addresses for this interface.
+          x-versionAdded: v1_4_0
+        Id:
+          description: The unique identifier for this resource within the collection
+            of similar resources.
+          type: string
+          x-longDescription: This property shall contain the identifier for this resource.  The
+            value shall conform with the 'Id' clause of the Redfish Specification.
+        InterfaceEnabled:
+          description: An indication of whether this interface is enabled.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether this interface is
+            enabled.
+        LinkStatus:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_LinkStatus'
+        Links:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_Links'
+        MACAddress:
+          pattern: "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+          type: string
+        MTUSize:
+          description: "The currently configured maximum transmission unit (MTU),\
+            \ in bytes, on this interface."
+          format: int64
+          nullable: true
+          readOnly: false
+          type: integer
+          x-longDescription: "This property shall contain the size, in bytes, of the\
+            \ largest protocol data unit (PDU) that can be passed in an Ethernet (MAC)\
+            \ frame on this interface, as currently configured by the operating system\
+            \ or driver."
+        MaxIPv6StaticAddresses:
+          description: The maximum number of static IPv6 addresses that can be configured
+            on this interface.
+          format: int64
+          nullable: true
+          readOnly: true
+          type: integer
+          x-longDescription: "This property shall indicate the number of array items\
+            \ supported by `IPv6StaticAddresses`, or the maximum number of static\
+            \ IPv6 addresses that can be configured on this interface."
+        Name:
+          description: The name of the resource or array member.
+          type: string
+          x-longDescription: This property shall contain the name of this resource
+            or array member.  The value shall conform with the 'Name' clause of the
+            Redfish Specification.
+        NameServers:
+          description: The DNS servers in use on this interface.
+          items:
+            type: string
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain the DNS servers in use on
+            this interface.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        PermanentMACAddress:
+          pattern: "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+          type: string
+        RoutingScope:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_RoutingScope'
+        SpeedMbps:
+          description: "The current speed, in Mbit/s, of this interface."
+          format: int64
+          nullable: true
+          readOnly: false
+          type: integer
+          x-longDescription: "This property shall contain the link speed of the interface,\
+            \ in megabits per second (Mbit/s) units.  This property shall be writable\
+            \ only when the `AutoNeg` property is `false`."
+          x-units: Mbit/s
+        StatelessAddressAutoConfig:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_StatelessAddressAutoConfiguration'
+        StaticNameServers:
+          description: The statically-defined set of DNS server IPv4 and IPv6 addresses.
+          items:
+            nullable: true
+            type: string
+          readOnly: false
+          type: array
+          x-longDescription: "This property shall contain the statically-defined set\
+            \ of DNS server IP addresses to use when DHCP provisioning is not enabled\
+            \ for name server configuration.  As an implementation option, they can\
+            \ be used in addition to DHCP-provided addresses, or in cases where the\
+            \ DHCP server provides no DNS assignments."
+          x-versionAdded: v1_4_0
+        Status:
+          $ref: '#/components/schemas/Resource_Status'
+        TeamMode:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_TeamMode'
+        UefiDevicePath:
+          description: The UEFI device path for this interface.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: "This property shall contain the UEFI device path to\
+            \ the device that implements this interface, or port."
+        VLAN:
+          $ref: '#/components/schemas/VLanNetworkInterface_VLAN'
+        VLANs:
+          $ref: '#/components/schemas/odata-v4_idRef'
+      required:
+      - '@odata.id'
+      - '@odata.type'
+      - Id
+      - Name
+      type: object
+      x-longDescription: This resource contains NIC resources as part of the Redfish
+        Specification.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+      x-requiredOnCreate:
+      - Links
+    EthernetInterface_v1_12_2_Actions:
+      additionalProperties: false
+      description: The available actions for this resource.
+      example:
+        Oem:
+          key: ""
+      properties:
+        Oem:
+          additionalProperties: true
+          description: The available OEM-specific actions for this resource.
+          properties: {}
+          type: object
+          x-longDescription: This type shall contain the available OEM-specific actions
+            for this resource.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+      type: object
+      x-longDescription: This type shall contain the available actions for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    EthernetInterface_v1_12_2_OemActions:
+      additionalProperties: true
+      description: The available OEM-specific actions for this resource.
+      properties: {}
+      type: object
+      x-longDescription: This type shall contain the available OEM-specific actions
+        for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    EthernetInterface_v1_12_2_DHCPv4Configuration:
+      additionalProperties: false
+      description: DHCPv4 configuration for this interface.
+      example:
+        FallbackAddress: Static
+        UseGateway: true
+        UseDomainName: true
+        UseNTPServers: true
+        DHCPEnabled: true
+        UseDNSServers: true
+        UseStaticRoutes: true
+      properties:
+        DHCPEnabled:
+          description: An indication of whether DHCP v4 is enabled on this Ethernet
+            interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether DHCP v4 is enabled
+            for this Ethernet interface.
+          x-versionAdded: v1_4_0
+        FallbackAddress:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_DHCPFallback'
+        UseDNSServers:
+          description: An indication of whether this interface uses DHCP v4-supplied
+            DNS servers.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the interface uses
+            DHCP v4-supplied DNS servers.
+          x-versionAdded: v1_4_0
+        UseDomainName:
+          description: An indication of whether this interface uses a DHCP v4-supplied
+            domain name.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the interface uses
+            a DHCP v4-supplied domain name.
+          x-versionAdded: v1_4_0
+        UseGateway:
+          description: An indication of whether this interface uses a DHCP v4-supplied
+            gateway.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the interface uses
+            a DHCP v4-supplied gateway.
+          x-versionAdded: v1_4_0
+        UseNTPServers:
+          description: An indication of whether the interface uses DHCP v4-supplied
+            NTP servers.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the interface uses
+            DHCP v4-supplied NTP servers.
+          x-versionAdded: v1_4_0
+        UseStaticRoutes:
+          description: An indication of whether the interface uses DHCP v4-supplied
+            static routes.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the interface uses
+            a DHCP v4-supplied static routes.
+          x-versionAdded: v1_4_0
+      type: object
+      x-longDescription: This type shall describe the configuration of DHCP v4.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    EthernetInterface_v1_12_2_DHCPFallback:
+      enum:
+      - Static
+      - AutoConfig
+      - None
+      type: string
+      x-enumDescriptions:
+        AutoConfig: Fall back to an autoconfigured address.
+        None: Continue attempting DHCP without a fallback address.
+        Static: Fall back to a static address specified by `IPv4StaticAddresses`.
+      x-enumLongDescriptions:
+        AutoConfig: DHCP shall fall back to an address generated by the implementation.
+        None: DHCP shall continue trying to obtain an address without falling back
+          to a fixed address.
+        Static: DHCP shall fall back to a static address specified by `IPv4StaticAddresses`.
+    EthernetInterface_v1_12_2_DHCPv6Configuration:
+      additionalProperties: false
+      description: DHCPv6 configuration for this interface.
+      example:
+        OperatingMode: Stateful
+        UseDomainName: true
+        UseNTPServers: true
+        UseRapidCommit: true
+        UseDNSServers: true
+      properties:
+        OperatingMode:
+          $ref: '#/components/schemas/EthernetInterface_v1_12_2_DHCPv6OperatingMode'
+        UseDNSServers:
+          description: An indication of whether the interface uses DHCP v6-supplied
+            DNS servers.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the interface uses
+            DHCP v6-supplied DNS servers.
+          x-versionAdded: v1_4_0
+        UseDomainName:
+          description: An indication of whether this interface uses a DHCP v6-supplied
+            domain name.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the interface uses
+            a DHCP v6-supplied domain name.
+          x-versionAdded: v1_4_0
+        UseNTPServers:
+          description: An indication of whether the interface uses DHCP v6-supplied
+            NTP servers.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the interface uses
+            DHCP v6-supplied NTP servers.
+          x-versionAdded: v1_4_0
+        UseRapidCommit:
+          description: An indication of whether the interface uses DHCP v6 rapid commit
+            mode for stateful mode address assignments.  Do not enable this option
+            in networks where more than one DHCP v6 server is configured to provide
+            address assignments.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether the interface uses
+            DHCP v6 rapid commit mode for stateful mode address assignments.
+          x-versionAdded: v1_4_0
+      type: object
+      x-longDescription: This type shall describe the configuration of DHCP v6.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    EthernetInterface_v1_12_2_DHCPv6OperatingMode:
+      enum:
+      - Stateful
+      - Stateless
+      - Disabled
+      - Enabled
+      type: string
+      x-enumDeprecated:
+        Stateful: This property has been deprecated in favor of `Enabled`.  The control
+          between 'stateful' and 'stateless' is managed by the DHCP server and not
+          the client.
+        Stateless: This property has been deprecated in favor of `Enabled`.  The control
+          between 'stateful' and 'stateless' is managed by the DHCP server and not
+          the client.
+      x-enumDescriptions:
+        Disabled: DHCPv6 is disabled.
+        Enabled: DHCPv6 is enabled.
+        Stateful: DHCPv6 stateful mode.
+        Stateless: DHCPv6 stateless mode.
+      x-enumLongDescriptions:
+        Disabled: DHCPv6 shall be disabled for this interface.
+        Enabled: DHCPv6 shall be enabled for this interface.
+        Stateful: "DHCPv6 shall operate in stateful mode on this interface.  DHCPv6\
+          \ stateful mode configures addresses, and when it is enabled, stateless\
+          \ mode is also implicitly enabled.  Services may replace this value with\
+          \ `Enabled`."
+        Stateless: DHCPv6 shall operate in stateless mode on this interface.  DHCPv6
+          stateless mode allows configuring the interface using DHCP options but does
+          not configure addresses.  It is always enabled by default whenever DHCPv6
+          stateful mode is also enabled.  Services may replace this value with `Enabled`.
+      x-enumVersionAdded:
+        Enabled: v1_8_0
+      x-enumVersionDeprecated:
+        Stateful: v1_8_0
+        Stateless: v1_8_0
+    EthernetInterface_v1_12_2_EthernetDeviceType:
+      enum:
+      - Physical
+      - Virtual
+      type: string
+      x-enumDescriptions:
+        Physical: A physical Ethernet interface.
+        Virtual: A virtual Ethernet interface.
+      x-enumLongDescriptions:
+        Physical: This value shall indicate a physical traditional network interface.
+        Virtual: This value shall indicate a network device function has multiple
+          VLANs and is representing one of them as a virtual Ethernet interface.  The
+          `NetworkDeviceFunction` property within Links shall contain the locator
+          for the parent network device function.
+    IPAddresses_IPv4Address:
+      additionalProperties: false
+      description: This type describes an IPv4 address.
+      example:
+        Address: Address
+        Gateway: Gateway
+        Oem:
+          key: ""
+        AddressOrigin: Static
+        SubnetMask: SubnetMask
+      properties:
+        Address:
+          description: The IPv4 address.
+          nullable: true
+          pattern: "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+          readOnly: false
+          type: string
+          x-longDescription: "This property shall contain an IPv4 address assigned\
+            \ to this interface.  If DHCPv4 is enabled on the interface, this property\
+            \ becomes read-only."
+        AddressOrigin:
+          $ref: '#/components/schemas/IPAddresses_v1_1_5_IPv4AddressOrigin'
+        Gateway:
+          description: The IPv4 gateway for this address.
+          nullable: true
+          pattern: "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+          readOnly: false
+          type: string
+          x-longDescription: "This property shall contain the IPv4 default gateway\
+            \ address for this interface.  If DHCPv4 is enabled on the interface and\
+            \ is configured to set the IPv4 default gateway address, this property\
+            \ becomes read-only.  If multiple IPv4 addresses are present on the same\
+            \ interface, only a single default gateway is allowed.  Any additional\
+            \ IPv4 addresses shall not have a default gateway specified."
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        SubnetMask:
+          pattern: "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+          type: string
+      type: object
+      x-longDescription: This type shall describe an IPv4 address assigned to an interface.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    EthernetInterface_v1_12_2_IPv6AddressPolicyEntry:
+      additionalProperties: false
+      description: The entry in the RFC6724-defined address selection policy table.
+      example:
+        Label: 8
+        Prefix: Prefix
+        Precedence: 60
+      properties:
+        Label:
+          description: "The IPv6 label, as defined in RFC6724, section 2.1."
+          format: int64
+          maximum: 100
+          minimum: 0
+          nullable: true
+          readOnly: false
+          type: integer
+          x-longDescription: "This property shall contain the IPv6 label value for\
+            \ this table entry, as defined in RFC6724, section 2.1."
+        Precedence:
+          description: "The IPv6 precedence, as defined in RFC6724, section 2.1."
+          format: int64
+          maximum: 100
+          minimum: 1
+          nullable: true
+          readOnly: false
+          type: integer
+          x-longDescription: "This property shall contain the IPv6 precedence value\
+            \ for this table entry, as defined in RFC6724, section 2.1."
+        Prefix:
+          description: "The IPv6 address prefix, as defined in RFC6724, section 2.1."
+          nullable: true
+          readOnly: false
+          type: string
+          x-longDescription: "This property shall contain the IPv6 address prefix\
+            \ for this table entry, as defined in RFC6724, section 2.1."
+      type: object
+      x-longDescription: This type shall describe an entry in the RFC6724-defined
+        address selection policy table.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    IPAddresses_IPv6Address:
+      additionalProperties: false
+      description: This type describes an IPv6 address.
+      example:
+        Address: Address
+        Oem:
+          key: ""
+        AddressOrigin: Static
+        PrefixLength: 18
+        AddressState: Preferred
+      properties:
+        Address:
+          description: The IPv6 address.
+          nullable: true
+          readOnly: false
+          type: string
+          x-longDescription: This property lists an IPv6 address that is currently
+            assigned on this interface.
+        AddressOrigin:
+          $ref: '#/components/schemas/IPAddresses_v1_1_5_IPv6AddressOrigin'
+        AddressState:
+          $ref: '#/components/schemas/IPAddresses_v1_1_5_AddressState'
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        PrefixLength:
+          format: int64
+          maximum: 128
+          minimum: 0
+          type: integer
+      type: object
+      x-longDescription: This type shall describe an IPv6 address assigned to an interface.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    IPAddresses_IPv6StaticAddress:
+      additionalProperties: false
+      description: This type represents a single IPv6 static address to be assigned
+        on a network interface.
+      example:
+        Address: Address
+        Oem:
+          key: ""
+        PrefixLength: 76
+      properties:
+        Address:
+          description: A valid IPv6 address.
+          nullable: true
+          readOnly: false
+          type: string
+          x-longDescription: This property provides access to a static IPv6 address
+            that is currently assigned on a network interface.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        PrefixLength:
+          format: int64
+          maximum: 128
+          minimum: 0
+          type: integer
+      required:
+      - Address
+      - PrefixLength
+      type: object
+      x-longDescription: This type shall represent a single IPv6 static address to
+        be assigned on a network interface.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    IPAddresses_IPv6GatewayStaticAddress:
+      additionalProperties: false
+      description: This type represents a single IPv6 static address to be assigned
+        on a network interface.
+      example:
+        Address: Address
+        Oem:
+          key: ""
+        PrefixLength: 72
+      properties:
+        Address:
+          description: A valid IPv6 address.
+          nullable: true
+          readOnly: false
+          type: string
+          x-longDescription: This property provides access to a static IPv6 address
+            that is currently assigned on a network interface.
+          x-versionAdded: v1_1_0
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        PrefixLength:
+          format: int64
+          maximum: 128
+          minimum: 0
+          type: integer
+      required:
+      - Address
+      type: object
+      x-longDescription: This type shall represent a single IPv6 static address to
+        be assigned on a network interface.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    EthernetInterface_v1_12_2_LinkStatus:
+      enum:
+      - LinkUp
+      - NoLink
+      - LinkDown
+      type: string
+      x-enumDescriptions:
+        LinkDown: "No link is detected on this interface, but the interface is connected."
+        LinkUp: The link is available for communication on this interface.
+        NoLink: No link or connection is detected on this interface.
+    EthernetInterface_v1_12_2_Links:
+      additionalProperties: false
+      description: The links to other resources that are related to this resource.
+      example:
+        Chassis:
+          '@odata.id': '@odata.id'
+        RelatedInterfaces:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+        Endpoints@odata.count: 7
+        Ports:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+        Ports@odata.count: 3
+        Endpoints:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+        NetworkDeviceFunctions:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+        AffiliatedInterfaces@odata.count: 2
+        Oem:
+          key: ""
+        NetworkDeviceFunction:
+          '@odata.id': '@odata.id'
+        HostInterface:
+          '@odata.id': '@odata.id'
+        NetworkDeviceFunctions@odata.count: 9
+        AffiliatedInterfaces:
+        - '@odata.id': '@odata.id'
+        - '@odata.id': '@odata.id'
+        RelatedInterfaces@odata.count: 2
+      properties:
+        AffiliatedInterfaces:
+          description: "The links to the Ethernet interfaces that are affiliated with\
+            \ this interface, such as a VLAN or a team that uses this interface."
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of links to resources
+            of type `EthernetInterface` that represent the Ethernet interfaces that
+            are affiliated with this interface.  `EthernetInterface` resources referenced
+            in this property shall reference this resource in their `RelatedInterfaces`
+            property.
+          x-versionAdded: v1_10_0
+        AffiliatedInterfaces@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+        Chassis:
+          $ref: '#/components/schemas/odata-v4_idRef'
+        Endpoints:
+          description: An array of links to the endpoints that connect to this Ethernet
+            interface.
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of links to resources
+            of type `Endpoint` with which this Ethernet interface is associated.
+          x-versionAdded: v1_1_0
+        Endpoints@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+        HostInterface:
+          $ref: '#/components/schemas/odata-v4_idRef'
+        NetworkDeviceFunction:
+          $ref: '#/components/schemas/odata-v4_idRef'
+        NetworkDeviceFunctions:
+          description: The link to the network device functions that constitute this
+            Ethernet interface.
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of links to resources
+            of type `NetworkDeviceFunction`.
+          x-versionAdded: v1_7_0
+        NetworkDeviceFunctions@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        Ports:
+          description: The links to the ports providing this Ethernet interface.
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: true
+          type: array
+          x-longDescription: This property shall contain an array of links to resources
+            of type `Port` that represent the ports providing this Ethernet interface.  This
+            property shall not be present if the Ethernet interface is not directly
+            associated to a physical port.
+          x-versionAdded: v1_9_0
+        Ports@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+        RelatedInterfaces:
+          description: The links to the Ethernet interfaces that constitute this Ethernet
+            interface.
+          items:
+            $ref: '#/components/schemas/odata-v4_idRef'
+          readOnly: false
+          type: array
+          x-longDescription: "This property shall contain an array of links to resources\
+            \ of type `EthernetInterface`.  If `TeamMode` contains `None`, this property\
+            \ shall contain one member that represents the parent interface for the\
+            \ VLAN.  For other values of TeamMode, this property shall contain the\
+            \ members of the team."
+          x-versionAdded: v1_9_0
+        RelatedInterfaces@odata.count:
+          description: The number of items in a collection.
+          format: int64
+          readOnly: true
+          type: integer
+          x-longDescription: The value of this property shall be an integer representing
+            the number of items in a collection.
+      type: object
+      x-longDescription: "This Redfish Specification-described type shall contain\
+        \ links to resources that are related to but are not contained by, or subordinate\
+        \ to, this resource."
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+      x-requiredOnCreate:
+      - RelatedInterfaces
+    EthernetInterface_v1_12_2_MACAddress:
+      pattern: "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"
+      type: string
+    EthernetInterface_v1_12_2_RoutingScope:
+      enum:
+      - External
+      - HostOnly
+      - Internal
+      - Limited
+      type: string
+      x-enumDescriptions:
+        External: Externally accessible.
+        HostOnly: Only accessible to a dedicated interface on the host.
+        Internal: "Only accessible to internal networking on the host, such as when\
+          \ virtual machines or containers are allowed to communicate with each other\
+          \ on the same host system as well as a dedicated interface on the hosting\
+          \ system."
+        Limited: Accessible through IP translation provided by the hosting system.
+      x-enumLongDescriptions:
+        External: This value shall indicate this interface is externally accessible
+          as if it were physically on the same network as the hosting system.
+        HostOnly: This value shall indicate this interface is only accessible to a
+          dedicated interface on the hosting system.
+        Internal: "This value shall indicate this interface is only accessible to\
+          \ internal networking on the host, such as when virtual machines or containers\
+          \ are allowed to communicate with each other on the same host system as\
+          \ well as a dedicated interface on the hosting system."
+        Limited: "This value shall indicate this interface is accessible through IP\
+          \ translation provided by the hosting system, such as a NAT (network address\
+          \ translation)."
+    EthernetInterface_v1_12_2_StatelessAddressAutoConfiguration:
+      additionalProperties: false
+      description: Stateless address autoconfiguration (SLAAC) parameters for this
+        interface.
+      example:
+        IPv4AutoConfigEnabled: true
+        IPv6AutoConfigEnabled: true
+      properties:
+        IPv4AutoConfigEnabled:
+          description: An indication of whether IPv4 stateless address autoconfiguration
+            (SLAAC) is enabled for this interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether IPv4 stateless address
+            autoconfiguration (SLAAC) is enabled for this interface.
+          x-versionAdded: v1_4_0
+        IPv6AutoConfigEnabled:
+          description: An indication of whether IPv6 stateless address autoconfiguration
+            (SLAAC) is enabled for this interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether IPv6 stateless address
+            autoconfiguration (SLAAC) is enabled for this interface.
+          x-versionAdded: v1_4_0
+      type: object
+      x-longDescription: This type shall describe the IPv4 and IPv6 stateless address
+        autoconfiguration (SLAAC) for this interface.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    EthernetInterface_v1_12_2_TeamMode:
+      enum:
+      - None
+      - RoundRobin
+      - ActiveBackup
+      - XOR
+      - Broadcast
+      - IEEE802_3ad
+      - AdaptiveTransmitLoadBalancing
+      - AdaptiveLoadBalancing
+      type: string
+      x-enumDescriptions:
+        ActiveBackup: One interface in the team is active and the others are kept
+          in standby until a failure occurs.
+        AdaptiveLoadBalancing: Packets are transmitted and received based upon the
+          current load of each interface in the team.
+        AdaptiveTransmitLoadBalancing: Packets are transmitted based upon the current
+          load of each interface in the team.
+        Broadcast: Packets are transmitted on all interfaces in the team.
+        IEEE802_3ad: The interfaces in the team create an IEEE802.3ad link aggregation
+          group.
+        None: No teaming.
+        RoundRobin: Packets are transmitted in sequential order from the teamed interfaces.
+        XOR: Transmitting is determined based upon a hash policy.
+    VLanNetworkInterface_VLAN:
+      additionalProperties: false
+      description: The attributes of a VLAN.
+      example:
+        VLANId: 419
+        Tagged: true
+        VLANPriority: 1
+        VLANEnable: true
+      properties:
+        Tagged:
+          description: An indication of whether this VLAN is tagged or untagged for
+            this interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether this VLAN is tagged
+            or untagged for this interface.
+          x-versionAdded: v1_3_0
+        VLANEnable:
+          description: An indication of whether this VLAN is enabled for this VLAN
+            network interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether this VLAN is enabled
+            for this VLAN network interface.
+        VLANId:
+          format: int64
+          maximum: 4094
+          minimum: 0
+          type: integer
+        VLANPriority:
+          format: int64
+          maximum: 7
+          minimum: 0
+          type: integer
+      type: object
+      x-longDescription: This type shall contain any attributes of a VLAN.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+      x-requiredOnCreate:
+      - VLANEnable
+      - VLANId
+    Container_v1_0_1_Container:
+      additionalProperties: false
+      description: The `Container` schema represents an instance of a container that
+        is running on a computer system.
+      example:
+        Status:
+          HealthRollup: null
+          Health: null
+          Oem:
+            key: ""
+          State: Enabled
+          Conditions:
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+          - OriginOfCondition:
+              '@odata.id': '@odata.id'
+            MessageArgs:
+            - MessageArgs
+            - MessageArgs
+            Message: Message
+            Username: Username
+            UserAuthenticationSource: UserAuthenticationSource
+            Severity: OK
+            Timestamp: 2000-01-23T04:56:07.000+00:00
+            LogEntry:
+              '@odata.id': '@odata.id'
+            ResolutionSteps:
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            - TargetComponentURI: TargetComponentURI
+              RetryCount: 0
+              ActionParameters:
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              - ArraySizeMinimum: 5
+                AllowableNumbers:
+                - AllowableNumbers
+                - AllowableNumbers
+                AllowableValueDescriptions:
+                - AllowableValueDescriptions
+                - AllowableValueDescriptions
+                Required: true
+                AllowablePattern: AllowablePattern
+                DataType: Boolean
+                MaximumValue: 5.637376656633329
+                ObjectDataType: ObjectDataType
+                ArraySizeMaximum: 1
+                MinimumValue: 2.3021358869347655
+                AllowableValues:
+                - AllowableValues
+                - AllowableValues
+                Name: Name
+              ActionURI: ActionURI
+              Oem:
+                key: ""
+              Priority: 0
+              ResolutionType: ContactVendor
+              RetryIntervalSeconds: 0
+            MessageId: MessageId
+            Resolution: Resolution
+        Description: Description
+        Actions:
+          Oem:
+            key: ""
+          '#Container.Reset':
+            title: title
+            target: target
+        '@odata.type': '@odata.type'
+        ProgrammaticId: ProgrammaticId
+        '@odata.etag': '@odata.etag'
+        StartTime: 2000-01-23T04:56:07.000+00:00
+        '@odata.context': '@odata.context'
+        Name: Name
+        MountPoints:
+        - Destination: Destination
+          Source: Source
+        - Destination: Destination
+          Source: Source
+        '@odata.id': '@odata.id'
+        Limits:
+          CPUCount: 0.8008281904610115
+          MemoryBytes: 6
+        Oem:
+          key: ""
+        Links:
+          Oem:
+            key: ""
+          ContainerImage:
+            '@odata.id': '@odata.id'
+        Id: Id
+        EthernetInterfaces:
+          '@odata.id': '@odata.id'
+      properties:
+        '@odata.context':
+          description: The OData description of a payload.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the context URL that
+            describes the resource according to OData-Protocol and shall be of the
+            form defined in the Redfish specification.
+        '@odata.etag':
+          description: The current ETag of the resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a string that is
+            defined by the ETag HTTP header definition in RFC7232.
+        '@odata.id':
+          description: The unique identifier for a resource.
+          format: uri-reference
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be the unique identifier
+            for the resource and it shall be of the form defined in the Redfish specification.
+        '@odata.type':
+          description: The type of a resource.
+          readOnly: true
+          type: string
+          x-longDescription: The value of this property shall be a URI fragment that
+            specifies the type of the resource and it shall be of the form defined
+            in the Redfish specification.
+        Actions:
+          $ref: '#/components/schemas/Container_v1_0_1_Actions'
+        Description:
+          description: The description of this resource.  Used for commonality in
+            the schema definitions.
+          type: string
+          x-longDescription: This property shall contain the description of this resource.  The
+            value shall conform with the 'Description' clause of the Redfish Specification.
+        EthernetInterfaces:
+          $ref: '#/components/schemas/odata-v4_idRef'
+        Id:
+          description: The unique identifier for this resource within the collection
+            of similar resources.
+          type: string
+          x-longDescription: This property shall contain the identifier for this resource.  The
+            value shall conform with the 'Id' clause of the Redfish Specification.
+        Limits:
+          $ref: '#/components/schemas/Container_v1_0_1_Limits'
+        Links:
+          $ref: '#/components/schemas/Container_v1_0_1_Links'
+        MountPoints:
+          description: The file system mount points configured for this container.
+          items:
+            $ref: '#/components/schemas/Container_v1_0_1_Container_MountPoints_inner'
+          type: array
+          x-longDescription: This property shall contain the file system mount points
+            configured for this container.
+        Name:
+          description: The name of the resource or array member.
+          type: string
+          x-longDescription: This property shall contain the name of this resource
+            or array member.  The value shall conform with the 'Name' clause of the
+            Redfish Specification.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        ProgrammaticId:
+          description: The programmatic identifier for this container.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the programmatic identifier
+            for this container.  This is typically a hash string that represents the
+            running instance of this container.
+        StartTime:
+          description: The date and time when the container started running.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall indicate the date and time when the
+            container started running.
+        Status:
+          $ref: '#/components/schemas/Resource_Status'
+      required:
+      - '@odata.id'
+      - '@odata.type'
+      - Id
+      - Name
+      type: object
+      x-longDescription: This resource shall represent an instance of a container
+        that is running on a computer system.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Container_v1_0_1_Actions:
+      additionalProperties: false
+      description: The available actions for this resource.
+      example:
+        Oem:
+          key: ""
+        '#Container.Reset':
+          title: title
+          target: target
+      properties:
+        '#Container.Reset':
+          $ref: '#/components/schemas/Container_v1_0_1_Reset'
+        Oem:
+          additionalProperties: true
+          description: The available OEM-specific actions for this resource.
+          properties: {}
+          type: object
+          x-longDescription: This type shall contain the available OEM-specific actions
+            for this resource.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+      type: object
+      x-longDescription: This type shall contain the available actions for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Container_v1_0_1_Reset:
+      additionalProperties: false
+      description: This action resets the container.
+      example:
+        title: title
+        target: target
+      properties:
+        target:
+          description: Link to invoke action
+          format: uri-reference
+          type: string
+        title:
+          description: Friendly action name
+          type: string
+      type: object
+      x-longDescription: This action shall reset the container.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Container_v1_0_1_OemActions:
+      additionalProperties: true
+      description: The available OEM-specific actions for this resource.
+      properties: {}
+      type: object
+      x-longDescription: This type shall contain the available OEM-specific actions
+        for this resource.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Container_v1_0_1_Limits:
+      additionalProperties: false
+      description: The resource limits allocated to a container.
+      example:
+        CPUCount: 0.8008281904610115
+        MemoryBytes: 6
+      properties:
+        CPUCount:
+          description: The number of processors available to this container.
+          nullable: true
+          readOnly: true
+          type: number
+          x-longDescription: This property shall contain the number of processors
+            available to this container.
+        MemoryBytes:
+          description: The amount of memory available to this container in bytes.
+          format: int64
+          nullable: true
+          readOnly: true
+          type: integer
+          x-longDescription: This property shall contain the amount of memory available
+            to this container in bytes.
+          x-units: By
+      type: object
+      x-longDescription: This type shall contain the resource limits allocated to
+        a container.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Container_v1_0_1_Links:
+      additionalProperties: false
+      description: The links to other resources that are related to this resource.
+      example:
+        Oem:
+          key: ""
+        ContainerImage:
+          '@odata.id': '@odata.id'
+      properties:
+        ContainerImage:
+          $ref: '#/components/schemas/odata-v4_idRef'
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+      type: object
+      x-longDescription: "This Redfish Specification-described type shall contain\
+        \ links to resources that are related to but are not contained by, or subordinate\
+        \ to, this resource."
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Container_v1_0_1_MountPoint:
+      additionalProperties: false
+      description: A file system mount point configured for a container.
+      example:
+        Destination: Destination
+        Source: Source
+      properties:
+        Destination:
+          description: The file system path in the container that is provided as the
+            mount point to access the files and folders contained in the source path.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the file system path in the
+            container that is provided as the mount point to access the files and
+            folders specified by the `Source` property.
+        Source:
+          description: The file system path from the hosting system that is provided
+            to this container.
+          nullable: true
+          readOnly: true
+          type: string
+          x-longDescription: This property shall contain the file system path from
+            the hosting system that is provided to this container.
+      type: object
+      x-longDescription: This type shall contain a file system mount point configured
+        for a container.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    Container_v1_0_1_ResetRequestBody:
+      additionalProperties: false
+      description: This action resets the container.
+      properties:
+        ResetType:
+          $ref: '#/components/schemas/Resource_ResetType'
+      type: object
+      x-longDescription: This action shall reset the container.
     Message_v1_2_1_Message:
       additionalProperties: false
       description: The message that the Redfish service returns.
@@ -15332,6 +19818,292 @@ components:
       x-patternProperties:
         ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
           description: This property shall specify a valid odata or Redfish property.
+    IPAddresses_v1_1_5_IPv4Address:
+      additionalProperties: false
+      description: This type describes an IPv4 address.
+      example:
+        Address: Address
+        Gateway: Gateway
+        Oem:
+          key: ""
+        AddressOrigin: Static
+        SubnetMask: SubnetMask
+      properties:
+        Address:
+          description: The IPv4 address.
+          nullable: true
+          pattern: "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+          readOnly: false
+          type: string
+          x-longDescription: "This property shall contain an IPv4 address assigned\
+            \ to this interface.  If DHCPv4 is enabled on the interface, this property\
+            \ becomes read-only."
+        AddressOrigin:
+          $ref: '#/components/schemas/IPAddresses_v1_1_5_IPv4AddressOrigin'
+        Gateway:
+          description: The IPv4 gateway for this address.
+          nullable: true
+          pattern: "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+          readOnly: false
+          type: string
+          x-longDescription: "This property shall contain the IPv4 default gateway\
+            \ address for this interface.  If DHCPv4 is enabled on the interface and\
+            \ is configured to set the IPv4 default gateway address, this property\
+            \ becomes read-only.  If multiple IPv4 addresses are present on the same\
+            \ interface, only a single default gateway is allowed.  Any additional\
+            \ IPv4 addresses shall not have a default gateway specified."
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        SubnetMask:
+          pattern: "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+          type: string
+      type: object
+      x-longDescription: This type shall describe an IPv4 address assigned to an interface.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    IPAddresses_v1_1_5_IPv4AddressOrigin:
+      enum:
+      - Static
+      - DHCP
+      - BOOTP
+      - IPv4LinkLocal
+      type: string
+      x-enumDescriptions:
+        BOOTP: A BOOTP service-provided address.
+        DHCP: A DHCPv4 service-provided address.
+        IPv4LinkLocal: "The address is valid for only this network segment, or link."
+        Static: A user-configured static address.
+    IPAddresses_v1_1_5_SubnetMask:
+      pattern: "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+      type: string
+    IPAddresses_v1_1_5_IPv6Address:
+      additionalProperties: false
+      description: This type describes an IPv6 address.
+      example:
+        Address: Address
+        Oem:
+          key: ""
+        AddressOrigin: Static
+        PrefixLength: 18
+        AddressState: Preferred
+      properties:
+        Address:
+          description: The IPv6 address.
+          nullable: true
+          readOnly: false
+          type: string
+          x-longDescription: This property lists an IPv6 address that is currently
+            assigned on this interface.
+        AddressOrigin:
+          $ref: '#/components/schemas/IPAddresses_v1_1_5_IPv6AddressOrigin'
+        AddressState:
+          $ref: '#/components/schemas/IPAddresses_v1_1_5_AddressState'
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        PrefixLength:
+          format: int64
+          maximum: 128
+          minimum: 0
+          type: integer
+      type: object
+      x-longDescription: This type shall describe an IPv6 address assigned to an interface.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    IPAddresses_v1_1_5_IPv6AddressOrigin:
+      enum:
+      - Static
+      - DHCPv6
+      - LinkLocal
+      - SLAAC
+      type: string
+      x-enumDescriptions:
+        DHCPv6: A DHCPv6 service-provided address.
+        LinkLocal: "The address is valid for only this network segment, or link."
+        SLAAC: A stateless autoconfiguration (SLAAC) service-provided address.
+        Static: A static user-configured address.
+    IPAddresses_v1_1_5_AddressState:
+      enum:
+      - Preferred
+      - Deprecated
+      - Tentative
+      - Failed
+      type: string
+      x-enumDescriptions:
+        Deprecated: This address is currently within its valid lifetime but is now
+          outside its RFC4862-defined preferred lifetime.
+        Failed: "This address has failed Duplicate Address Detection (DAD) testing,\
+          \ as defined in RFC4862, section 5.4, and is not currently in use."
+        Preferred: This address is currently within both its RFC4862-defined valid
+          and preferred lifetimes.
+        Tentative: "This address is currently undergoing Duplicate Address Detection\
+          \ (DAD) testing, as defined in RFC4862, section 5.4."
+    IPAddresses_v1_1_5_PrefixLength:
+      format: int64
+      maximum: 128
+      minimum: 0
+      type: integer
+    IPAddresses_v1_1_5_IPv6StaticAddress:
+      additionalProperties: false
+      description: This type represents a single IPv6 static address to be assigned
+        on a network interface.
+      example:
+        Address: Address
+        Oem:
+          key: ""
+        PrefixLength: 76
+      properties:
+        Address:
+          description: A valid IPv6 address.
+          nullable: true
+          readOnly: false
+          type: string
+          x-longDescription: This property provides access to a static IPv6 address
+            that is currently assigned on a network interface.
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        PrefixLength:
+          format: int64
+          maximum: 128
+          minimum: 0
+          type: integer
+      required:
+      - Address
+      - PrefixLength
+      type: object
+      x-longDescription: This type shall represent a single IPv6 static address to
+        be assigned on a network interface.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    IPAddresses_v1_1_5_IPv6GatewayStaticAddress:
+      additionalProperties: false
+      description: This type represents a single IPv6 static address to be assigned
+        on a network interface.
+      example:
+        Address: Address
+        Oem:
+          key: ""
+        PrefixLength: 72
+      properties:
+        Address:
+          description: A valid IPv6 address.
+          nullable: true
+          readOnly: false
+          type: string
+          x-longDescription: This property provides access to a static IPv6 address
+            that is currently assigned on a network interface.
+          x-versionAdded: v1_1_0
+        Oem:
+          additionalProperties: true
+          description: The OEM extension.
+          properties: {}
+          type: object
+          x-longDescription: This object represents the OEM properties.  The resource
+            values shall comply with the Redfish Specification-described requirements.
+          x-patternProperties:
+            ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+              description: This property shall specify a valid odata or Redfish property.
+            ^[A-Za-z0-9_]+$:
+              $ref: '#/components/schemas/Resource_OemObject'
+        PrefixLength:
+          format: int64
+          maximum: 128
+          minimum: 0
+          type: integer
+      required:
+      - Address
+      type: object
+      x-longDescription: This type shall represent a single IPv6 static address to
+        be assigned on a network interface.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+    VLanNetworkInterface_v1_3_1_VLAN:
+      additionalProperties: false
+      description: The attributes of a VLAN.
+      example:
+        VLANId: 419
+        Tagged: true
+        VLANPriority: 1
+        VLANEnable: true
+      properties:
+        Tagged:
+          description: An indication of whether this VLAN is tagged or untagged for
+            this interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether this VLAN is tagged
+            or untagged for this interface.
+          x-versionAdded: v1_3_0
+        VLANEnable:
+          description: An indication of whether this VLAN is enabled for this VLAN
+            network interface.
+          nullable: true
+          readOnly: false
+          type: boolean
+          x-longDescription: This property shall indicate whether this VLAN is enabled
+            for this VLAN network interface.
+        VLANId:
+          format: int64
+          maximum: 4094
+          minimum: 0
+          type: integer
+        VLANPriority:
+          format: int64
+          maximum: 7
+          minimum: 0
+          type: integer
+      type: object
+      x-longDescription: This type shall contain any attributes of a VLAN.
+      x-patternProperties:
+        ^([a-zA-Z_][a-zA-Z0-9_]*)?@(odata|Redfish|Message)\.[a-zA-Z_][a-zA-Z0-9_]*$:
+          description: This property shall specify a valid odata or Redfish property.
+      x-requiredOnCreate:
+      - VLANEnable
+      - VLANId
+    VLanNetworkInterface_v1_3_1_VLANId:
+      format: int64
+      maximum: 4094
+      minimum: 0
+      type: integer
+    VLanNetworkInterface_v1_3_1_VLANPriority:
+      format: int64
+      maximum: 7
+      minimum: 0
+      type: integer
     ActionInfo_v1_4_2_Parameters:
       additionalProperties: false
       description: The information about a parameter included in a Redfish action
@@ -15817,3 +20589,39 @@ components:
       nullable: true
       oneOf:
       - $ref: '#/components/schemas/ComputerSystem_v1_23_0_KMIPServer'
+    OperatingSystem_v1_0_2_OperatingSystem_ContainerEngines_inner:
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/OperatingSystem_v1_0_2_ContainerEngine'
+    OperatingSystem_v1_0_2_OperatingSystem_VirtualMachineEngines_inner:
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/OperatingSystem_v1_0_2_VirtualMachineEngine'
+    OperatingSystem_v1_0_2_ContainerEngine_SupportedImageTypes_inner:
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/ContainerImage_ImageTypes'
+    OperatingSystem_v1_0_2_VirtualMachineEngine_SupportedImageTypes_inner:
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/OperatingSystem_v1_0_2_VirtualMachineImageTypes'
+    EthernetInterface_v1_12_2_EthernetInterface_IPv4StaticAddresses_inner:
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/IPAddresses_IPv4Address'
+    EthernetInterface_v1_12_2_EthernetInterface_IPv6AddressPolicyTable_inner:
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/EthernetInterface_v1_12_2_IPv6AddressPolicyEntry'
+    EthernetInterface_v1_12_2_EthernetInterface_IPv6StaticAddresses_inner:
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/IPAddresses_IPv6StaticAddress'
+    EthernetInterface_v1_12_2_EthernetInterface_IPv6StaticDefaultGateways_inner:
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/IPAddresses_IPv6GatewayStaticAddress'
+    Container_v1_0_1_Container_MountPoints_inner:
+      nullable: true
+      oneOf:
+      - $ref: '#/components/schemas/Container_v1_0_1_MountPoint'

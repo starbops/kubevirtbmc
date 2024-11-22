@@ -236,6 +236,74 @@ func (s *APIService) RedfishV1SystemsComputerSystemIdBootOptionsBootOptionIdPatc
 	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdBootOptionsBootOptionIdPatch method not implemented")
 }
 
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemGet(ctx context.Context, computerSystemId string) (server.ImplResponse, error) {
+	operatingSystem := server.OperatingSystemV102OperatingSystem{
+		OdataContext: "/redfish/v1/$metadata#OperatingSystem.OperatingSystem",
+		OdataId:      "/redfish/v1/Systems/1/OperatingSystem",
+		OdataType:    "#OperatingSystem.v1_0_2.OperatingSystem",
+		Name:         "Operating System",
+		Id:           "1",
+	}
+
+	return server.Response(200, operatingSystem), nil
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsGet(ctx context.Context, computerSystemId string) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsGet method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdGet(ctx context.Context, computerSystemId string, applicationId string) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdGet method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdActionsApplicationResetPost(ctx context.Context, computerSystemId string, applicationId string, applicationV101ResetRequestBody server.ApplicationV101ResetRequestBody) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemApplicationsApplicationIdActionsApplicationResetPost method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesGet(ctx context.Context, computerSystemId string) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesGet method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesContainerImageIdGet(ctx context.Context, computerSystemId string, containerImageId string) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainerImagesContainerImageIdGet method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainersGet(ctx context.Context, computerSystemId string) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainersGet method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesGet(ctx context.Context, computerSystemId string) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesGet method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesPost(ctx context.Context, computerSystemId string, ethernetInterfaceV1122EthernetInterface server.EthernetInterfaceV1122EthernetInterface) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesPost method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdGet(ctx context.Context, computerSystemId string, ethernetInterfaceId string) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdGet method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPut(ctx context.Context, computerSystemId string, ethernetInterfaceId string, ethernetInterfaceV1122EthernetInterface server.EthernetInterfaceV1122EthernetInterface) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPut method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdDelete(ctx context.Context, computerSystemId string, ethernetInterfaceId string) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdDelete method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPatch(ctx context.Context, computerSystemId string, ethernetInterfaceId string, ethernetInterfaceV1122EthernetInterface server.EthernetInterfaceV1122EthernetInterface) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainersEthernetInterfacesEthernetInterfaceIdPatch method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdGet(ctx context.Context, computerSystemId string, containerId string) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdGet method not implemented")
+}
+
+func (s *APIService) RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdActionsContainerResetPost(ctx context.Context, computerSystemId string, containerId string, containerV101ResetRequestBody server.ContainerV101ResetRequestBody) (server.ImplResponse, error) {
+	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdOperatingSystemContainersContainerIdActionsContainerResetPost method not implemented")
+}
+
 func (s *APIService) RedfishV1SystemsComputerSystemIdVirtualMediaGet(ctx context.Context, computerSystemId string) (server.ImplResponse, error) {
 	return server.Response(http.StatusNotImplemented, nil), errors.New("RedfishV1SystemsComputerSystemIdVirtualMediaGet method not implemented")
 }

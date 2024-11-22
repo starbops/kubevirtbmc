@@ -935,6 +935,440 @@ paths:
               schema:
                 $ref: '#/components/schemas/RedfishError'
           description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/OperatingSystem.v1_0_2.yaml#/components/schemas/OperatingSystem_v1_0_2_OperatingSystem
+          description: The response contains a representation of the OperatingSystem
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Applications:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ApplicationCollection.yaml#/components/schemas/ApplicationCollection_ApplicationCollection
+          description: The response contains a representation of the ApplicationCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Applications/{ApplicationId}:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Application.v1_0_1.yaml#/components/schemas/Application_v1_0_1_Application
+          description: The response contains a representation of the Application resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the Application resource
+      in: path
+      name: ApplicationId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Applications/{ApplicationId}/Actions/Application.Reset:
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the Application resource
+      in: path
+      name: ApplicationId
+      required: true
+      schema:
+        type: string
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/Application.v1_0_1.yaml#/components/schemas/Application_v1_0_1_ResetRequestBody
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/ContainerImages:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ContainerImageCollection.yaml#/components/schemas/ContainerImageCollection_ContainerImageCollection
+          description: The response contains a representation of the ContainerImageCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/ContainerImages/{ContainerImageId}:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ContainerImage.v1_0_1.yaml#/components/schemas/ContainerImage_v1_0_1_ContainerImage
+          description: The response contains a representation of the ContainerImage
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the ContainerImage resource
+      in: path
+      name: ContainerImageId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/ContainerCollection.yaml#/components/schemas/ContainerCollection_ContainerCollection
+          description: The response contains a representation of the ContainerCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/EthernetInterfaceCollection.yaml#/components/schemas/EthernetInterfaceCollection_EthernetInterfaceCollection
+          description: The response contains a representation of the EthernetInterfaceCollection
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_12_2.yaml#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_12_2.yaml#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface
+          description: A resource of type EthernetInterface has been created
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/EthernetInterfaces/{EthernetInterfaceId}:
+    delete:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_12_2.yaml#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface
+          description: The response contains a representation of the EthernetInterface
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_12_2.yaml#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface
+          description: The response contains a representation of the EthernetInterface
+            resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the EthernetInterface resource
+      in: path
+      name: EthernetInterfaceId
+      required: true
+      schema:
+        type: string
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_12_2.yaml#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_12_2.yaml#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface
+          description: The response contains a representation of the EthernetInterface
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_12_2.yaml#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_12_2.yaml#/components/schemas/EthernetInterface_v1_12_2_EthernetInterface
+          description: The response contains a representation of the EthernetInterface
+            resource
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/{ContainerId}:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Container.v1_0_1.yaml#/components/schemas/Container_v1_0_1_Container
+          description: The response contains a representation of the Container resource
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the Container resource
+      in: path
+      name: ContainerId
+      required: true
+      schema:
+        type: string
+  /redfish/v1/Systems/{ComputerSystemId}/OperatingSystem/Containers/{ContainerId}/Actions/Container.Reset:
+    parameters:
+    - description: The value of the Id property of the ComputerSystem resource
+      in: path
+      name: ComputerSystemId
+      required: true
+      schema:
+        type: string
+    - description: The value of the Id property of the Container resource
+      in: path
+      name: ContainerId
+      required: true
+      schema:
+        type: string
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: http://redfish.dmtf.org/schemas/v1/Container.v1_0_1.yaml#/components/schemas/Container_v1_0_1_ResetRequestBody
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: The response contains the results of the Reset action
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: http://redfish.dmtf.org/schemas/v1/Task.v1_7_4.yaml#/components/schemas/Task_v1_7_4_Task
+          description: Accepted; a task has been generated
+        '204':
+          description: Success, but no response data
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedfishError'
+          description: Error condition
   /redfish/v1/Systems/{ComputerSystemId}/VirtualMedia:
     get:
       responses:
