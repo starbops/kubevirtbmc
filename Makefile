@@ -83,6 +83,14 @@ generate-kubevirt-crd: controller-gen ## Clone KubeVirt API and generate CustomR
 	rm -rvf $$TMP_DIR; \
 	rm -vf config/kubevirt-crd/kubevirt.io_datavolumetemplatespecs.yaml
 
+REDFISH_SCHEMA_BUNDLE ?= DSP8010_2024.3
+.PHONY: download-redfish-schema
+download-schema: ## Download the Redfish schema.
+	test -d ./hack/$(REDFISH_SCHEMA_BUNDLE) || \
+	( curl -sSL https://www.dmtf.org/sites/default/files/standards/documents/$(REDFISH_SCHEMA_BUNDLE).zip -o ./hack/$(REDFISH_SCHEMA_BUNDLE).zip && \
+	unzip -q -d ./hack/ ./hack/$(REDFISH_SCHEMA_BUNDLE).zip && \
+	rm -f ./hack/$(REDFISH_SCHEMA_BUNDLE).zip )
+
 .PHONY: generate-redfish-api
 generate-redfish-api: ## Generate Redfish API server.
 	./hack/redfish/generate.sh
