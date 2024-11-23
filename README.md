@@ -3,9 +3,9 @@
 [![main build and publish workflow](https://github.com/starbops/kubevirtbmc/actions/workflows/main.yml/badge.svg)](https://github.com/starbops/kubevirtbmc/actions/workflows/main.yml)
 [![release](https://img.shields.io/github/v/release/starbops/kubevirtbmc)](https://github.com/starbops/kubevirtbmc/releases)
 
-KubeVirtBMC unleashes the power management for virtual machines on Kubernetes in a traditional way, i.e., [IPMI](https://www.intel.com.tw/content/www/tw/zh/products/docs/servers/ipmi/ipmi-second-gen-interface-spec-v2-rev1-1.html). This allows users to power on/off/reset and set the boot device for the VM. It was initially designed for [Tinkerbell](https://github.com/tinkerbell/tink)/[Seeder](https://github.com/harvester/seeder) to provision [KubeVirt](https://github.com/kubevirt/kubevirt) VMs, just like we did in the good old days.
+KubeVirtBMC unleashes the out-of-band management for virtual machines on Kubernetes in a traditional way, i.e., [IPMI](https://www.intel.com.tw/content/www/tw/zh/products/docs/servers/ipmi/ipmi-second-gen-interface-spec-v2-rev1-1.html) and [Redfish](https://www.dmtf.org/standards/redfish). This allows users to power on/off/reset and set the boot device for virtual machines. It was initially designed for [Tinkerbell](https://github.com/tinkerbell/tink)/[Seeder](https://github.com/harvester/seeder) to provision [KubeVirt](https://github.com/kubevirt/kubevirt) virtual machines, but as long as your provisioning tools play nicely with IPMI/Redfish, you can use KubeVirtBMC to manage your virtual machines.
 
-The project was born in [SUSE Hack Week 23](https://hackweek.opensuse.org/).
+The project was born in [SUSE Hack Week 23](https://hackweek.opensuse.org/) and augmented with Redfish in [SUSE Hack Week 24](https://hackweek.opensuse.org/24/projects/extending-kubevirtbmcs-capability-by-adding-redfish-support).
 
 ## Description
 
@@ -19,7 +19,7 @@ flowchart LR
     VM[VM]
     subgraph KubeVirtBMC
     direction LR
-    client2-->|IPMI|virtBMC-->|K8s API|VM
+    client2-->|IPMI/Redfish|virtBMC-->|K8s API|VM
     end
     subgraph VirtualBMC
     direction LR
@@ -53,7 +53,7 @@ flowchart LR
     controller-.->|watches|cr
     cr-.->|owns|virtbmc-svc
     cr-.->|owns|virtbmc-pod
-    client--->|IPMI|virtbmc-svc
+    client--->|IPMI/Redfish|virtbmc-svc
     virtbmc-svc-->virtbmc-pod
     virtbmc-pod-->|HTTP|apiserver
     apiserver-->|modifies|vm
@@ -121,6 +121,26 @@ make install
 export ENABLE_WEBHOOKS=false
 make run
 ```
+
+**Generate the Redfish API and server stubs**
+
+> **NOTE:** This section is only necessary if you want to change the Redfish schema version.
+
+Download the Redfish schema from the DMTF website:
+
+```sh
+make download-redfish-schema
+```
+
+Normally, the OpenAPI spec file `hack/<REDFISH_SCHEMA_BUNDLE/openapi/openapi.yaml` is the one you need. Copy it and modify it, make sure the changes are reflected in the file `hack/redfish/spec/openapi.yaml`. Then generate the code with openapi-generator:
+
+```sh
+make generate-redfish-api
+```
+
+The generated code will be placed in the `pkg/generated/redfish` directory.
+
+You might also need to adjust the adapter and handler code because they are coupled with the Redfish schema at some degree.
 
 ### To Deploy on The Cluster
 
