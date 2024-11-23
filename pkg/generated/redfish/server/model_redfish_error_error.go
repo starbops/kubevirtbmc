@@ -5,7 +5,7 @@
  *
  * This contains the definition of a Redfish service.
  *
- * API version: 2024.3
+ * API version: 2023.3
  */
 
 package server
@@ -14,9 +14,9 @@ package server
 type RedfishErrorError struct {
 
 	// An array of messages describing one or more error messages.
-	MessageExtendedInfo []MessageV121Message `json:"@Message.ExtendedInfo,omitempty"`
+	MessageExtendedInfo []MessageV120Message `json:"@Message.ExtendedInfo,omitempty"`
 
-	// A string indicating a specific `MessageId` from a message registry.
+	// A string indicating a specific MessageId from a message registry.
 	Code string `json:"code"`
 
 	// A human-readable error message corresponding to the message in a message registry.
@@ -36,7 +36,7 @@ func AssertRedfishErrorErrorRequired(obj RedfishErrorError) error {
 	}
 
 	for _, el := range obj.MessageExtendedInfo {
-		if err := AssertMessageV121MessageRequired(el); err != nil {
+		if err := AssertMessageV120MessageRequired(el); err != nil {
 			return err
 		}
 	}
@@ -46,7 +46,7 @@ func AssertRedfishErrorErrorRequired(obj RedfishErrorError) error {
 // AssertRedfishErrorErrorConstraints checks if the values respects the defined constraints
 func AssertRedfishErrorErrorConstraints(obj RedfishErrorError) error {
 	for _, el := range obj.MessageExtendedInfo {
-		if err := AssertMessageV121MessageConstraints(el); err != nil {
+		if err := AssertMessageV120MessageConstraints(el); err != nil {
 			return err
 		}
 	}

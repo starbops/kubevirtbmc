@@ -17,14 +17,14 @@ func NewResourceHandler(resourceManager resourcemanager.ResourceManager) *Resour
 	}
 }
 
-func (h *ResourceHandler) GetServiceRoot() *server.ServiceRootV1170ServiceRoot {
-	return &server.ServiceRootV1170ServiceRoot{
+func (h *ResourceHandler) GetServiceRoot() *server.ServiceRootV1161ServiceRoot {
+	return &server.ServiceRootV1161ServiceRoot{
 		OdataContext:   "/redfish/v1/$metadata#ServiceRoot.ServiceRoot",
 		OdataId:        "/redfish/v1",
-		OdataType:      "#ServiceRoot.v1_17_0.ServiceRoot",
+		OdataType:      "#ServiceRoot.v1_16_1.ServiceRoot",
 		Description:    "ServiceRoot",
 		Name:           "ServiceRoot",
-		RedfishVersion: "1.17.0",
+		RedfishVersion: "1.16.1",
 		UUID:           Ptr("00000000-0000-0000-0000-000000000000"),
 		Chassis: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Chassis",
@@ -59,8 +59,8 @@ func (h *ResourceHandler) GetServiceRoot() *server.ServiceRootV1170ServiceRoot {
 		CompositionService: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/CompositionService",
 		},
-		ProtocolFeaturesSupported: server.ServiceRootV1170ProtocolFeaturesSupported{},
-		Links: server.ServiceRootV1170Links{
+		ProtocolFeaturesSupported: server.ServiceRootV1161ProtocolFeaturesSupported{},
+		Links: server.ServiceRootV1161Links{
 			ManagerProvidingService: server.OdataV4IdRef{
 				OdataId: "/redfish/v1/Managers/BMC",
 			},
@@ -93,12 +93,12 @@ func (h *ResourceHandler) GetManagerCollection() *server.ManagerCollectionManage
 	}
 }
 
-func (h *ResourceHandler) GetManager() (*server.ManagerV1192Manager, error) {
+func (h *ResourceHandler) GetManager() (*server.ManagerV1190Manager, error) {
 	manager, err := h.Manager.GetManager()
 	if err != nil {
 		return nil, err
 	}
-	adapter, ok := manager.(*resourcemanager.ManagerV1192Adapter)
+	adapter, ok := manager.(*resourcemanager.ManagerV1190Adapter)
 	if !ok {
 		return nil, fmt.Errorf("unexpected manager type: %T", manager)
 	}
@@ -120,18 +120,18 @@ func (h *ResourceHandler) GetVirtualMediaCollection() *server.VirtualMediaCollec
 	}
 }
 
-func (h *ResourceHandler) GetVirtualMedia() *server.VirtualMediaV164VirtualMedia {
-	return &server.VirtualMediaV164VirtualMedia{
+func (h *ResourceHandler) GetVirtualMedia() *server.VirtualMediaV163VirtualMedia {
+	return &server.VirtualMediaV163VirtualMedia{
 		OdataContext: "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
 		OdataId:      "/redfish/v1/Managers/BMC/VirtualMedia/1",
-		OdataType:    "#VirtualMedia.v1_6_4.VirtualMedia",
+		OdataType:    "#VirtualMedia.v1_6_3.VirtualMedia",
 		Description:  "Virtual Media",
 		Name:         "Virtual Media",
 		Id:           "1",
 		Image:        Ptr(""),
 		ImageName:    Ptr(""),
 		Inserted:     Ptr(false),
-		MediaTypes: []server.VirtualMediaV164MediaType{
+		MediaTypes: []server.VirtualMediaV163MediaType{
 			"CD",
 			"DVD",
 			"USBStick",
@@ -158,12 +158,12 @@ func (h *ResourceHandler) GetComputerSystemCollection() *server.ComputerSystemCo
 	}
 }
 
-func (h *ResourceHandler) GetComputerSystem() (*server.ComputerSystemV1230ComputerSystem, error) {
+func (h *ResourceHandler) GetComputerSystem() (*server.ComputerSystemV1220ComputerSystem, error) {
 	computerSystem, err := h.Manager.GetComputerSystem()
 	if err != nil {
 		return nil, err
 	}
-	adapter, ok := computerSystem.(*resourcemanager.ComputerSystemV1230Adapter)
+	adapter, ok := computerSystem.(*resourcemanager.ComputerSystemV1220Adapter)
 	if !ok {
 		return nil, fmt.Errorf("unexpected computer system type: %T", computerSystem)
 	}

@@ -5,7 +5,7 @@
  *
  * This contains the definition of a Redfish service.
  *
- * API version: 2024.3
+ * API version: 2023.3
  */
 
 package server

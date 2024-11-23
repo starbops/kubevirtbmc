@@ -14,56 +14,56 @@ type ComputerSystemInterface interface {
 	SetPowerState(powerState server.ResourcePowerState)
 }
 
-type ComputerSystemV1230Adapter struct {
-	computerSystem *server.ComputerSystemV1230ComputerSystem
+type ComputerSystemV1220Adapter struct {
+	computerSystem *server.ComputerSystemV1220ComputerSystem
 }
 
-func (a *ComputerSystemV1230Adapter) GetComputerSystem() *server.ComputerSystemV1230ComputerSystem {
+func (a *ComputerSystemV1220Adapter) GetComputerSystem() *server.ComputerSystemV1220ComputerSystem {
 	return a.computerSystem
 }
 
-func (a *ComputerSystemV1230Adapter) GetID() string {
+func (a *ComputerSystemV1220Adapter) GetID() string {
 	return a.computerSystem.Id
 }
 
-func (a *ComputerSystemV1230Adapter) GetPowerState() server.ResourcePowerState {
-	return *a.computerSystem.PowerState
+func (a *ComputerSystemV1220Adapter) GetPowerState() server.ResourcePowerState {
+	return a.computerSystem.PowerState
 }
 
-func (a *ComputerSystemV1230Adapter) SetPowerState(ps server.ResourcePowerState) {
-	a.computerSystem.PowerState = Ptr(ps)
+func (a *ComputerSystemV1220Adapter) SetPowerState(powerState server.ResourcePowerState) {
+	a.computerSystem.PowerState = powerState
 }
 
 func NewComputerSystem(id, name string, powerState server.ResourcePowerState) ComputerSystemInterface {
-	generatedComputerSystem := &server.ComputerSystemV1230ComputerSystem{
+	generatedComputerSystem := &server.ComputerSystemV1220ComputerSystem{
 		OdataContext: "/redfish/v1/$metadata#ComputerSystem.ComputerSystem",
 		OdataId:      fmt.Sprintf("/redfish/v1/Systems/%s", id),
-		OdataType:    "#ComputerSystem.v1_23_0.ComputerSystem",
+		OdataType:    "#ComputerSystem.v1_22_0.ComputerSystem",
 		Description:  "Computer System",
 		Name:         name,
 		Id:           id,
 		UUID:         "00000000-0000-0000-0000-000000000000",
 		AssetTag:     Ptr(""),
-		IndicatorLED: Ptr(server.COMPUTERSYSTEMV1230INDICATORLED_UNKNOWN),
+		IndicatorLED: server.COMPUTERSYSTEMV1220INDICATORLED_UNKNOWN,
 		Manufacturer: Ptr("KubeVirt"),
 		Model:        Ptr("KubeVirt"),
 		PartNumber:   Ptr(""),
 		SerialNumber: Ptr("000000000000"),
 		SKU:          Ptr(""),
 		Status:       server.ResourceStatus{},
-		SystemType:   server.COMPUTERSYSTEMV1230SYSTEMTYPE_VIRTUAL,
-		Links:        server.ComputerSystemV1230Links{},
-		PowerState:   Ptr(powerState),
-		Actions: server.ComputerSystemV1230Actions{
-			ComputerSystemReset: server.ComputerSystemV1230Reset{
+		SystemType:   server.COMPUTERSYSTEMV1220SYSTEMTYPE_VIRTUAL,
+		Links:        server.ComputerSystemV1220Links{},
+		PowerState:   powerState,
+		Actions: server.ComputerSystemV1220Actions{
+			ComputerSystemReset: server.ComputerSystemV1220Reset{
 				Target: "/redfish/v1/Systems/1/Actions/ComputerSystem.Reset",
 				Title:  "Reset",
 			},
 		},
-		Boot: server.ComputerSystemV1230Boot{
-			BootSourceOverrideEnabled: Ptr(server.COMPUTERSYSTEMV1230BOOTSOURCEOVERRIDEENABLED_DISABLED),
-			BootSourceOverrideMode:    Ptr(server.COMPUTERSYSTEMV1230BOOTSOURCEOVERRIDEMODE_LEGACY),
-			BootSourceOverrideTarget:  Ptr(server.COMPUTERSYSTEMBOOTSOURCE_PXE),
+		Boot: server.ComputerSystemV1220Boot{
+			BootSourceOverrideEnabled: server.COMPUTERSYSTEMV1220BOOTSOURCEOVERRIDEENABLED_DISABLED,
+			BootSourceOverrideMode:    server.COMPUTERSYSTEMV1220BOOTSOURCEOVERRIDEMODE_LEGACY,
+			BootSourceOverrideTarget:  server.COMPUTERSYSTEMBOOTSOURCE_PXE,
 		},
 		OperatingSystem: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Systems/1/OperatingSystem",
@@ -71,17 +71,17 @@ func NewComputerSystem(id, name string, powerState server.ResourcePowerState) Co
 		VirtualMedia: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Systems/1/VirtualMedia",
 		},
-		HostWatchdogTimer: server.ComputerSystemV1230WatchdogTimer{
+		HostWatchdogTimer: server.ComputerSystemV1220WatchdogTimer{
 			FunctionEnabled: Ptr(false),
 		},
-		MemorySummary: server.ComputerSystemV1230MemorySummary{
+		MemorySummary: server.ComputerSystemV1220MemorySummary{
 			Status:               server.ResourceStatus{},
 			TotalSystemMemoryGiB: Ptr(float32(0)),
 		},
 		NetworkInterfaces: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Systems/1/NetworkInterfaces",
 		},
-		ProcessorSummary: server.ComputerSystemV1230ProcessorSummary{
+		ProcessorSummary: server.ComputerSystemV1220ProcessorSummary{
 			Status: server.ResourceStatus{},
 			Count:  Ptr(int64(0)),
 		},
@@ -93,27 +93,27 @@ func NewComputerSystem(id, name string, powerState server.ResourcePowerState) Co
 		},
 	}
 
-	return &ComputerSystemV1230Adapter{computerSystem: generatedComputerSystem}
+	return &ComputerSystemV1220Adapter{computerSystem: generatedComputerSystem}
 }
 
 type ManagerInterface interface {
 	GetID() string
 }
 
-type ManagerV1192Adapter struct {
-	manager *server.ManagerV1192Manager
+type ManagerV1190Adapter struct {
+	manager *server.ManagerV1190Manager
 }
 
-func (a *ManagerV1192Adapter) GetID() string {
+func (a *ManagerV1190Adapter) GetID() string {
 	return a.manager.Id
 }
 
-func (a *ManagerV1192Adapter) GetManager() *server.ManagerV1192Manager {
+func (a *ManagerV1190Adapter) GetManager() *server.ManagerV1190Manager {
 	return a.manager
 }
 
 func NewManager(id, name string) ManagerInterface {
-	generatedManager := &server.ManagerV1192Manager{
+	generatedManager := &server.ManagerV1190Manager{
 		OdataContext: "/redfish/v1/$metadata#Manager.Manager",
 		OdataId:      fmt.Sprintf("/redfish/v1/Managers/%s", id),
 		OdataType:    "#Manager.v1_19_2.Manager",
@@ -124,8 +124,8 @@ func NewManager(id, name string) ManagerInterface {
 		Model:        Ptr("KubeVirtBMC"),
 		Status:       server.ResourceStatus{},
 		ManagerType:  "BMC",
-		Links:        server.ManagerV1192Links{},
-		Actions:      server.ManagerV1192Actions{},
+		Links:        server.ManagerV1190Links{},
+		Actions:      server.ManagerV1190Actions{},
 		DateTime:     Ptr(time.Now()),
 		EthernetInterfaces: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Managers/BMC/EthernetInterfaces",
@@ -141,5 +141,5 @@ func NewManager(id, name string) ManagerInterface {
 		},
 	}
 
-	return &ManagerV1192Adapter{manager: generatedManager}
+	return &ManagerV1190Adapter{manager: generatedManager}
 }

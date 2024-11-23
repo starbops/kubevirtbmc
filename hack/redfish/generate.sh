@@ -23,7 +23,7 @@ if [ "$(uname)" = "Darwin" ]; then
 fi
 
 # Generate the models and server stubs from the OpenAPI spec
-GO_POST_PROCESS_FILE="goimports -w" openapi-generator generate \
+_JAVA_OPTIONS="-DmaxYamlCodePoints=99999999" GO_POST_PROCESS_FILE="goimports -w" openapi-generator generate \
     -i ./hack/redfish/spec/openapi.yaml \
     -o ./pkg/generated/redfish/ \
     -g go-server \
