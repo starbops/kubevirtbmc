@@ -114,7 +114,7 @@ type ComputerSystemV1220ComputerSystem struct {
 	// The OEM extension.
 	Oem map[string]interface{} `json:"Oem,omitempty"`
 
-	OperatingSystem OdataV4IdRef `json:"OperatingSystem,omitempty"`
+	OperatingSystem string `json:"OperatingSystem,omitempty"`
 
 	// The link to a collection of PCIe devices that this computer system uses.
 	PCIeDevices []OdataV4IdRef `json:"PCIeDevices,omitempty"`
@@ -269,9 +269,6 @@ func AssertComputerSystemV1220ComputerSystemRequired(obj ComputerSystemV1220Comp
 	if err := AssertOdataV4IdRefRequired(obj.NetworkInterfaces); err != nil {
 		return err
 	}
-	if err := AssertOdataV4IdRefRequired(obj.OperatingSystem); err != nil {
-		return err
-	}
 	for _, el := range obj.PCIeDevices {
 		if err := AssertOdataV4IdRefRequired(el); err != nil {
 			return err
@@ -390,9 +387,6 @@ func AssertComputerSystemV1220ComputerSystemConstraints(obj ComputerSystemV1220C
 		return err
 	}
 	if err := AssertOdataV4IdRefConstraints(obj.NetworkInterfaces); err != nil {
-		return err
-	}
-	if err := AssertOdataV4IdRefConstraints(obj.OperatingSystem); err != nil {
 		return err
 	}
 	for _, el := range obj.PCIeDevices {
