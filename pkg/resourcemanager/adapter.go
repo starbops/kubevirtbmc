@@ -65,9 +65,7 @@ func NewComputerSystem(id, name string, powerState server.ResourcePowerState) Co
 			BootSourceOverrideMode:    server.COMPUTERSYSTEMV1220BOOTSOURCEOVERRIDEMODE_LEGACY,
 			BootSourceOverrideTarget:  server.COMPUTERSYSTEMBOOTSOURCE_PXE,
 		},
-		OperatingSystem: server.OdataV4IdRef{
-			OdataId: "/redfish/v1/Systems/1/OperatingSystem",
-		},
+		OperatingSystem: "/redfish/v1/Systems/1/OperatingSystem",
 		VirtualMedia: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Systems/1/VirtualMedia",
 		},
