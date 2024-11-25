@@ -72,12 +72,6 @@ func (h *ResourceHandler) GetServiceRoot() *server.ServiceRootV1161ServiceRoot {
 	}
 }
 
-func (h *ResourceHandler) GetMetadata() *server.OdataV4IdRef {
-	return &server.OdataV4IdRef{
-		OdataId: "/redfish/v1/$metadata",
-	}
-}
-
 func (h *ResourceHandler) GetManagerCollection() *server.ManagerCollectionManagerCollection {
 	return &server.ManagerCollectionManagerCollection{
 		OdataContext: "/redfish/v1/$metadata#ManagerCollection.ManagerCollection",
