@@ -132,7 +132,7 @@ Download the Redfish schema from the DMTF website:
 make download-redfish-schema
 ```
 
-Normally, the OpenAPI spec file `hack/<REDFISH_SCHEMA_BUNDLE/openapi/openapi.yaml` is the one you need. Copy it and modify it, make sure the changes are reflected in the file `hack/redfish/spec/openapi.yaml`. Then generate the code with openapi-generator:
+Normally, the OpenAPI spec file `hack/<REDFISH_SCHEMA_BUNDLE>/openapi/openapi.yaml` is the one you need. Copy it and modify it, make sure the changes are reflected in the file `hack/redfish/spec/openapi.yaml`. Then generate the code with openapi-generator:
 
 ```sh
 make generate-redfish-api
