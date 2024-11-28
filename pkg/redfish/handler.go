@@ -157,11 +157,32 @@ func (h *ResourceHandler) GetComputerSystem() (*server.ComputerSystemV1220Comput
 	if err != nil {
 		return nil, err
 	}
-	adapter, ok := computerSystem.(*resourcemanager.ComputerSystemV1220Adapter)
+	adapter, ok := computerSystem.(*resourcemanager.ComputerSystemAdapter)
 	if !ok {
 		return nil, fmt.Errorf("unexpected computer system type: %T", computerSystem)
 	}
 	return adapter.GetComputerSystem(), nil
+}
+
+func (h *ResourceHandler) PatchComputerSystem(computerSystemPatch *server.ComputerSystemV1220ComputerSystem) error {
+	boot := computerSystemPatch.Boot
+	if boot.BootSourceOverrideEnabled != server.COMPUTERSYSTEMV1220BOOTSOURCEOVERRIDEENABLED_DISABLED {
+		var bootDevice resourcemanager.BootDevice
+
+		switch boot.BootSourceOverrideTarget {
+		case server.COMPUTERSYSTEMBOOTSOURCE_PXE:
+			bootDevice = resourcemanager.BootDevicePxe
+		case server.COMPUTERSYSTEMBOOTSOURCE_HDD:
+			bootDevice = resourcemanager.BootDeviceHdd
+		default:
+			return nil
+		}
+
+		if err := h.Manager.SetBootDevice(bootDevice); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (h *ResourceHandler) ComputerSystemReset(resetType server.ResourceResetType) error {

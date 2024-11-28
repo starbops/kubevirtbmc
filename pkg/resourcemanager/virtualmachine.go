@@ -2,10 +2,10 @@ package resourcemanager
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/sirupsen/logrus"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
@@ -23,6 +23,10 @@ var (
 	powerStateMap = map[bool]server.ResourcePowerState{
 		true:  server.RESOURCEPOWERSTATE_ON,
 		false: server.RESOURCEPOWERSTATE_OFF,
+	}
+	bootSourceMap = map[BootDevice]server.ComputerSystemBootSource{
+		BootDevicePxe: server.COMPUTERSYSTEMBOOTSOURCE_PXE,
+		BootDeviceHdd: server.COMPUTERSYSTEMBOOTSOURCE_HDD,
 	}
 )
 
@@ -145,36 +149,34 @@ func (m *VirtualMachineResourceManager) PowerCycle() error {
 }
 
 func (m *VirtualMachineResourceManager) SetBootDevice(bootDevice BootDevice) error {
-	logrus.Info("setVirtualMachineBootDevice")
+	logrus.Info("SetBootDevice")
 	vm, err := m.kvClient.VirtualMachines(m.managedVM.Namespace).
 		Get(m.ctx, m.managedVM.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 
-	for i, dev := range vm.Spec.Template.Spec.Domain.Devices.Disks {
-		logrus.Infof("disk: %+v", dev)
-		if dev.BootOrder == nil {
-			continue
-		}
-		newOrder := *dev.BootOrder + 1
-		vm.Spec.Template.Spec.Domain.Devices.Disks[i].BootOrder = &newOrder
-	}
 	for i, intf := range vm.Spec.Template.Spec.Domain.Devices.Interfaces {
 		logrus.Infof("interface: %+v", intf)
-		if intf.BootOrder == nil {
-			continue
-		}
-		newOrder := *intf.BootOrder + 1
-		vm.Spec.Template.Spec.Domain.Devices.Interfaces[i].BootOrder = &newOrder
+		vm.Spec.Template.Spec.Domain.Devices.Interfaces[i].BootOrder = nil
+	}
+	for i, dev := range vm.Spec.Template.Spec.Domain.Devices.Disks {
+		logrus.Infof("disk: %+v", dev)
+		vm.Spec.Template.Spec.Domain.Devices.Disks[i].BootOrder = nil
 	}
 
 	var firstOrder uint = 1
 	switch bootDevice {
-	case BootDevicePXE:
+	case BootDevicePxe:
+		if vm.Spec.Template.Spec.Domain.Devices.Interfaces == nil {
+			return fmt.Errorf("no interfaces found")
+		}
 		vm.Spec.Template.Spec.Domain.Devices.Interfaces[0].BootOrder = &firstOrder
 		logrus.Infof("To be updated vm: %+v", vm.Spec.Template.Spec.Domain.Devices.Interfaces[0])
-	case BootDeviceDisk, BootDeviceHdd:
+	case BootDeviceHdd:
+		if vm.Spec.Template.Spec.Domain.Devices.Disks == nil {
+			return fmt.Errorf("no disks found")
+		}
 		vm.Spec.Template.Spec.Domain.Devices.Disks[0].BootOrder = &firstOrder
 		logrus.Infof("To be updated vm: %+v", vm.Spec.Template.Spec.Domain.Devices.Disks[0])
 	}
@@ -184,6 +186,8 @@ func (m *VirtualMachineResourceManager) SetBootDevice(bootDevice BootDevice) err
 		logrus.Errorf("update vm error: %v", err)
 		return err
 	}
+
+	m.computerSystem.SetBootOverride(bootSourceMap[bootDevice])
 
 	return nil
 }
