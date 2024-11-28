@@ -3,9 +3,8 @@ package resourcemanager
 type BootDevice string
 
 const (
-	BootDevicePXE  BootDevice = "pxe"
-	BootDeviceDisk BootDevice = "disk"
-	BootDeviceHdd  BootDevice = "hdd"
+	BootDevicePxe BootDevice = "Pxe"
+	BootDeviceHdd BootDevice = "Hdd"
 )
 
 type ResourceManager interface {

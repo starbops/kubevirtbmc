@@ -10,28 +10,35 @@ import (
 type ComputerSystemInterface interface {
 	GetID() string
 
+	GetComputerSystem() *server.ComputerSystemV1220ComputerSystem
 	GetPowerState() server.ResourcePowerState
 	SetPowerState(powerState server.ResourcePowerState)
+	SetBootOverride(server.ComputerSystemBootSource)
 }
 
-type ComputerSystemV1220Adapter struct {
+type ComputerSystemAdapter struct {
 	computerSystem *server.ComputerSystemV1220ComputerSystem
 }
 
-func (a *ComputerSystemV1220Adapter) GetComputerSystem() *server.ComputerSystemV1220ComputerSystem {
+func (a *ComputerSystemAdapter) GetComputerSystem() *server.ComputerSystemV1220ComputerSystem {
 	return a.computerSystem
 }
 
-func (a *ComputerSystemV1220Adapter) GetID() string {
+func (a *ComputerSystemAdapter) GetID() string {
 	return a.computerSystem.Id
 }
 
-func (a *ComputerSystemV1220Adapter) GetPowerState() server.ResourcePowerState {
+func (a *ComputerSystemAdapter) GetPowerState() server.ResourcePowerState {
 	return a.computerSystem.PowerState
 }
 
-func (a *ComputerSystemV1220Adapter) SetPowerState(powerState server.ResourcePowerState) {
+func (a *ComputerSystemAdapter) SetPowerState(powerState server.ResourcePowerState) {
 	a.computerSystem.PowerState = powerState
+}
+
+func (a *ComputerSystemAdapter) SetBootOverride(target server.ComputerSystemBootSource) {
+	a.computerSystem.Boot.BootSourceOverrideEnabled = server.COMPUTERSYSTEMV1220BOOTSOURCEOVERRIDEENABLED_CONTINUOUS
+	a.computerSystem.Boot.BootSourceOverrideTarget = target
 }
 
 func NewComputerSystem(id, name string, powerState server.ResourcePowerState) ComputerSystemInterface {
@@ -63,7 +70,7 @@ func NewComputerSystem(id, name string, powerState server.ResourcePowerState) Co
 		Boot: server.ComputerSystemV1220Boot{
 			BootSourceOverrideEnabled: server.COMPUTERSYSTEMV1220BOOTSOURCEOVERRIDEENABLED_DISABLED,
 			BootSourceOverrideMode:    server.COMPUTERSYSTEMV1220BOOTSOURCEOVERRIDEMODE_LEGACY,
-			BootSourceOverrideTarget:  server.COMPUTERSYSTEMBOOTSOURCE_PXE,
+			BootSourceOverrideTarget:  server.COMPUTERSYSTEMBOOTSOURCE_HDD,
 		},
 		OperatingSystem: "/redfish/v1/Systems/1/OperatingSystem",
 		VirtualMedia: server.OdataV4IdRef{
@@ -91,7 +98,7 @@ func NewComputerSystem(id, name string, powerState server.ResourcePowerState) Co
 		},
 	}
 
-	return &ComputerSystemV1220Adapter{computerSystem: generatedComputerSystem}
+	return &ComputerSystemAdapter{computerSystem: generatedComputerSystem}
 }
 
 type ManagerInterface interface {
