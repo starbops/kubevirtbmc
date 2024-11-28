@@ -13,8 +13,8 @@ import (
 type BootDevice string
 
 const (
-	Pxe  BootDevice = "pxe"
-	Disk BootDevice = "disk"
+	Pxe BootDevice = "pxe"
+	Hdd BootDevice = "disk"
 )
 
 func NewK8sClient(options Options) *kubevirtv1type.KubevirtV1Client {
@@ -134,7 +134,7 @@ func (b *VirtBMC) setVirtualMachineBootDevice(bd BootDevice) error {
 	case Pxe:
 		vm.Spec.Template.Spec.Domain.Devices.Interfaces[0].BootOrder = &firstOrder
 		logrus.Infof("To be updated vm: %+v", vm.Spec.Template.Spec.Domain.Devices.Interfaces[0])
-	case Disk:
+	case Hdd:
 		vm.Spec.Template.Spec.Domain.Devices.Disks[0].BootOrder = &firstOrder
 		logrus.Infof("To be updated vm: %+v", vm.Spec.Template.Spec.Domain.Devices.Disks[0])
 	}

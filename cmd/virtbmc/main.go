@@ -44,6 +44,12 @@ func main() {
 				Usage:       "listen on `PORT`",
 				Destination: &options.Port,
 			},
+			&cli.IntFlag{
+				Name:        "redfish-port",
+				Value:       10080,
+				Usage:       "listen on `REDFISH PORT`",
+				Destination: &options.RedfishPort,
+			},
 			&cli.BoolFlag{
 				Name:    "version",
 				Aliases: []string{"v"},

@@ -3,6 +3,7 @@ module kubevirt.io/kubevirtbmc
 go 1.23.2
 
 require (
+	github.com/gorilla/mux v1.8.0
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.31.0
 	github.com/sirupsen/logrus v1.9.0
@@ -10,6 +11,7 @@ require (
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/vmware/goipmi v0.0.0-20181114221114-2333cd82d702
 	k8s.io/api v0.29.10
+	k8s.io/apiextensions-apiserver v0.29.10
 	k8s.io/apimachinery v0.29.10
 	k8s.io/client-go v0.29.10
 	kubevirt.io/api v1.2.2
@@ -75,7 +77,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/apiextensions-apiserver v0.29.10 // indirect
 	k8s.io/component-base v0.29.10 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect

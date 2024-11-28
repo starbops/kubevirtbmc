@@ -314,7 +314,7 @@ func TestSetVirtualMachineBootDevice(t *testing.T) {
 	require.Equal(t, uint(1), *fakeVM.Spec.Template.Spec.Domain.Devices.Interfaces[0].BootOrder)
 
 	// Test Disk boot device
-	err = bmc.setVirtualMachineBootDevice(Disk)
+	err = bmc.setVirtualMachineBootDevice(Hdd)
 	require.NoError(t, err)
 
 	require.Equal(t, uint(1), *fakeVM.Spec.Template.Spec.Domain.Devices.Disks[0].BootOrder)

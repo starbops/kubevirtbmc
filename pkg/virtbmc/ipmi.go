@@ -78,7 +78,7 @@ func (b *VirtBMC) setSystemBootOptionsHandler(m *ipmi.Message) ipmi.Response {
 		device = Pxe
 	case uint8(ipmi.BootDeviceDisk):
 		logrus.Infof("set bootdev disk")
-		device = Disk
+		device = Hdd
 	}
 
 	err := b.setVirtualMachineBootDevice(device)
