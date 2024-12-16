@@ -3,21 +3,54 @@ package redfish
 import (
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"kubevirt.io/kubevirtbmc/pkg/generated/redfish/server"
 	"kubevirt.io/kubevirtbmc/pkg/resourcemanager"
+	"kubevirt.io/kubevirtbmc/pkg/session"
 )
 
-type ResourceHandler struct {
-	Manager resourcemanager.ResourceManager
+type handler struct {
+	rm resourcemanager.ResourceManager
 }
 
-func NewResourceHandler(resourceManager resourcemanager.ResourceManager) *ResourceHandler {
-	return &ResourceHandler{
-		Manager: resourceManager,
+func NewHandler(resourceManager resourcemanager.ResourceManager) *handler {
+	return &handler{
+		rm: resourceManager,
 	}
 }
 
-func (h *ResourceHandler) GetServiceRoot() *server.ServiceRootV1161ServiceRoot {
+func (h *handler) Authenticate(username, password *string) (string, string, error) {
+	var id, token string
+	if username == nil || password == nil {
+		return id, token, fmt.Errorf("username and password must be provided")
+	}
+
+	if *username != defaultUserName || *password != defaultPassword {
+		return id, token, fmt.Errorf("invalid username or password")
+	}
+
+	id = uuid.New().String()
+	tokenInfo := session.NewTokenInfo(id, *username)
+	token = session.AddToken(tokenInfo)
+
+	return id, token, nil
+}
+
+func (h *handler) GetSession(sessionID string) (string, string, error) {
+	var id, username string
+	tokenInfo, exists := session.GetTokenFromID(sessionID)
+	if !exists {
+		return id, username, fmt.Errorf("session not found")
+	}
+	return tokenInfo.ID, tokenInfo.Username, nil
+}
+
+func (h *handler) DeleteSession(sessionID string) {
+	session.RemoveToken(sessionID)
+}
+
+func (h *handler) GetServiceRoot() *server.ServiceRootV1161ServiceRoot {
 	return &server.ServiceRootV1161ServiceRoot{
 		OdataContext:   "/redfish/v1/$metadata#ServiceRoot.ServiceRoot",
 		OdataId:        "/redfish/v1",
@@ -72,7 +105,7 @@ func (h *ResourceHandler) GetServiceRoot() *server.ServiceRootV1161ServiceRoot {
 	}
 }
 
-func (h *ResourceHandler) GetManagerCollection() *server.ManagerCollectionManagerCollection {
+func (h *handler) GetManagerCollection() *server.ManagerCollectionManagerCollection {
 	return &server.ManagerCollectionManagerCollection{
 		OdataContext: "/redfish/v1/$metadata#ManagerCollection.ManagerCollection",
 		OdataId:      "/redfish/v1/Managers",
@@ -87,8 +120,8 @@ func (h *ResourceHandler) GetManagerCollection() *server.ManagerCollectionManage
 	}
 }
 
-func (h *ResourceHandler) GetManager() (*server.ManagerV1190Manager, error) {
-	manager, err := h.Manager.GetManager()
+func (h *handler) GetManager() (*server.ManagerV1190Manager, error) {
+	manager, err := h.rm.GetManager()
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +132,7 @@ func (h *ResourceHandler) GetManager() (*server.ManagerV1190Manager, error) {
 	return adapter.GetManager(), nil
 }
 
-func (h *ResourceHandler) GetVirtualMediaCollection() *server.VirtualMediaCollectionVirtualMediaCollection {
+func (h *handler) GetVirtualMediaCollection() *server.VirtualMediaCollectionVirtualMediaCollection {
 	return &server.VirtualMediaCollectionVirtualMediaCollection{
 		OdataContext: "/redfish/v1/$metadata#VirtualMediaCollection.VirtualMediaCollection",
 		OdataId:      "/redfish/v1/Managers/BMC/VirtualMedia",
@@ -114,7 +147,7 @@ func (h *ResourceHandler) GetVirtualMediaCollection() *server.VirtualMediaCollec
 	}
 }
 
-func (h *ResourceHandler) GetVirtualMedia() *server.VirtualMediaV163VirtualMedia {
+func (h *handler) GetVirtualMedia() *server.VirtualMediaV163VirtualMedia {
 	return &server.VirtualMediaV163VirtualMedia{
 		OdataContext: "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
 		OdataId:      "/redfish/v1/Managers/BMC/VirtualMedia/1",
@@ -137,7 +170,7 @@ func (h *ResourceHandler) GetVirtualMedia() *server.VirtualMediaV163VirtualMedia
 	}
 }
 
-func (h *ResourceHandler) GetComputerSystemCollection() *server.ComputerSystemCollectionComputerSystemCollection {
+func (h *handler) GetComputerSystemCollection() *server.ComputerSystemCollectionComputerSystemCollection {
 	return &server.ComputerSystemCollectionComputerSystemCollection{
 		OdataContext: "/redfish/v1/$metadata#ComputerSystemCollection.ComputerSystemCollection",
 		OdataId:      "/redfish/v1/Systems",
@@ -152,8 +185,8 @@ func (h *ResourceHandler) GetComputerSystemCollection() *server.ComputerSystemCo
 	}
 }
 
-func (h *ResourceHandler) GetComputerSystem() (*server.ComputerSystemV1220ComputerSystem, error) {
-	computerSystem, err := h.Manager.GetComputerSystem()
+func (h *handler) GetComputerSystem() (*server.ComputerSystemV1220ComputerSystem, error) {
+	computerSystem, err := h.rm.GetComputerSystem()
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +197,7 @@ func (h *ResourceHandler) GetComputerSystem() (*server.ComputerSystemV1220Comput
 	return adapter.GetComputerSystem(), nil
 }
 
-func (h *ResourceHandler) PatchComputerSystem(computerSystemPatch *server.ComputerSystemV1220ComputerSystem) error {
+func (h *handler) PatchComputerSystem(computerSystemPatch *server.ComputerSystemV1220ComputerSystem) error {
 	boot := computerSystemPatch.Boot
 	if boot.BootSourceOverrideEnabled != server.COMPUTERSYSTEMV1220BOOTSOURCEOVERRIDEENABLED_DISABLED {
 		var bootDevice resourcemanager.BootDevice
@@ -178,20 +211,20 @@ func (h *ResourceHandler) PatchComputerSystem(computerSystemPatch *server.Comput
 			return nil
 		}
 
-		if err := h.Manager.SetBootDevice(bootDevice); err != nil {
+		if err := h.rm.SetBootDevice(bootDevice); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (h *ResourceHandler) ComputerSystemReset(resetType server.ResourceResetType) error {
+func (h *handler) ComputerSystemReset(resetType server.ResourceResetType) error {
 	powerActionMap := map[server.ResourceResetType]func() error{
-		server.RESOURCERESETTYPE_ON:                h.Manager.PowerOn,
-		server.RESOURCERESETTYPE_GRACEFUL_SHUTDOWN: h.Manager.PowerOff,
-		server.RESOURCERESETTYPE_FORCE_OFF:         h.Manager.PowerOff,
-		server.RESOURCERESETTYPE_GRACEFUL_RESTART:  h.Manager.PowerCycle,
-		server.RESOURCERESETTYPE_FORCE_RESTART:     h.Manager.PowerCycle,
+		server.RESOURCERESETTYPE_ON:                h.rm.PowerOn,
+		server.RESOURCERESETTYPE_GRACEFUL_SHUTDOWN: h.rm.PowerOff,
+		server.RESOURCERESETTYPE_FORCE_OFF:         h.rm.PowerOff,
+		server.RESOURCERESETTYPE_GRACEFUL_RESTART:  h.rm.PowerCycle,
+		server.RESOURCERESETTYPE_FORCE_RESTART:     h.rm.PowerCycle,
 	}
 
 	powerAction, ok := powerActionMap[resetType]
@@ -204,12 +237,12 @@ func (h *ResourceHandler) ComputerSystemReset(resetType server.ResourceResetType
 // ComputerSystemSetDefaultBootOrder sets the boot order for the computer system back to default.
 // TODO: Implement real default boot order setting. Right now we intentionally misuse the handler to set the first boot
 // device.
-func (h *ResourceHandler) ComputerSystemSetDefaultBootOrder(bootDevices []string) error {
+func (h *handler) ComputerSystemSetDefaultBootOrder(bootDevices []string) error {
 	var bootDevice resourcemanager.BootDevice
 	if len(bootDevices) > 0 {
 		bootDevice = resourcemanager.BootDevice(bootDevices[0])
 	}
-	return h.Manager.SetBootDevice(bootDevice)
+	return h.rm.SetBootDevice(bootDevice)
 }
 
 func Ptr[T any](value T) *T {

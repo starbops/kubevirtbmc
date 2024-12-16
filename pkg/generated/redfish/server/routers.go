@@ -45,18 +45,38 @@ const errMsgMinValueConstraint = "provided parameter is not respecting minimum v
 const errMsgMaxValueConstraint = "provided parameter is not respecting maximum value constraint"
 
 // NewRouter creates a new router for any number of api routers
-func NewRouter(routers ...Router) *mux.Router {
+func NewRouter(authMiddleware mux.MiddlewareFunc, routers ...Router) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
+
+	protected := router.NewRoute().Subrouter()
+	protected.Use(authMiddleware)
+
 	for _, api := range routers {
 		for name, route := range api.Routes() {
-			var handler http.Handler = route.HandlerFunc
-			handler = Logger(handler, name)
+			switch name {
+			case
+				"RedfishV1Get",
+				"RedfishV1Get_0",
+				"RedfishV1MetadataGet",
+				"RedfishV1SessionServiceSessionsPost":
+				var handler http.Handler = route.HandlerFunc
+				handler = Logger(handler, name)
 
-			router.
-				Methods(route.Method).
-				Path(route.Pattern).
-				Name(name).
-				Handler(handler)
+				router.
+					Methods(route.Method).
+					Path(route.Pattern).
+					Name(name).
+					Handler(handler)
+			default:
+				var handler http.Handler = route.HandlerFunc
+				handler = Logger(handler, name)
+
+				protected.
+					Methods(route.Method).
+					Path(route.Pattern).
+					Name(name).
+					Handler(handler)
+			}
 		}
 	}
 
