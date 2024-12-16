@@ -8,7 +8,13 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"kubevirt.io/kubevirtbmc/pkg/generated/redfish/server"
-	resourcemanager "kubevirt.io/kubevirtbmc/pkg/resourcemanager"
+	"kubevirt.io/kubevirtbmc/pkg/resourcemanager"
+	"kubevirt.io/kubevirtbmc/pkg/session"
+)
+
+const (
+	defaultUserName = "admin"
+	defaultPassword = "password"
 )
 
 type Emulator struct {
@@ -21,7 +27,7 @@ type Emulator struct {
 func NewEmulator(ctx context.Context, port int, resourceManager resourcemanager.ResourceManager) *Emulator {
 	apiService := NewAPIService(resourceManager)
 	apiController := server.NewDefaultAPIController(apiService)
-	router := server.NewRouter(apiController)
+	router := server.NewRouter(session.AuthMiddleware, apiController)
 
 	return &Emulator{
 		ctx:  ctx,
