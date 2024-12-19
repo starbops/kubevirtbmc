@@ -39,7 +39,7 @@ func (h *handler) Authenticate(username, password *string) (string, string, erro
 
 func (h *handler) GetSession(sessionID string) (string, string, error) {
 	var id, username string
-	tokenInfo, exists := session.GetTokenFromID(sessionID)
+	tokenInfo, exists := session.GetTokenFromSessionID(sessionID)
 	if !exists {
 		return id, username, fmt.Errorf("session not found")
 	}
