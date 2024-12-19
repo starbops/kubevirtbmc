@@ -5,9 +5,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"net/http"
+	"sync"
 )
 
-var tokenStore map[string]TokenInfo
+var ts TokenStore
+
+type TokenStore struct {
+	rwMutex sync.RWMutex
+	store   map[string]TokenInfo
+}
 
 type TokenInfo struct {
 	ID       string
@@ -22,7 +28,10 @@ func NewTokenInfo(id, username string) TokenInfo {
 }
 
 func init() {
-	tokenStore = make(map[string]TokenInfo, 1)
+	ts = TokenStore{
+		store: make(map[string]TokenInfo, 1),
+	}
+
 }
 
 func generateToken(tokenInfo TokenInfo) string {
@@ -33,30 +42,46 @@ func generateToken(tokenInfo TokenInfo) string {
 }
 
 func AddToken(tokenInfo TokenInfo) string {
+	ts.rwMutex.Lock()
+	defer ts.rwMutex.Unlock()
+
 	token := generateToken(tokenInfo)
-	tokenStore[token] = tokenInfo
+	ts.store[token] = tokenInfo
+
 	return token
 }
 
 func GetToken(token string) (TokenInfo, bool) {
-	tokenInfo, exists := tokenStore[token]
+	ts.rwMutex.RLock()
+	defer ts.rwMutex.RUnlock()
+
+	tokenInfo, exists := ts.store[token]
+
 	return tokenInfo, exists
 }
 
 func RemoveToken(token string) {
-	delete(tokenStore, token)
+	ts.rwMutex.Lock()
+	defer ts.rwMutex.Unlock()
+
+	delete(ts.store, token)
 }
 
-func GetTokenFromID(id string) (TokenInfo, bool) {
-	for _, tokenInfo := range tokenStore {
-		if tokenInfo.ID == id {
+func GetTokenFromSessionID(sessionID string) (TokenInfo, bool) {
+	ts.rwMutex.RLock()
+	defer ts.rwMutex.RUnlock()
+
+	for _, tokenInfo := range ts.store {
+		if tokenInfo.ID == sessionID {
 			return tokenInfo, true
 		}
 	}
+
 	return TokenInfo{}, false
 }
 
 func AuthMiddleware(next http.Handler) http.Handler {
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("X-Auth-Token")
 		if token == "" {
@@ -64,7 +89,11 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if _, exists := tokenStore[token]; !exists {
+		ts.rwMutex.RLock()
+		_, exists := ts.store[token]
+		ts.rwMutex.RUnlock()
+
+		if !exists {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
