@@ -259,7 +259,6 @@ Date: Wed, 18 Dec 2024 16:06:12 GMT
 Due to the nature of the Redfish API, you can expose the Redfish service to the outside of the cluster with the aid of Ingress controllers. What's more, you can use cert-manager to issue a certificate for the Redfish service. To do so, you need to create an Ingress object (assuming you have an Ingress controller, e.g. `nginx-ingress`, and cert-manager installed) for each of the VirtualMachineBMC objects you want to expose:
 
 ```sh
-kubectl apply -f config/samples/virtualmachine_v1_virtualmachinebmc_ingress.yaml
 cat <<EOF | kubectl apply -f -
 apiVersion: networking.k8s.io/v1
 kind: Ingress
