@@ -180,7 +180,9 @@ NAME                               TYPE        CLUSTER-IP      EXTERNAL-IP   POR
 default-test-vm-virtbmc               ClusterIP   10.53.106.65    <none>        623/UDP   3h13m
 ```
 
-To access the VM's BMC, you need to be in the cluster network. Run a Pod that comes with `ipmitool` built in:
+**Access virtual BMC via IPMI**
+
+To access the virtual BMC via IPMI, you need to be in the cluster network. Run a Pod that comes with `ipmitool` built in:
 
 ```sh
 kubectl run -it --rm ipmitool --image=mikeynap/ipmitool --command -- /bin/sh
@@ -197,7 +199,9 @@ $ ipmitool -I lan -U admin -P password -H default-test-vm-virtbmc.kubevirtbmc-sy
 Chassis Power is on
 ```
 
-To access the Redfish API, you can use `curl`:
+**Access virtual BMC via Redfish**
+
+To access the virtual BMC through the Redfish API, you can use `curl`:
 
 ```sh
 kubectl run -it --rm curl-redfish --image=curlimages/curl --command -- /bin/sh
@@ -255,6 +259,8 @@ HTTP/1.1 204 No Content
 Content-Type: application/json; charset=UTF-8
 Date: Wed, 18 Dec 2024 16:06:12 GMT
 ```
+
+**Expose the Redfish API to external**
 
 Due to the nature of the Redfish API, you can expose the Redfish service to the outside of the cluster with the aid of Ingress controllers. What's more, you can use cert-manager to issue a certificate for the Redfish service. To do so, you need to create an Ingress object (assuming you have an Ingress controller, e.g. `nginx-ingress`, and cert-manager installed) for each of the VirtualMachineBMC objects you want to expose:
 
