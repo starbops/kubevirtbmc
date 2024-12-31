@@ -7,7 +7,22 @@ KubeVirtBMC unleashes the out-of-band management for virtual machines on Kuberne
 
 The project was born in [SUSE Hack Week 23](https://hackweek.opensuse.org/) and augmented with Redfish in [SUSE Hack Week 24](https://hackweek.opensuse.org/24/projects/extending-kubevirtbmcs-capability-by-adding-redfish-support).
 
-## Description
+## Quick Start
+
+Install cert-manager first as it is required for the webhook service and the Redfish API:
+
+```sh
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.2/cert-manager.yaml
+```
+
+Install KubeVirtBMC with Helm. Optionally, you can specify the image repository and tag, e.g., `--set image.repository=starbops/virtbmc-controller --set image.tag=v0.4.1`:
+
+```sh
+cd kubevirtbmc/
+helm upgrade --install kubevirtbmc ./chart --namespace=kubevirtbmc-system --create-namespace
+```
+
+## Project Description
 
 KubeVirtBMC was inspired by [VirtualBMC](https://opendev.org/openstack/virtualbmc). The difference between them could be illustrated as below:
 
