@@ -5,31 +5,12 @@ metadata:
     {{- include "chart.labels" . | nindent 4 }}
     app.kubernetes.io/component: kube-rbac-proxy
     app.kubernetes.io/part-of: {{ include "chart.name" . }}
-  name: {{ include "chart.fullname" . }}
-  namespace: {{ .Release.Namespace }}
-spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
-  selector:
-    {{- include "chart.selectorLabels" . | nindent 4 }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    {{- include "chart.labels" . | nindent 4 }}
-    app.kubernetes.io/component: kube-rbac-proxy
-    app.kubernetes.io/part-of: {{ include "chart.name" . }}
   name: {{ include "chart.name" . }}-metrics-service
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
   - name: https
-    port: 8443
+    port: {{ .Values.service.metricsPort }}
     protocol: TCP
     targetPort: metrics-server
   selector:
@@ -46,8 +27,9 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
-  - port: 443
+  - name: https
+    port: {{ .Values.service.webhookPort }}
     protocol: TCP
-    targetPort: 9443
+    targetPort: webhook-server
   selector:
     {{- include "chart.selectorLabels" . | nindent 6 }}
