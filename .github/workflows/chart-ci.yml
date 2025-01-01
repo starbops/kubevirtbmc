@@ -69,5 +69,7 @@ jobs:
       uses: helm/chart-releaser-action@v1
       with:
         charts_dir: deploy/charts
+        mark_as_latest: false
+        pages_branch: gh-pages
       env:
         CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
