@@ -67,7 +67,7 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 					Args: []string{
 						"--address",
 						"0.0.0.0",
-						"--port",
+						"--ipmi-port",
 						strconv.Itoa(ipmiPort),
 						"--redfish-port",
 						strconv.Itoa(redfishPort),
