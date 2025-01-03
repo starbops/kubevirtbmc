@@ -39,7 +39,8 @@ type VirtualMachineResourceManager struct {
 	ctx      context.Context
 	kvClient KubeVirtClientInterface
 
-	managedVM *kubevirtv1.VirtualMachine
+	namespace string
+	name      string
 
 	computerSystem ComputerSystemInterface
 	manager        ManagerInterface
@@ -61,7 +62,8 @@ func (m *VirtualMachineResourceManager) Initialize(namespace, name string) error
 		return err
 	}
 
-	m.managedVM = vm
+	m.namespace = namespace
+	m.name = name
 	m.computerSystem = NewComputerSystem(
 		defaultComputerSystemId,
 		strings.Join([]string{vm.Namespace, vm.Name}, "/"),
@@ -73,12 +75,17 @@ func (m *VirtualMachineResourceManager) Initialize(namespace, name string) error
 }
 
 func (m *VirtualMachineResourceManager) GetComputerSystem() (ComputerSystemInterface, error) {
+	if m.computerSystem == nil {
+		return nil, fmt.Errorf("computer system not initialized")
+	}
+
 	// Update the power state just-in-time until we actually implement a control loop for it
-	vm, err := m.kvClient.VirtualMachines(m.managedVM.Namespace).
-		Get(m.ctx, m.managedVM.Name, metav1.GetOptions{})
+	vm, err := m.kvClient.VirtualMachines(m.namespace).
+		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
+
 	switch vm.Status.Ready {
 	case true:
 		m.computerSystem.SetPowerState(server.RESOURCEPOWERSTATE_ON)
@@ -94,12 +101,30 @@ func (m *VirtualMachineResourceManager) GetManager() (ManagerInterface, error) {
 }
 
 func (m *VirtualMachineResourceManager) GetPowerStatus() (bool, error) {
-	return true, nil
+	// TODO: Implement a control loop to keep the power state in sync, then we will be able to
+	// return the power state from the intermediate object, i.e. ComputerSystem.
+	//
+	// ps := m.computerSystem.GetPowerState()
+	// switch ps {
+	// case server.RESOURCEPOWERSTATE_ON, server.RESOURCEPOWERSTATE_POWERING_ON:
+	// 	return true, nil
+	// case server.RESOURCEPOWERSTATE_OFF, server.RESOURCEPOWERSTATE_POWERING_OFF:
+	// 	return false, nil
+	// default:
+	// 	return false, nil
+	// }
+	vm, err := m.kvClient.VirtualMachines(m.namespace).
+		Get(m.ctx, m.name, metav1.GetOptions{})
+	if err != nil {
+		return false, err
+	}
+
+	return vm.Status.Ready, nil
 }
 
 func (m *VirtualMachineResourceManager) PowerOn() error {
-	vm, err := m.kvClient.VirtualMachines(m.managedVM.Namespace).
-		Get(m.ctx, m.managedVM.Name, metav1.GetOptions{})
+	vm, err := m.kvClient.VirtualMachines(m.namespace).
+		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -114,7 +139,7 @@ func (m *VirtualMachineResourceManager) PowerOn() error {
 		}(kubevirtv1.RunStrategyRerunOnFailure)
 		vm.Spec.RunStrategy = runStrategy
 	}
-	if _, err := m.kvClient.VirtualMachines(m.managedVM.Namespace).
+	if _, err := m.kvClient.VirtualMachines(m.namespace).
 		Update(m.ctx, vm, metav1.UpdateOptions{}); err != nil {
 		return err
 	}
@@ -122,8 +147,8 @@ func (m *VirtualMachineResourceManager) PowerOn() error {
 }
 
 func (m *VirtualMachineResourceManager) PowerOff() error {
-	vm, err := m.kvClient.VirtualMachines(m.managedVM.Namespace).
-		Get(m.ctx, m.managedVM.Name, metav1.GetOptions{})
+	vm, err := m.kvClient.VirtualMachines(m.namespace).
+		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -136,7 +161,7 @@ func (m *VirtualMachineResourceManager) PowerOff() error {
 		}(kubevirtv1.RunStrategyHalted)
 		vm.Spec.RunStrategy = runStrategy
 	}
-	if _, err := m.kvClient.VirtualMachines(m.managedVM.Namespace).
+	if _, err := m.kvClient.VirtualMachines(m.namespace).
 		Update(m.ctx, vm, metav1.UpdateOptions{}); err != nil {
 		return err
 	}
@@ -144,14 +169,14 @@ func (m *VirtualMachineResourceManager) PowerOff() error {
 }
 
 func (m *VirtualMachineResourceManager) PowerCycle() error {
-	return m.kvClient.VirtualMachineInstances(m.managedVM.Namespace).
-		Delete(m.ctx, m.managedVM.Name, metav1.DeleteOptions{})
+	return m.kvClient.VirtualMachineInstances(m.namespace).
+		Delete(m.ctx, m.name, metav1.DeleteOptions{})
 }
 
 func (m *VirtualMachineResourceManager) SetBootDevice(bootDevice BootDevice) error {
 	logrus.Info("SetBootDevice")
-	vm, err := m.kvClient.VirtualMachines(m.managedVM.Namespace).
-		Get(m.ctx, m.managedVM.Name, metav1.GetOptions{})
+	vm, err := m.kvClient.VirtualMachines(m.namespace).
+		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -181,12 +206,16 @@ func (m *VirtualMachineResourceManager) SetBootDevice(bootDevice BootDevice) err
 		logrus.Infof("To be updated vm: %+v", vm.Spec.Template.Spec.Domain.Devices.Disks[0])
 	}
 
-	if _, err := m.kvClient.VirtualMachines(m.managedVM.Namespace).
+	if _, err := m.kvClient.VirtualMachines(m.namespace).
 		Update(m.ctx, vm, metav1.UpdateOptions{}); err != nil {
 		logrus.Errorf("update vm error: %v", err)
 		return err
 	}
 
+	if m.computerSystem == nil {
+		logrus.Warn("computer system not initialized")
+		return nil
+	}
 	m.computerSystem.SetBootOverride(bootSourceMap[bootDevice])
 
 	return nil

@@ -38,11 +38,10 @@ func main() {
 				Destination: &options.KubeconfigPath,
 			},
 			&cli.IntFlag{
-				Name:        "port",
-				Aliases:     []string{"p"},
+				Name:        "ipmi-port",
 				Value:       10623,
-				Usage:       "listen on `PORT`",
-				Destination: &options.Port,
+				Usage:       "listen on `IPMI PORT`",
+				Destination: &options.IPMIPort,
 			},
 			&cli.IntFlag{
 				Name:        "redfish-port",
