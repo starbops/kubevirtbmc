@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
+	"kubevirt.io/kubevirtbmc/pkg/builder"
 	"kubevirt.io/kubevirtbmc/pkg/fake"
 )
 
@@ -16,11 +17,8 @@ func TestGetPowerStatus(t *testing.T) {
 	mockVMInterface := new(fake.MockVirtualMachineInterface)
 	mockClient.On("VirtualMachines", "default").Return(mockVMInterface)
 
-	mockVM := &kubevirtv1.VirtualMachine{
-		Status: kubevirtv1.VirtualMachineStatus{
-			Ready: true,
-		},
-	}
+	mockVM := builder.NewVirtualMachineBuilder("default", "test-vm").Ready(true).Build()
+
 	mockVMInterface.On("Get", mock.Anything, "test-vm", mock.Anything).Return(mockVM, nil)
 
 	vmrm := &VirtualMachineResourceManager{
@@ -37,7 +35,6 @@ func TestGetPowerStatus(t *testing.T) {
 
 	// Add another test case where the VM is not ready
 	mockVM.Status.Ready = false
-	mockVMInterface.On("Get", mock.Anything, "test-vm", mock.Anything).Return(mockVM, nil)
 
 	status, err = vmrm.GetPowerStatus()
 	require.NoError(t, err)
@@ -49,13 +46,11 @@ func TestPowerOn(t *testing.T) {
 	mockVMInterface := new(fake.MockVirtualMachineInterface)
 	mockClient.On("VirtualMachines", "default").Return(mockVMInterface)
 
-	mockVM := &kubevirtv1.VirtualMachine{
-		Spec: kubevirtv1.VirtualMachineSpec{
-			Running: func(b bool) *bool { return &b }(false),
-		},
-	}
-	mockVMInterface.On("Get", mock.Anything, "test-vm", mock.Anything).Return(mockVM, nil)
-	mockVMInterface.On("Update", mock.Anything, mockVM, mock.Anything).Return(mockVM, nil)
+	mockVM := builder.NewVirtualMachineBuilder("default", "test-vm").Running(false).Build()
+
+	mockVMInterface.
+		On("Get", mock.Anything, "test-vm", mock.Anything).Return(mockVM, nil).
+		On("Update", mock.Anything, mockVM, mock.Anything).Return(mockVM, nil)
 
 	vmrm := &VirtualMachineResourceManager{
 		ctx:       context.TODO(),
@@ -81,13 +76,11 @@ func TestPowerOff(t *testing.T) {
 	mockVMInterface := new(fake.MockVirtualMachineInterface)
 	mockClient.On("VirtualMachines", "default").Return(mockVMInterface)
 
-	mockVM := &kubevirtv1.VirtualMachine{
-		Spec: kubevirtv1.VirtualMachineSpec{
-			Running: func(b bool) *bool { return &b }(false),
-		},
-	}
-	mockVMInterface.On("Get", mock.Anything, "test-vm", mock.Anything).Return(mockVM, nil)
-	mockVMInterface.On("Update", mock.Anything, mockVM, mock.Anything).Return(mockVM, nil)
+	mockVM := builder.NewVirtualMachineBuilder("default", "test-vm").Running(true).Build()
+
+	mockVMInterface.
+		On("Get", mock.Anything, "test-vm", mock.Anything).Return(mockVM, nil).
+		On("Update", mock.Anything, mockVM, mock.Anything).Return(mockVM, nil)
 
 	vmrm := &VirtualMachineResourceManager{
 		ctx:       context.TODO(),
@@ -159,8 +152,10 @@ func TestSetBootDevice(t *testing.T) {
 			},
 		},
 	}
-	mockVMInterface.On("Get", mock.Anything, "test-vm", mock.Anything).Return(mockVM, nil)
-	mockVMInterface.On("Update", mock.Anything, mockVM, mock.Anything).Return(mockVM, nil)
+
+	mockVMInterface.
+		On("Get", mock.Anything, "test-vm", mock.Anything).Return(mockVM, nil).
+		On("Update", mock.Anything, mockVM, mock.Anything).Return(mockVM, nil)
 
 	vmrm := &VirtualMachineResourceManager{
 		ctx:       context.TODO(),
