@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"kubevirt.io/kubevirtbmc/pkg/generated/redfish/server"
+	"kubevirt.io/kubevirtbmc/pkg/util"
 )
 
 type ComputerSystemInterface interface {
@@ -50,13 +51,13 @@ func NewComputerSystem(id, name string, powerState server.ResourcePowerState) Co
 		Name:         name,
 		Id:           id,
 		UUID:         "00000000-0000-0000-0000-000000000000",
-		AssetTag:     Ptr(""),
+		AssetTag:     util.Ptr(""),
 		IndicatorLED: server.COMPUTERSYSTEMV1220INDICATORLED_UNKNOWN,
-		Manufacturer: Ptr("KubeVirt"),
-		Model:        Ptr("KubeVirt"),
-		PartNumber:   Ptr(""),
-		SerialNumber: Ptr("000000000000"),
-		SKU:          Ptr(""),
+		Manufacturer: util.Ptr("KubeVirt"),
+		Model:        util.Ptr("KubeVirt"),
+		PartNumber:   util.Ptr(""),
+		SerialNumber: util.Ptr("000000000000"),
+		SKU:          util.Ptr(""),
 		Status:       server.ResourceStatus{},
 		SystemType:   server.COMPUTERSYSTEMV1220SYSTEMTYPE_VIRTUAL,
 		Links:        server.ComputerSystemV1220Links{},
@@ -77,18 +78,18 @@ func NewComputerSystem(id, name string, powerState server.ResourcePowerState) Co
 			OdataId: "/redfish/v1/Systems/1/VirtualMedia",
 		},
 		HostWatchdogTimer: server.ComputerSystemV1220WatchdogTimer{
-			FunctionEnabled: Ptr(false),
+			FunctionEnabled: util.Ptr(false),
 		},
 		MemorySummary: server.ComputerSystemV1220MemorySummary{
 			Status:               server.ResourceStatus{},
-			TotalSystemMemoryGiB: Ptr(float32(0)),
+			TotalSystemMemoryGiB: util.Ptr(float32(0)),
 		},
 		NetworkInterfaces: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Systems/1/NetworkInterfaces",
 		},
 		ProcessorSummary: server.ComputerSystemV1220ProcessorSummary{
 			Status: server.ResourceStatus{},
-			Count:  Ptr(int64(0)),
+			Count:  util.Ptr(int64(0)),
 		},
 		SimpleStorage: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Systems/1/SimpleStorage",
@@ -126,12 +127,12 @@ func NewManager(id, name string) ManagerInterface {
 		Name:         name,
 		Id:           id,
 		UUID:         "00000000-0000-0000-0000-000000000000",
-		Model:        Ptr("KubeVirtBMC"),
+		Model:        util.Ptr("KubeVirtBMC"),
 		Status:       server.ResourceStatus{},
 		ManagerType:  "BMC",
 		Links:        server.ManagerV1190Links{},
 		Actions:      server.ManagerV1190Actions{},
-		DateTime:     Ptr(time.Now()),
+		DateTime:     util.Ptr(time.Now()),
 		EthernetInterfaces: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Managers/BMC/EthernetInterfaces",
 		},
