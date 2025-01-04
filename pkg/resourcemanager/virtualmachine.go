@@ -181,6 +181,10 @@ func (m *VirtualMachineResourceManager) SetBootDevice(bootDevice BootDevice) err
 		return err
 	}
 
+	if vm.Spec.Template == nil {
+		return fmt.Errorf("no template found")
+	}
+
 	for i, intf := range vm.Spec.Template.Spec.Domain.Devices.Interfaces {
 		logrus.Infof("interface: %+v", intf)
 		vm.Spec.Template.Spec.Domain.Devices.Interfaces[i].BootOrder = nil
@@ -219,8 +223,4 @@ func (m *VirtualMachineResourceManager) SetBootDevice(bootDevice BootDevice) err
 	m.computerSystem.SetBootOverride(bootSourceMap[bootDevice])
 
 	return nil
-}
-
-func Ptr[T any](value T) *T {
-	return &value
 }
