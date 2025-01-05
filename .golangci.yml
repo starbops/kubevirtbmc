@@ -19,6 +19,7 @@ issues:
     - path: "(.+)_test.go"
       linters:
         - dupl
+        - lll
 linters:
   disable-all: true
   enable:
