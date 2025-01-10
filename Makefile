@@ -83,6 +83,11 @@ generate-kubevirt-crd: controller-gen ## Clone KubeVirt API and generate CustomR
 	rm -rvf $$TMP_DIR; \
 	rm -vf config/kubevirt-crd/kubevirt.io_datavolumetemplatespecs.yaml
 
+.PHONY: generate-mock
+generate-mock: mockgen ## Generate mocks for interfaces.
+	# $(MOCKGEN) -destination=mocks/mock_resourcemanager.go -package=mocks kubevirt.io/kubevirtbmc/pkg/resourcemanager ResourceManager
+	$(MOCKGEN) -source=pkg/resourcemanager/resource_manager.go -destination=pkg/resourcemanager/mock_resource_manager.go -package=resourcemanager
+
 REDFISH_SCHEMA_BUNDLE ?= DSP8010_2024.3
 .PHONY: download-redfish-schema
 download-schema: ## Download the Redfish schema.
@@ -220,11 +225,13 @@ KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 KIND ?= $(LOCALBIN)/kind
+MOCKGEN ?= $(LOCALBIN)/mockgen
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.2.1
 CONTROLLER_TOOLS_VERSION ?= v0.15.0
 KIND_VERSION ?= v0.24.0
+MOCKGEN_VERSION ?= v0.5.0
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. If wrong version is installed, it will be removed before downloading.
@@ -250,4 +257,9 @@ $(ENVTEST): $(LOCALBIN)
 kind: $(KIND) ## Download kind locally if necessary.
 $(KIND): $(LOCALBIN)
 	test -s $(LOCALBIN)/kind || GOBIN=$(LOCALBIN) GO111MODULE=on go install sigs.k8s.io/kind@$(KIND_VERSION)
+
+.PHONY: mockgen
+mockgen: $(MOCKGEN) ## Download mockgen locally if necessary.
+$(MOCKGEN): $(LOCALBIN)
+	test -s $(LOCALBIN)/mockgen || GOBIN=$(LOCALBIN) go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
 
