@@ -18,14 +18,15 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 Install KubeVirtBMC with Helm. Optionally, you can specify the image repository and tag, e.g., `--set image.repository=starbops/virtbmc-controller --set image.tag=v0.4.1`:
 
 ```sh
+# Install the chart from the remote repository
+helm repo add kubevirtbmc https://charts.zespre.com/
+helm repo update
+helm upgrade --install kubevirtbmc kubevirtbmc/kubevirtbmc --namespace=kubevirtbmc-system --create-namespace
+
+# Or, install the chart locally, with the bleeding-edge image, i.e., `starbops/virtbmc-controller:main-head`
 git clone https://github.com/starbops/kubevirtbmc.git
 cd kubevirtbmc/
-
-# Install the chart locally, with the bleeding-edge image, i.e., `starbops/virtbmc-controller:main-head`
-helm upgrade --install kubevirtbmc ./chart --namespace=kubevirtbmc-system --create-namespace
-
-# Or specify a formal released image, e.g., `starbops/virtbmc-controller:v0.4.1`
-helm upgrade --install kubevirtbmc ./chart --namespace=kubevirtbmc-system --create-namespace --set image.tag=v0.4.1
+helm upgrade --install kubevirtbmc ./deploy/charts/kubevirtbmc --namespace=kubevirtbmc-system --create-namespace --set=image.tag=main-head
 ```
 
 ## Project Description
