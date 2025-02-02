@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1
+package v1alpha1
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
@@ -36,7 +36,7 @@ func (r *VirtualMachineBMC) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // TODO(user): EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-//+kubebuilder:webhook:path=/mutate-virtualmachine-kubevirt-io-v1-virtualmachinebmc,mutating=true,failurePolicy=fail,sideEffects=None,groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=create;update,versions=v1,name=mvirtualmachinebmc.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/mutate-virtualmachine-kubevirt-io-v1alpha1-virtualmachinebmc,mutating=true,failurePolicy=fail,sideEffects=None,groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=create;update,versions=v1alpha1,name=mvirtualmachinebmc.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Defaulter = &VirtualMachineBMC{}
 
@@ -57,7 +57,7 @@ func (r *VirtualMachineBMC) Default() {
 }
 
 // TODO(user): change verbs to "verbs=create;update;delete" if you want to enable deletion validation.
-//+kubebuilder:webhook:path=/validate-virtualmachine-kubevirt-io-v1-virtualmachinebmc,mutating=false,failurePolicy=fail,sideEffects=None,groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=create;update,versions=v1,name=vvirtualmachinebmc.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/validate-virtualmachine-kubevirt-io-v1alpha1-virtualmachinebmc,mutating=false,failurePolicy=fail,sideEffects=None,groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=create;update,versions=v1alpha1,name=vvirtualmachinebmc.kb.io,admissionReviewVersions=v1
 
 var _ webhook.Validator = &VirtualMachineBMC{}
 

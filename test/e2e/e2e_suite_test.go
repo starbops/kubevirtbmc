@@ -22,7 +22,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
 	"kubevirt.io/kubevirtbmc/test/util"
 )
 

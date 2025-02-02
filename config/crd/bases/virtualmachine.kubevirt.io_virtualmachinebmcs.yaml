@@ -14,7 +14,7 @@ spec:
     singular: virtualmachinebmc
   scope: Namespaced
   versions:
-  - name: v1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
         description: VirtualMachineBMC is the Schema for the virtualmachinebmcs API
