@@ -35,7 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

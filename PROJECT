@@ -15,8 +15,8 @@ resources:
   domain: kubevirt.io
   group: virtualmachine
   kind: VirtualMachineBMC
-  path: kubevirt.io/kubevirtbmc/api/v1
-  version: v1
+  path: kubevirt.io/kubevirtbmc/api/v1alpha1
+  version: v1alpha1
   webhooks:
     defaulting: true
     validation: true

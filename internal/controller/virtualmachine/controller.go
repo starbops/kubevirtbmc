@@ -30,7 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
 	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
 )
 

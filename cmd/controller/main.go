@@ -33,7 +33,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
 	ctlservice "kubevirt.io/kubevirtbmc/internal/controller/service"
 	ctlvirtualmachine "kubevirt.io/kubevirtbmc/internal/controller/virtualmachine"
 	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
