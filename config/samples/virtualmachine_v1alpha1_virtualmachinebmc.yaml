@@ -1,4 +1,4 @@
-apiVersion: virtualmachine.kubevirt.io/v1
+apiVersion: virtualmachine.kubevirt.io/v1alpha1
 kind: VirtualMachineBMC
 metadata:
   labels:

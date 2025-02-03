@@ -191,7 +191,7 @@ make deploy IMG=<some-registry>/virtbmc-controller:<tag>
 Create the VirtualMachineBMC object in the cluster:
 
 ```sh
-kubectl apply -f config/samples/virtualmachine_v1_virtualmachinebmc.yaml
+kubectl apply -f config/samples/virtualmachine_v1alpha1_virtualmachinebmc.yaml
 ```
 
 Although you can manually create the VirtualMachineBMC object, the corresponding VirtualMachineBMC object should be created automatically when the VirtualMachine object exists. It will then scaffold the `*-virtbmc` Pod and Service object.
