@@ -5,12 +5,4 @@ metadata:
   name: virtualmachinebmcs.virtualmachine.kubevirt.io
 spec:
   conversion:
-    strategy: Webhook
-    webhook:
-      clientConfig:
-        service:
-          namespace: system
-          name: webhook-service
-          path: /convert
-      conversionReviewVersions:
-      - v1
+    strategy: None
