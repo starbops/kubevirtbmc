@@ -15,14 +15,14 @@ webhooks:
     service:
       name: {{ include "chart.name" . }}-webhook-service
       namespace: {{ .Release.Namespace }}
-      path: /mutate-virtualmachine-kubevirt-io-v1-virtualmachinebmc
+      path: /mutate-virtualmachine-kubevirt-io-v1alpha1-virtualmachinebmc
   failurePolicy: Fail
   name: mvirtualmachinebmc.kb.io
   rules:
   - apiGroups:
     - virtualmachine.kubevirt.io
     apiVersions:
-    - v1
+    - v1alpha1
     operations:
     - CREATE
     - UPDATE
@@ -47,14 +47,14 @@ webhooks:
     service:
       name: {{ include "chart.name" . }}-webhook-service
       namespace: {{ .Release.Namespace }}
-      path: /validate-virtualmachine-kubevirt-io-v1-virtualmachinebmc
+      path: /validate-virtualmachine-kubevirt-io-v1alpha1-virtualmachinebmc
   failurePolicy: Fail
   name: vvirtualmachinebmc.kb.io
   rules:
   - apiGroups:
     - virtualmachine.kubevirt.io
     apiVersions:
-    - v1
+    - v1alpha1
     operations:
     - CREATE
     - UPDATE
