@@ -8,16 +8,7 @@ metadata:
   name: virtualmachinebmcs.virtualmachine.kubevirt.io
 spec:
   conversion:
-    strategy: Webhook
-    webhook:
-      clientConfig:
-        service:
-          name: kubevirtbmc-webhook-service
-          namespace: kubevirtbmc-system
-          path: /convert
-          port: 443
-      conversionReviewVersions:
-      - v1
+    strategy: None
   group: virtualmachine.kubevirt.io
   names:
     kind: VirtualMachineBMC
@@ -26,7 +17,7 @@ spec:
     singular: virtualmachinebmc
   scope: Namespaced
   versions:
-  - name: v1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
         description: VirtualMachineBMC is the Schema for the virtualmachinebmcs API
