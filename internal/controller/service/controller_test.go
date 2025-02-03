@@ -62,7 +62,7 @@ var _ = Describe("Service Controller", func() {
 					Namespace: testVirtualMachineBMCNamespace,
 				},
 				TypeMeta: metav1.TypeMeta{
-					APIVersion: "virtualmachine.kubevirt.io/v1",
+					APIVersion: "virtualmachine.kubevirt.io/v1alpha1",
 					Kind:       "VirtualMachineBMC",
 				},
 				Spec: virtualmachinev1.VirtualMachineBMCSpec{
