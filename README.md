@@ -12,7 +12,12 @@ The project was born in [SUSE Hack Week 23](https://hackweek.opensuse.org/) and 
 Install cert-manager first as it is required for the webhook service and the Redfish API:
 
 ```sh
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.2/cert-manager.yaml
+helm upgrade --install cert-manager cert-manager \
+    --repo=https://charts.jetstack.io \
+    --namespace=cert-manager \
+    --create-namespace \
+    --version=v1.17.1 \
+    --set=crds.enabled=true
 ```
 
 Install KubeVirtBMC with Helm. Optionally, you can specify the image repository and tag, e.g., `--set image.repository=starbops/virtbmc-controller --set image.tag=v0.4.1`:
@@ -21,12 +26,17 @@ Install KubeVirtBMC with Helm. Optionally, you can specify the image repository 
 # Install the chart from the remote repository
 helm repo add kubevirtbmc https://charts.zespre.com/
 helm repo update
-helm upgrade --install kubevirtbmc kubevirtbmc/kubevirtbmc --namespace=kubevirtbmc-system --create-namespace
+helm upgrade --install kubevirtbmc kubevirtbmc/kubevirtbmc \
+    --namespace=kubevirtbmc-system \
+    --create-namespace
 
 # Or, install the chart locally, with the bleeding-edge image, i.e., `starbops/virtbmc-controller:main-head`
 git clone https://github.com/starbops/kubevirtbmc.git
 cd kubevirtbmc/
-helm upgrade --install kubevirtbmc ./deploy/charts/kubevirtbmc --namespace=kubevirtbmc-system --create-namespace --set=image.tag=main-head
+helm upgrade --install kubevirtbmc ./deploy/charts/kubevirtbmc \
+    --namespace=kubevirtbmc-system \
+    --create-namespace \
+    --set=image.tag=main-head
 ```
 
 ## Project Description
