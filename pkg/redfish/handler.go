@@ -125,7 +125,7 @@ func (h *handler) GetManager() (*server.ManagerV1190Manager, error) {
 	if err != nil {
 		return nil, err
 	}
-	adapter, ok := manager.(*resourcemanager.ManagerV1190Adapter)
+	adapter, ok := manager.(*resourcemanager.ManagerAdapter)
 	if !ok {
 		return nil, fmt.Errorf("unexpected manager type: %T", manager)
 	}
