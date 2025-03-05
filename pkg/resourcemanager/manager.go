@@ -16,6 +16,10 @@ type ManagerAdapter struct {
 	manager *server.ManagerV1190Manager
 }
 
+func (a *ManagerAdapter) GetODataID() string {
+	return a.manager.OdataId
+}
+
 func (a *ManagerAdapter) GetID() string {
 	return a.manager.Id
 }
@@ -24,7 +28,19 @@ func (a *ManagerAdapter) GetManager() *server.ManagerV1190Manager {
 	return a.manager
 }
 
-func NewManager(id, name string) ManagerInterface {
+func (a *ManagerAdapter) Manage(resource ODataInterface) error {
+	a.manager.Links.ManagerForServers = append(a.manager.Links.ManagerForServers, server.OdataV4IdRef{
+		OdataId: resource.GetODataID(),
+	})
+
+	return nil
+}
+
+func (a *ManagerAdapter) ManagedBy(resource ODataInterface) error {
+	panic("implement me")
+}
+
+func NewManager(id, name string) *ManagerAdapter {
 	generatedManager := &server.ManagerV1190Manager{
 		OdataContext: "/redfish/v1/$metadata#Manager.Manager",
 		OdataId:      fmt.Sprintf("/redfish/v1/Managers/%s", id),
