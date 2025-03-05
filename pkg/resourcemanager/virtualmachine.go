@@ -42,8 +42,8 @@ type VirtualMachineResourceManager struct {
 	namespace string
 	name      string
 
-	computerSystem ComputerSystemInterface
-	manager        ManagerInterface
+	computerSystem *ComputerSystemAdapter
+	manager        *ManagerAdapter
 }
 
 func NewVirtualMachineResourceManager(
@@ -62,14 +62,30 @@ func (m *VirtualMachineResourceManager) Initialize(namespace, name string) error
 		return err
 	}
 
-	m.namespace = namespace
-	m.name = name
+	m.namespace = vm.Namespace
+	m.name = vm.Name
+
+	// Initialize computer system
 	m.computerSystem = NewComputerSystem(
 		defaultComputerSystemId,
 		strings.Join([]string{vm.Namespace, vm.Name}, "/"),
 		powerStateMap[vm.Status.Ready],
 	)
+
+	// Initialize manager
 	m.manager = NewManager(defaultManagerId, defaultManagerName)
+
+	// Build relationships
+	var (
+		oDataManager        ODataInterface = m.manager
+		oDataComputerSystem ODataInterface = m.computerSystem
+	)
+	if err := oDataComputerSystem.ManagedBy(oDataManager); err != nil {
+		return err
+	}
+	if err := oDataManager.Manage(oDataComputerSystem); err != nil {
+		return err
+	}
 
 	return nil
 }

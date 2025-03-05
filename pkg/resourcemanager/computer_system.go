@@ -20,6 +20,22 @@ type ComputerSystemAdapter struct {
 	computerSystem *server.ComputerSystemV1220ComputerSystem
 }
 
+func (a *ComputerSystemAdapter) GetODataID() string {
+	return a.computerSystem.OdataId
+}
+
+func (a *ComputerSystemAdapter) Manage(resource ODataInterface) error {
+	panic("implement me")
+}
+
+func (a *ComputerSystemAdapter) ManagedBy(resource ODataInterface) error {
+	a.computerSystem.Links.ManagedBy = append(a.computerSystem.Links.ManagedBy, server.OdataV4IdRef{
+		OdataId: resource.GetODataID(),
+	})
+
+	return nil
+}
+
 func (a *ComputerSystemAdapter) GetComputerSystem() *server.ComputerSystemV1220ComputerSystem {
 	return a.computerSystem
 }
@@ -41,7 +57,7 @@ func (a *ComputerSystemAdapter) SetBootOverride(target server.ComputerSystemBoot
 	a.computerSystem.Boot.BootSourceOverrideTarget = target
 }
 
-func NewComputerSystem(id, name string, powerState server.ResourcePowerState) ComputerSystemInterface {
+func NewComputerSystem(id, name string, powerState server.ResourcePowerState) *ComputerSystemAdapter {
 	generatedComputerSystem := &server.ComputerSystemV1220ComputerSystem{
 		OdataContext: "/redfish/v1/$metadata#ComputerSystem.ComputerSystem",
 		OdataId:      fmt.Sprintf("/redfish/v1/Systems/%s", id),
