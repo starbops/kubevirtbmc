@@ -8,6 +8,8 @@ on:
 jobs:
   build-main:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       REPO: starbops
       MANAGER: virtbmc-controller
