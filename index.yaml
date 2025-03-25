@@ -2,6 +2,28 @@ apiVersion: v1
 entries:
   kubevirtbmc:
   - apiVersion: v2
+    appVersion: v0.5.2
+    created: "2025-03-25T15:52:42.588139041Z"
+    description: A Helm chart for KubeVirtBMC
+    digest: ed60afa81489edf7525cd7b3210ee35e4ac081a1409d5189eb74fe42c615c56b
+    home: https://github.com/starbops/kubevirtbmc
+    keywords:
+    - Kubernetes
+    - KubeVirt
+    - IPMI
+    - Redfish
+    maintainers:
+    - email: starbops@hey.com
+      name: starbops
+      url: https://www.zespre.com
+    name: kubevirtbmc
+    sources:
+    - https://github.com/starbops/kubevirtbmc
+    type: application
+    urls:
+    - https://github.com/starbops/kubevirtbmc/releases/download/kubevirtbmc-0.2.2/kubevirtbmc-0.2.2.tgz
+    version: 0.2.2
+  - apiVersion: v2
     appVersion: v0.5.1
     created: "2025-03-05T16:14:15.37062912Z"
     description: A Helm chart for KubeVirtBMC
@@ -111,4 +133,4 @@ entries:
     urls:
     - https://github.com/starbops/kubevirtbmc/releases/download/kubevirtbmc-0.0.0-dev/kubevirtbmc-0.0.0-dev.tgz
     version: 0.0.0-dev
-generated: "2025-03-05T16:14:15.37065043Z"
+generated: "2025-03-25T15:52:42.588167003Z"
