@@ -32,7 +32,7 @@ If applicable, add screenshots to help explain your problem.
 - OS: [e.g. SLES 15 SP5]
 - Kubernetes distribution/version: [e.g. RKE2 v1.31.7+rke2r1]
 - Chart version: [e.g. 0.2.3]
-- App version [e.g. v0.5.3]
+- App version: [e.g. v0.5.3]
 
 **Additional context**
 
