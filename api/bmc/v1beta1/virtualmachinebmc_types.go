@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,12 @@ package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// Condition type constants.
+const (
+	ConditionReady  = "Ready"
+	ConditionFailed = "Failed"
 )
 
 // VirtualMachineRef defines the virtual machine to be controlled by the BMC.
@@ -41,31 +47,13 @@ type VirtualMachineBMCSpec struct {
 	AuthSecret AuthSecretRef `json:"authSecret"`
 }
 
-// Condition describes a status condition of the BMC (e.g., Ready).
-type Condition struct {
-	// Type of condition, e.g., Ready
-	Type string `json:"type"`
-
-	// Status of the condition, one of True, False, Unknown
-	Status string `json:"status"`
-
-	// Reason for last condition change
-	Reason string `json:"reason,omitempty"`
-
-	// Message describing details of transition
-	Message string `json:"message,omitempty"`
-
-	// Last time the condition transitioned
-	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
-}
-
 // VirtualMachineBMCStatus defines the observed state of VirtualMachineBMC.
 type VirtualMachineBMCStatus struct {
 	// IP address exposed by the BMC service
 	ClusterIP string `json:"clusterIP,omitempty"`
 
 	// List of current conditions (e.g., Ready)
-	Conditions []Condition `json:"conditions,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
