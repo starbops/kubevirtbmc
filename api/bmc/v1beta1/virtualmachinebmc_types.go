@@ -1,50 +1,40 @@
 /*
-Copyright 2024.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-	http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
+ * This file is part of the KubeVirt/Kubevirtbmc project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Copyright The KubeVirt Authors.
+ *
+ */
 package v1beta1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Condition type constants.
+// Condition type constant.
 const (
-	ConditionReady  = "Ready"
-	ConditionFailed = "Failed"
+	ConditionReady = "Ready"
 )
-
-// VirtualMachineRef defines the virtual machine to be controlled by the BMC.
-type VirtualMachineRef struct {
-	// Name of the virtual machine.
-	Name string `json:"name"`
-}
-
-// AuthSecretRef defines the Kubernetes Secret containing BMC credentials.
-type AuthSecretRef struct {
-	// Name of the Secret resource.
-	Name string `json:"name"`
-}
 
 // VirtualMachineBMCSpec defines the desired state of VirtualMachineBMC.
 type VirtualMachineBMCSpec struct {
 	// Reference to the VM to manage.
-	VirtualMachine VirtualMachineRef `json:"virtualMachine"`
+	VirtualMachineRef corev1.LocalObjectReference `json:"virtualMachineRef"`
 
 	// Reference to the Secret containing IPMI/Redfish credentials.
-	AuthSecret AuthSecretRef `json:"authSecret"`
+	AuthSecretRef corev1.LocalObjectReference `json:"authSecretRef"`
 }
 
 // VirtualMachineBMCStatus defines the observed state of VirtualMachineBMC.
