@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-bmc-secret
+  namespace: kubevirtbmc-system
+type: Opaque
+stringData:
+  username: admin
+  password: password
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: test-vm
+  namespace: kubevirtbmc-system
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: test-vm
+    spec:
+      domain:
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: containerdisk
+        resources:
+          requests:
+            memory: 64Mi
+      volumes:
+      - name: containerdisk
+        containerDisk:
+          image: quay.io/kubevirt/cirros-container-disk-demo:latest
+
+---
+apiVersion: bmc.kubevirt.io/v1beta1
+kind: VirtualMachineBMC
+metadata:
+  name: test-bmc
+  namespace: kubevirtbmc-system
+spec:
+  virtualMachineRef:
+    name: test-vm
+  authSecretRef:
+    name: test-bmc-secret
