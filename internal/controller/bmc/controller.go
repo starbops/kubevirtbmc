@@ -8,11 +8,13 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -26,138 +28,236 @@ type VirtualMachineBMCReconciler struct {
 	AgentImageTag  string
 }
 
-func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx).WithValues("vmBMC", req.NamespacedName)
+const (
+	ConditionReady = "Ready"
+	AppLabelKey    = "kubevirtbmc"
+	bmcFinalizer   = "bmc.kubevirt.io/finalizer"
+	ReasonReady    = "All components are ready"
+	MessageReady   = "VirtualMachineBMC is ready"
+)
 
-	// 1. Fetch the resource
-	vmBMC := &bmcv1beta1.VirtualMachineBMC{}
-	if err := r.Get(ctx, req.NamespacedName, vmBMC); err != nil {
-		if apierrors.IsNotFound(err) {
-			// Object deleted, nothing to do
-			return ctrl.Result{}, nil
+// +kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;update;patch
+// +kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=core,resources=pods;services;secrets,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch
+
+func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := log.FromContext(ctx).WithValues("VirtualMachineBMC", req.NamespacedName)
+
+	log.Info("Reconciling")
+	var virtBMC bmcv1beta1.VirtualMachineBMC
+	if err := r.Get(ctx, req.NamespacedName, &virtBMC); err != nil {
+		log.Error(err, "Failed to get VirtualMachineBMC")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if virtBMC.ObjectMeta.DeletionTimestamp.IsZero() {
+		if !controllerutil.ContainsFinalizer(&virtBMC, bmcFinalizer) {
+			controllerutil.AddFinalizer(&virtBMC, bmcFinalizer)
+			if err := r.Update(ctx, &virtBMC); err != nil {
+				return ctrl.Result{}, err
+			}
 		}
-		logger.Error(err, "Failed to fetch VirtualMachineBMC")
+	} else {
+		if controllerutil.ContainsFinalizer(&virtBMC, bmcFinalizer) {
+			if err := r.deleteDeployment(ctx, &virtBMC, log); err != nil {
+				return ctrl.Result{}, err
+			}
+			if err := r.deleteService(ctx, &virtBMC, log); err != nil {
+				return ctrl.Result{}, err
+			}
+			controllerutil.RemoveFinalizer(&virtBMC, bmcFinalizer)
+			if err := r.Update(ctx, &virtBMC); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+
+	if virtBMC.Spec.VirtualMachineRef == nil || virtBMC.Spec.VirtualMachineRef.Name == "" {
+		log.Error(nil, "VirtualMachineRef is required and must specify a name")
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	var vm kubevirtv1.VirtualMachine
+	if err := r.Get(ctx, types.NamespacedName{
+		Name:      virtBMC.Spec.VirtualMachineRef.Name,
+		Namespace: virtBMC.Namespace,
+	}, &vm); err != nil {
+		log.Error(err, "Failed to get referenced VirtualMachine")
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	if virtBMC.Spec.AuthSecretRef == nil || virtBMC.Spec.AuthSecretRef.Name == "" {
+		log.Error(nil, "AuthSecretRef is required and must specify a name")
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	var secret corev1.Secret
+	if err := r.Get(ctx, types.NamespacedName{
+		Name:      virtBMC.Spec.AuthSecretRef.Name,
+		Namespace: virtBMC.Namespace,
+	}, &secret); err != nil {
+		log.Error(err, "Failed to get referenced Secret")
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	foundDep := &appsv1.Deployment{}
+	depName := types.NamespacedName{
+		Name:      virtBMC.Name + BMCProxyLabelSuffix,
+		Namespace: virtBMC.Namespace,
+	}
+	if err := r.Get(ctx, depName, foundDep); err != nil {
+		if apierrors.IsNotFound(err) {
+			dep := r.NewDeployment(&virtBMC)
+			log.Info("Creating Deployment", "Deployment", depName)
+			if err := r.Create(ctx, dep); err != nil {
+				log.Error(err, "Failed to create Deployment", "Deployment", depName)
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{Requeue: true}, nil
+		}
+		log.Error(err, "Failed to get Deployment", "Deployment", depName)
 		return ctrl.Result{}, err
 	}
 
-	// 2. Handle finalizer/deletion
-	if result, err := r.handleFinalizer(ctx, vmBMC, logger); result != nil || err != nil {
-		return *result, err
+	size := int32(DefaultReplicas)
+	if *foundDep.Spec.Replicas != size {
+		foundDep.Spec.Replicas = &size
+		if err := r.Update(ctx, foundDep); err != nil {
+			log.Error(err, "Failed to update Deployment replicas", "Deployment", depName)
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil
 	}
-
-	// 3. Validate references to VM and Secret
-	vm, secret, result, err := r.validateReferences(ctx, vmBMC, logger)
-	if result != nil || err != nil {
-		return *result, err
-	}
-
-	// 4. Reconcile Deployment and Service
-	svc := r.serviceForVirtualMachineBMC(vmBMC)
-	deploy := r.deploymentForVirtualMachineBMC(vmBMC, vm, secret)
 
 	foundSvc := &corev1.Service{}
-	foundDeploy := &appsv1.Deployment{}
-
-	// Reconcile Service
-	if err := r.reconcileService(ctx, vmBMC, svc, foundSvc, logger); err != nil {
+	svcName := types.NamespacedName{
+		Name:      virtBMC.Name + BMCServiceNameSuffix,
+		Namespace: virtBMC.Namespace,
+	}
+	if err := r.Get(ctx, svcName, foundSvc); err != nil {
+		if apierrors.IsNotFound(err) {
+			svc := r.NewService(&virtBMC)
+			log.Info("Creating Service", "Service", svcName)
+			if err := r.Create(ctx, svc); err != nil {
+				log.Error(err, "Failed to create Service", "Service", svcName)
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{Requeue: true}, nil
+		}
+		log.Error(err, "Failed to get Service", "Service", svcName)
 		return ctrl.Result{}, err
 	}
 
-	// Reconcile Deployment
-	if err := r.reconcileDeployment(ctx, vmBMC, deploy, foundDeploy, logger); err != nil {
+	ready := metav1.Condition{
+		Type:               ConditionReady,
+		Status:             metav1.ConditionTrue,
+		Reason:             ReasonReady,
+		Message:            MessageReady,
+		LastTransitionTime: metav1.Now(),
+		ObservedGeneration: virtBMC.Generation,
+	}
+
+	if err := r.updateStatusIfNeeded(ctx, log, &virtBMC, foundSvc.Spec.ClusterIP, ready); err != nil {
+		log.Error(err, "Failed to update VirtualMachineBMC status")
 		return ctrl.Result{}, err
 	}
 
-	// 5. Update Status
-	if _, err := r.updateStatus(ctx, vmBMC, foundSvc, foundDeploy, logger); err != nil {
-		return ctrl.Result{}, err
-	}
-
-	// 6. Requeue every 5 minutes
 	return ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
 }
+
 func (r *VirtualMachineBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &bmcv1beta1.VirtualMachineBMC{}, "spec.virtualMachineRef.name", func(rawObj client.Object) []string {
+		bmc := rawObj.(*bmcv1beta1.VirtualMachineBMC)
+		if bmc.Spec.VirtualMachineRef == nil {
+			return nil
+		}
+		return []string{bmc.Spec.VirtualMachineRef.Name}
+	}); err != nil {
+		return err
+	}
+
+	if err := mgr.GetFieldIndexer().IndexField(context.TODO(), &bmcv1beta1.VirtualMachineBMC{}, "spec.authSecretRef.name", func(rawObj client.Object) []string {
+		bmc := rawObj.(*bmcv1beta1.VirtualMachineBMC)
+		if bmc.Spec.AuthSecretRef == nil {
+			return nil
+		}
+		return []string{bmc.Spec.AuthSecretRef.Name}
+	}); err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&bmcv1beta1.VirtualMachineBMC{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&corev1.Service{}).
 		Watches(
 			&kubevirtv1.VirtualMachine{},
-			handler.EnqueueRequestsFromMapFunc(mapVMToBMCs(r.Client)),
+			handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []ctrl.Request {
+				var list bmcv1beta1.VirtualMachineBMCList
+				if err := r.List(ctx, &list, client.MatchingFields{"spec.virtualMachineRef.name": obj.GetName()}); err != nil {
+					return nil
+				}
+				var reqs []ctrl.Request
+				for _, item := range list.Items {
+					reqs = append(reqs, ctrl.Request{NamespacedName: types.NamespacedName{
+						Name: item.Name, Namespace: item.Namespace,
+					}})
+				}
+				return reqs
+			}),
 		).
 		Watches(
 			&corev1.Secret{},
-			handler.EnqueueRequestsFromMapFunc(mapSecretToBMCs(r.Client)),
+			handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []ctrl.Request {
+				var list bmcv1beta1.VirtualMachineBMCList
+				if err := r.List(ctx, &list, client.MatchingFields{"spec.authSecretRef.name": obj.GetName()}); err != nil {
+					return nil
+				}
+				var reqs []ctrl.Request
+				for _, item := range list.Items {
+					reqs = append(reqs, ctrl.Request{NamespacedName: types.NamespacedName{
+						Name: item.Name, Namespace: item.Namespace,
+					}})
+				}
+				return reqs
+			}),
 		).
 		Complete(r)
 }
 
-func (r *VirtualMachineBMCReconciler) reconcileService(ctx context.Context, _ *bmcv1beta1.VirtualMachineBMC, desired *corev1.Service, found *corev1.Service, logger logr.Logger) error {
-	err := r.Get(ctx, types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, found)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			logger.Info("Creating BMC Service", "name", desired.Name)
-			return r.Create(ctx, desired)
-		}
-		logger.Error(err, "Failed to get Service")
-		return err
+func (r *VirtualMachineBMCReconciler) updateStatusIfNeeded(ctx context.Context, log logr.Logger, bmc *bmcv1beta1.VirtualMachineBMC, clusterIP string, condition metav1.Condition) error {
+	updated := false
+
+	if clusterIP != "" && bmc.Status.ClusterIP != clusterIP {
+		bmc.Status.ClusterIP = clusterIP
+		updated = true
 	}
 
-	// Compare mutable fields only
-	needUpdate := false
-	updated := found.DeepCopy()
-
-	if !equalPorts(found.Spec.Ports, desired.Spec.Ports) {
-		updated.Spec.Ports = desired.Spec.Ports
-		needUpdate = true
-	}
-
-	if !equalMap(found.Spec.Selector, desired.Spec.Selector) {
-		updated.Spec.Selector = desired.Spec.Selector
-		needUpdate = true
-	}
-
-	if needUpdate {
-		logger.Info("Updating BMC Service", "name", desired.Name)
-		return r.Update(ctx, updated)
-	}
-
-	return nil
-}
-
-func (r *VirtualMachineBMCReconciler) reconcileDeployment(ctx context.Context, _ *bmcv1beta1.VirtualMachineBMC, desired *appsv1.Deployment, found *appsv1.Deployment, logger logr.Logger) error {
-	err := r.Get(ctx, types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}, found)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			logger.Info("Creating BMC Deployment", "name", desired.Name)
-			return r.Create(ctx, desired)
-		}
-		logger.Error(err, "Failed to get Deployment")
-		return err
-	}
-
-	// Compare key mutable fields
-	updated := found.DeepCopy()
-	needUpdate := false
-
-	if !equalMap(found.Spec.Template.Labels, desired.Spec.Template.Labels) {
-		updated.Spec.Template.Labels = desired.Spec.Template.Labels
-		needUpdate = true
-	}
-
-	if len(found.Spec.Template.Spec.Containers) > 0 && len(desired.Spec.Template.Spec.Containers) > 0 {
-		foundC := found.Spec.Template.Spec.Containers[0]
-		desiredC := desired.Spec.Template.Spec.Containers[0]
-
-		if foundC.Image != desiredC.Image || !equalEnv(foundC.Env, desiredC.Env) || !equalMounts(foundC.VolumeMounts, desiredC.VolumeMounts) {
-			updated.Spec.Template.Spec.Containers[0] = desiredC
-			needUpdate = true
+	found := false
+	for i, cond := range bmc.Status.Conditions {
+		if cond.Type == condition.Type {
+			found = true
+			if cond.Status != condition.Status || cond.Message != condition.Message {
+				bmc.Status.Conditions[i] = condition
+				updated = true
+			}
+			break
 		}
 	}
+	if !found {
+		bmc.Status.Conditions = append(bmc.Status.Conditions, condition)
+		updated = true
+	}
 
-	if needUpdate {
-		logger.Info("Updating BMC Deployment", "name", desired.Name)
-		return r.Update(ctx, updated)
+	if updated {
+		log.Info("Updating VirtualMachineBMC status")
+		if err := r.Status().Update(ctx, bmc); err != nil {
+			log.Error(err, "Failed to update VirtualMachineBMC status")
+			return err
+		}
 	}
 
 	return nil
