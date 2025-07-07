@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-auth
+  namespace: default
+type: Opaque
+stringData:
+  username: admin
+  password: password
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: test-vm
+  namespace: default
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/domain: test-vm
+    spec:
+      domain:
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: containerdisk
+        resources:
+          requests:
+            memory: 64Mi
+      volumes:
+      - name: containerdisk
+        containerDisk:
+          image: quay.io/containerdisks/alpine-container-disk:latest
+---
+apiVersion: bmc.kubevirt.io/v1beta1
+kind: VirtualMachineBMC
+metadata:
+  name: test-vmbmc
+  namespace: default
+spec:
+  virtualMachineRef:
+    name: test-vm
+  authSecretRef:
+    name: test-auth
+---
+# kubevirtbmc-virtbmc-serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubevirtbmc-virtbmc
+  namespace: default

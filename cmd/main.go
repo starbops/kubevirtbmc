@@ -35,7 +35,7 @@ import (
 
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
-	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
+	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/bmc" // Import the controller package for VirtualMachineBMC
 )
 
 var (
