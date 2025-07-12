@@ -26,16 +26,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
+
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-)
-
-const (
-	ipmiPortNumber       = 623
-	redfishPortNumber    = 80
-	ipmiPortName         = "ipmi"
-	redfishPortName      = "redfish"
-	BMCServiceNameSuffix = "-bmc-service"
 )
 
 func (r *VirtualMachineBMCReconciler) NewService(bmc *bmcv1beta1.VirtualMachineBMC) *corev1.Service {
@@ -49,15 +42,15 @@ func (r *VirtualMachineBMCReconciler) NewService(bmc *bmcv1beta1.VirtualMachineB
 			Ports: []corev1.ServicePort{
 				{
 					Name:       ipmiPortName,
-					Port:       ipmiPortNumber,
+					Port:       ipmiServicePort,
 					Protocol:   corev1.ProtocolUDP,
-					TargetPort: intstr.FromInt(ipmiPortNumber),
+					TargetPort: intstr.FromInt(IpmiContainerPort),
 				},
 				{
 					Name:       redfishPortName,
-					Port:       redfishPortNumber,
+					Port:       redfishServicePort,
 					Protocol:   corev1.ProtocolTCP,
-					TargetPort: intstr.FromInt(redfishPortNumber),
+					TargetPort: intstr.FromInt(RedfishContainerPort),
 				},
 			},
 			Type: corev1.ServiceTypeClusterIP,

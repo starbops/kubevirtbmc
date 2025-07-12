@@ -30,11 +30,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-const (
-	DefaultReplicas     = 1
-	BMCProxyLabelSuffix = "-bmc-proxy"
-)
-
 // deploymentForVirtBMC returns a Deployment object for VirtualMachineBMC
 func (r *VirtualMachineBMCReconciler) NewDeployment(bmc *bmcv1beta1.VirtualMachineBMC) *appsv1.Deployment {
 	replicas := int32(DefaultReplicas)

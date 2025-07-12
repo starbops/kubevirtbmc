@@ -27,38 +27,31 @@ import (
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 )
 
-const (
-	VirtualMachineBMCNameLabel = "kubevirtbmc.io/virtualmachinebmc"
-	VMNameLabel                = "kubevirtbmc.io/vmname"
-	virtBMCContainerName       = "virtbmc"
-	ServiceAccountName         = "kubevirtbmc-virtbmc"
-)
-
 func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineBMC) corev1.PodSpec {
 	return corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
-				Name:  virtBMCContainerName,
+				Name:  r.AgentImageName,
 				Image: fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag),
 				Args: []string{
 					"--address",
 					"0.0.0.0",
 					"--ipmi-port",
-					strconv.Itoa(ipmiPortNumber),
+					strconv.Itoa(IpmiContainerPort),
 					"--redfish-port",
-					strconv.Itoa(redfishPortNumber),
+					strconv.Itoa(RedfishContainerPort),
 					bmc.Spec.VirtualMachineRef.Name,
 					bmc.Spec.AuthSecretRef.Name,
 				},
 				Ports: []corev1.ContainerPort{
 					{
 						Name:          ipmiPortName,
-						ContainerPort: ipmiPortNumber,
+						ContainerPort: IpmiContainerPort,
 						Protocol:      corev1.ProtocolUDP,
 					},
 					{
 						Name:          redfishPortName,
-						ContainerPort: redfishPortNumber,
+						ContainerPort: RedfishContainerPort,
 						Protocol:      corev1.ProtocolTCP,
 					},
 				},
@@ -66,7 +59,7 @@ func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineB
 					ProbeHandler: corev1.ProbeHandler{
 						HTTPGet: &corev1.HTTPGetAction{
 							Path: "/livez",
-							Port: intstr.FromInt(redfishPortNumber),
+							Port: intstr.FromInt(RedfishContainerPort),
 						},
 					},
 					InitialDelaySeconds: 10,
@@ -79,7 +72,7 @@ func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineB
 					ProbeHandler: corev1.ProbeHandler{
 						HTTPGet: &corev1.HTTPGetAction{
 							Path: "/healthz",
-							Port: intstr.FromInt(redfishPortNumber),
+							Port: intstr.FromInt(RedfishContainerPort),
 						},
 					},
 					InitialDelaySeconds: 5,

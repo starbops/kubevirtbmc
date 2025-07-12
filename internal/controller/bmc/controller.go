@@ -46,15 +46,6 @@ type VirtualMachineBMCReconciler struct {
 	AgentImageTag  string
 }
 
-const (
-	VirtBMCImageName = "kubevirtbmc_virtbmc"
-	ConditionReady   = "Ready"
-	AppLabelKey      = "kubevirtbmc"
-	BMCFinalizer     = "bmc_kubevirt_io_finalizer"
-	ReasonReady      = "AllComponentsReady"
-	MessageReady     = "VirtualMachineBMC_is_ready"
-)
-
 // +kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=pods;services;secrets,verbs=get;list;watch;create;update;patch;delete
