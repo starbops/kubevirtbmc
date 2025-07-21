@@ -20,19 +20,59 @@ package bmc
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 )
 
+type agentImageConfig struct {
+	ImageName     string
+	ImageTag      string
+	ContainerName string
+	FullImage     string
+}
+
+func NewAgentImageConfig() agentImageConfig {
+	registryHost := os.Getenv("REGISTRY_HOST")
+	if registryHost == "" {
+		registryHost = "registry"
+	}
+
+	registryPort := os.Getenv("REGISTRY_PORT")
+	if registryPort == "" {
+		registryPort = "5000"
+	}
+
+	imageRepo := os.Getenv("VIRTBMC_IMAGE_NAME")
+	if imageRepo == "" {
+		imageRepo = "virtbmc"
+	}
+
+	imageTag := os.Getenv("VIRTBMC_IMAGE_TAG")
+	if imageTag == "" {
+		imageTag = "latest"
+	}
+	registry := fmt.Sprintf("%s:%s", registryHost, registryPort) // e.g. "registry:5000"
+	imageName := fmt.Sprintf("%s/%s", registry, imageRepo)       // e.g. "registry:5000/virtbmc"
+
+	return agentImageConfig{
+		ImageName:     imageName,
+		ImageTag:      imageTag,
+		ContainerName: imageRepo,
+		FullImage:     fmt.Sprintf("%s:%s", imageName, imageTag), // e.g. "registry:5000/virtbmc:latest"
+	}
+}
+
 func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineBMC) corev1.PodSpec {
+	fmt.Printf("DEBUG: Using ContainerName=%s, Image=%s\n", r.AgentImageName.ContainerName, r.AgentImageName.FullImage)
 	return corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
-				Name:  r.AgentImageName,
-				Image: fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag),
+				Name:            r.AgentImageName.ContainerName,
+				Image:           r.AgentImageName.FullImage,
+				ImagePullPolicy: corev1.PullAlways,
 				Args: []string{
 					"--address",
 					"0.0.0.0",
@@ -40,8 +80,8 @@ func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineB
 					strconv.Itoa(IpmiContainerPort),
 					"--redfish-port",
 					strconv.Itoa(RedfishContainerPort),
+					bmc.Namespace,
 					bmc.Spec.VirtualMachineRef.Name,
-					bmc.Spec.AuthSecretRef.Name,
 				},
 				Ports: []corev1.ContainerPort{
 					{
@@ -55,32 +95,32 @@ func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineB
 						Protocol:      corev1.ProtocolTCP,
 					},
 				},
-				LivenessProbe: &corev1.Probe{
-					ProbeHandler: corev1.ProbeHandler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path: "/livez",
-							Port: intstr.FromInt(RedfishContainerPort),
-						},
-					},
-					InitialDelaySeconds: 10,
-					PeriodSeconds:       10,
-					SuccessThreshold:    1,
-					TimeoutSeconds:      1,
-					FailureThreshold:    3,
-				},
-				ReadinessProbe: &corev1.Probe{
-					ProbeHandler: corev1.ProbeHandler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path: "/healthz",
-							Port: intstr.FromInt(RedfishContainerPort),
-						},
-					},
-					InitialDelaySeconds: 5,
-					PeriodSeconds:       10,
-					SuccessThreshold:    1,
-					TimeoutSeconds:      1,
-					FailureThreshold:    3,
-				},
+				// LivenessProbe: &corev1.Probe{
+				// 	ProbeHandler: corev1.ProbeHandler{
+				// 		HTTPGet: &corev1.HTTPGetAction{
+				// 			Path: "/livez",
+				// 			Port: intstr.FromInt(RedfishContainerPort),
+				// 		},
+				// 	},
+				// 	InitialDelaySeconds: 10,
+				// 	PeriodSeconds:       10,
+				// 	SuccessThreshold:    1,
+				// 	TimeoutSeconds:      1,
+				// 	FailureThreshold:    3,
+				// },
+				// ReadinessProbe: &corev1.Probe{
+				// 	ProbeHandler: corev1.ProbeHandler{
+				// 		HTTPGet: &corev1.HTTPGetAction{
+				// 			Path: "/healthz",
+				// 			Port: intstr.FromInt(RedfishContainerPort),
+				// 		},
+				// 	},
+				// 	InitialDelaySeconds: 5,
+				// 	PeriodSeconds:       10,
+				// 	SuccessThreshold:    1,
+				// 	TimeoutSeconds:      1,
+				// 	FailureThreshold:    3,
+				// },
 			},
 		},
 

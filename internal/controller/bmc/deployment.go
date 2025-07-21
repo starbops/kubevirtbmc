@@ -24,8 +24,11 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -72,4 +75,39 @@ func (r *VirtualMachineBMCReconciler) deleteDeployment(ctx context.Context, bmc 
 	log.Info("Deleted Deployment", "name", deploy.Name)
 
 	return nil
+}
+
+func (r *VirtualMachineBMCReconciler) reconcileDeployment(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (ctrl.Result, error) {
+	foundDep := &appsv1.Deployment{}
+	log.Info("Using image config", "containerName", r.AgentImageName.ContainerName, "image", r.AgentImageName.FullImage)
+
+	depName := types.NamespacedName{
+		Name:      virtBMC.Name + BMCProxyLabelSuffix,
+		Namespace: virtBMC.Namespace,
+	}
+	if err := r.Get(ctx, depName, foundDep); err != nil {
+		if apierrors.IsNotFound(err) {
+			dep := r.NewDeployment(virtBMC)
+			log.Info("Creating NEW Deployment", "Deployment", depName)
+			if err := r.Create(ctx, dep); err != nil {
+				log.Error(err, "Failed to create Deployment", "Deployment", depName)
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{Requeue: true}, nil
+		}
+		log.Error(err, "Failed to get Deployment", "Deployment", depName)
+		return ctrl.Result{}, err
+	}
+
+	size := int32(DefaultReplicas)
+	if *foundDep.Spec.Replicas != size {
+		foundDep.Spec.Replicas = &size
+		if err := r.Update(ctx, foundDep); err != nil {
+			log.Error(err, "Failed to update Deployment replicas", "Deployment", depName)
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{Requeue: true}, nil
+	}
+	log.Info("Deployment already exists and is up to date", "Deployment", depName)
+	return ctrl.Result{}, nil
 }

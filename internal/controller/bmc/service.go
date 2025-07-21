@@ -23,10 +23,13 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -77,4 +80,26 @@ func (r *VirtualMachineBMCReconciler) deleteService(ctx context.Context, bmc *bm
 	log.Info("Deleted Service", "name", svc.Name)
 
 	return nil
+}
+
+func (r *VirtualMachineBMCReconciler) reconcileService(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (*corev1.Service, ctrl.Result, error) {
+	foundSvc := &corev1.Service{}
+	svcName := types.NamespacedName{
+		Name:      virtBMC.Name + BMCServiceNameSuffix,
+		Namespace: virtBMC.Namespace,
+	}
+	if err := r.Get(ctx, svcName, foundSvc); err != nil {
+		if apierrors.IsNotFound(err) {
+			svc := r.NewService(virtBMC)
+			log.Info("Creating Service", "Service", svcName)
+			if err := r.Create(ctx, svc); err != nil {
+				log.Error(err, "Failed to create Service", "Service", svcName)
+				return nil, ctrl.Result{}, err
+			}
+			return svc, ctrl.Result{Requeue: true}, nil
+		}
+		log.Error(err, "Failed to get Service", "Service", svcName)
+		return nil, ctrl.Result{}, err
+	}
+	return foundSvc, ctrl.Result{}, nil
 }

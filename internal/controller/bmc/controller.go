@@ -25,7 +25,6 @@ import (
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -42,8 +41,7 @@ import (
 type VirtualMachineBMCReconciler struct {
 	client.Client
 	Scheme         *runtime.Scheme
-	AgentImageName string
-	AgentImageTag  string
+	AgentImageName agentImageConfig
 }
 
 // +kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;update;patch
@@ -53,112 +51,33 @@ type VirtualMachineBMCReconciler struct {
 // +kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch
 
 func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+
 	log := log.FromContext(ctx).WithValues("VirtualMachineBMC", req.NamespacedName)
 
 	log.Info("Reconciling")
+	log.Info("DEBUG: Using image config", "containerName", r.AgentImageName.ContainerName, "image", r.AgentImageName.FullImage)
+
 	var virtBMC bmcv1beta1.VirtualMachineBMC
 	if err := r.Get(ctx, req.NamespacedName, &virtBMC); err != nil {
 		log.Error(err, "Failed to get VirtualMachineBMC")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if virtBMC.ObjectMeta.DeletionTimestamp.IsZero() {
-		if !controllerutil.ContainsFinalizer(&virtBMC, BMCFinalizer) {
-			controllerutil.AddFinalizer(&virtBMC, BMCFinalizer)
-			if err := r.Update(ctx, &virtBMC); err != nil {
-				return ctrl.Result{}, err
-			}
-		}
-	} else {
-		if controllerutil.ContainsFinalizer(&virtBMC, BMCFinalizer) {
-			if err := r.deleteDeployment(ctx, &virtBMC, log); err != nil {
-				return ctrl.Result{}, err
-			}
-			if err := r.deleteService(ctx, &virtBMC, log); err != nil {
-				return ctrl.Result{}, err
-			}
-			controllerutil.RemoveFinalizer(&virtBMC, BMCFinalizer)
-			if err := r.Update(ctx, &virtBMC); err != nil {
-				return ctrl.Result{}, err
-			}
-		}
-		return ctrl.Result{}, nil
+	if res, err := r.handleFinalizer(ctx, &virtBMC, log); err != nil || res.Requeue {
+		return res, err
 	}
 
-	if virtBMC.Spec.VirtualMachineRef == nil || virtBMC.Spec.VirtualMachineRef.Name == "" {
-		log.Error(nil, "VirtualMachineRef is required and must specify a name")
-		return ctrl.Result{Requeue: true}, nil
+	if res, err := r.validateRefs(ctx, &virtBMC, log); err != nil || res.Requeue {
+		return res, err
 	}
 
-	var vm kubevirtv1.VirtualMachine
-	if err := r.Get(ctx, types.NamespacedName{
-		Name:      virtBMC.Spec.VirtualMachineRef.Name,
-		Namespace: virtBMC.Namespace,
-	}, &vm); err != nil {
-		log.Error(err, "Failed to get referenced VirtualMachine")
-		return ctrl.Result{Requeue: true}, nil
+	if res, err := r.reconcileDeployment(ctx, &virtBMC, log); err != nil || res.Requeue {
+		return res, err
 	}
 
-	if virtBMC.Spec.AuthSecretRef == nil || virtBMC.Spec.AuthSecretRef.Name == "" {
-		log.Error(nil, "AuthSecretRef is required and must specify a name")
-		return ctrl.Result{Requeue: true}, nil
-	}
-
-	var secret corev1.Secret
-	if err := r.Get(ctx, types.NamespacedName{
-		Name:      virtBMC.Spec.AuthSecretRef.Name,
-		Namespace: virtBMC.Namespace,
-	}, &secret); err != nil {
-		log.Error(err, "Failed to get referenced Secret")
-		return ctrl.Result{Requeue: true}, nil
-	}
-
-	foundDep := &appsv1.Deployment{}
-	depName := types.NamespacedName{
-		Name:      virtBMC.Name + BMCProxyLabelSuffix,
-		Namespace: virtBMC.Namespace,
-	}
-	if err := r.Get(ctx, depName, foundDep); err != nil {
-		if apierrors.IsNotFound(err) {
-			dep := r.NewDeployment(&virtBMC)
-			log.Info("Creating Deployment", "Deployment", depName)
-			if err := r.Create(ctx, dep); err != nil {
-				log.Error(err, "Failed to create Deployment", "Deployment", depName)
-				return ctrl.Result{}, err
-			}
-			return ctrl.Result{Requeue: true}, nil
-		}
-		log.Error(err, "Failed to get Deployment", "Deployment", depName)
-		return ctrl.Result{}, err
-	}
-
-	size := int32(DefaultReplicas)
-	if *foundDep.Spec.Replicas != size {
-		foundDep.Spec.Replicas = &size
-		if err := r.Update(ctx, foundDep); err != nil {
-			log.Error(err, "Failed to update Deployment replicas", "Deployment", depName)
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{Requeue: true}, nil
-	}
-
-	foundSvc := &corev1.Service{}
-	svcName := types.NamespacedName{
-		Name:      virtBMC.Name + BMCServiceNameSuffix,
-		Namespace: virtBMC.Namespace,
-	}
-	if err := r.Get(ctx, svcName, foundSvc); err != nil {
-		if apierrors.IsNotFound(err) {
-			svc := r.NewService(&virtBMC)
-			log.Info("Creating Service", "Service", svcName)
-			if err := r.Create(ctx, svc); err != nil {
-				log.Error(err, "Failed to create Service", "Service", svcName)
-				return ctrl.Result{}, err
-			}
-			return ctrl.Result{Requeue: true}, nil
-		}
-		log.Error(err, "Failed to get Service", "Service", svcName)
-		return ctrl.Result{}, err
+	svc, res, err := r.reconcileService(ctx, &virtBMC, log)
+	if err != nil || res.Requeue {
+		return res, err
 	}
 
 	ready := metav1.Condition{
@@ -170,7 +89,7 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		ObservedGeneration: virtBMC.Generation,
 	}
 
-	if err := r.updateStatusIfNeeded(ctx, log, &virtBMC, foundSvc.Spec.ClusterIP, ready); err != nil {
+	if err := r.updateStatusIfNeeded(ctx, &virtBMC, svc.Spec.ClusterIP, ready, log); err != nil {
 		log.Error(err, "Failed to update VirtualMachineBMC status")
 		return ctrl.Result{}, err
 	}
@@ -238,37 +157,94 @@ func (r *VirtualMachineBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *VirtualMachineBMCReconciler) updateStatusIfNeeded(ctx context.Context, log logr.Logger, bmc *bmcv1beta1.VirtualMachineBMC, clusterIP string, condition metav1.Condition) error {
+func (r *VirtualMachineBMCReconciler) updateStatusIfNeeded(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, clusterIP string, condition metav1.Condition, log logr.Logger) error {
 	updated := false
 
-	if clusterIP != "" && bmc.Status.ClusterIP != clusterIP {
-		bmc.Status.ClusterIP = clusterIP
+	if clusterIP != "" && virtBMC.Status.ClusterIP != clusterIP {
+		virtBMC.Status.ClusterIP = clusterIP
 		updated = true
 	}
 
 	found := false
-	for i, cond := range bmc.Status.Conditions {
+	for i, cond := range virtBMC.Status.Conditions {
 		if cond.Type == condition.Type {
 			found = true
 			if cond.Status != condition.Status || cond.Message != condition.Message {
-				bmc.Status.Conditions[i] = condition
+				virtBMC.Status.Conditions[i] = condition
 				updated = true
 			}
 			break
 		}
 	}
 	if !found {
-		bmc.Status.Conditions = append(bmc.Status.Conditions, condition)
+		virtBMC.Status.Conditions = append(virtBMC.Status.Conditions, condition)
 		updated = true
 	}
 
 	if updated {
 		log.Info("Updating VirtualMachineBMC status")
-		if err := r.Status().Update(ctx, bmc); err != nil {
+		if err := r.Status().Update(ctx, virtBMC); err != nil {
 			log.Error(err, "Failed to update VirtualMachineBMC status")
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (r *VirtualMachineBMCReconciler) validateRefs(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (ctrl.Result, error) {
+	if virtBMC.Spec.VirtualMachineRef == nil || virtBMC.Spec.VirtualMachineRef.Name == "" {
+		log.Error(nil, "VirtualMachineRef is required and must specify a name")
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	var vm kubevirtv1.VirtualMachine
+	if err := r.Get(ctx, types.NamespacedName{
+		Name:      virtBMC.Spec.VirtualMachineRef.Name,
+		Namespace: virtBMC.Namespace,
+	}, &vm); err != nil {
+		log.Error(err, "Failed to get referenced VirtualMachine")
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	if virtBMC.Spec.AuthSecretRef == nil || virtBMC.Spec.AuthSecretRef.Name == "" {
+		log.Error(nil, "AuthSecretRef is required and must specify a name")
+		return ctrl.Result{Requeue: true}, nil
+	}
+
+	var secret corev1.Secret
+	if err := r.Get(ctx, types.NamespacedName{
+		Name:      virtBMC.Spec.AuthSecretRef.Name,
+		Namespace: virtBMC.Namespace,
+	}, &secret); err != nil {
+		log.Error(err, "Failed to get referenced Secret")
+		return ctrl.Result{Requeue: true}, nil
+	}
+	return ctrl.Result{}, nil
+}
+
+func (r *VirtualMachineBMCReconciler) handleFinalizer(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (ctrl.Result, error) {
+	if virtBMC.ObjectMeta.DeletionTimestamp.IsZero() {
+		if !controllerutil.ContainsFinalizer(virtBMC, BMCFinalizer) {
+			controllerutil.AddFinalizer(virtBMC, BMCFinalizer)
+			if err := r.Update(ctx, virtBMC); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		if controllerutil.ContainsFinalizer(virtBMC, BMCFinalizer) {
+			if err := r.deleteDeployment(ctx, virtBMC, log); err != nil {
+				return ctrl.Result{}, err
+			}
+			if err := r.deleteService(ctx, virtBMC, log); err != nil {
+				return ctrl.Result{}, err
+			}
+			controllerutil.RemoveFinalizer(virtBMC, BMCFinalizer)
+			if err := r.Update(ctx, virtBMC); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+	return ctrl.Result{}, nil
 }
