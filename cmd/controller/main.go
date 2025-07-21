@@ -28,19 +28,20 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	kubevirtv1 "kubevirt.io/api/core/v1"
+	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
+	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/bmc"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-
-	kubevirtv1 "kubevirt.io/api/core/v1"
-	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
-	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/bmc"
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	AppVersion = "dev"
+	GitCommit  = "none"
+	scheme     = runtime.NewScheme()
+	setupLog   = ctrl.Log.WithName("setup")
 )
 
 func init() {
@@ -54,11 +55,17 @@ func main() {
 		metricsAddr          string
 		probeAddr            string
 		enableLeaderElection bool
+		agentImageName       string
+		agentImageTag        string
 	)
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
+
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election for controller manager.")
+	flag.StringVar(&agentImageName, "agent-image-name",
+		ctlvirtualmachinebmc.VirtBMCImageName, "The name of the agent image.")
+	flag.StringVar(&agentImageTag, "agent-image-tag", AppVersion, "The tag of the agent image.")
 	showVersion := flag.Bool("version", false, "Print version and exit.")
 
 	opts := zap.Options{Development: true}
@@ -66,8 +73,8 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Println("KubeVirtBMC Controller")
-		fmt.Println("Git commit:", os.Getenv("GIT_COMMIT"))
+		fmt.Println("Version:", AppVersion)
+		fmt.Println("Git commit:", GitCommit)
 		os.Exit(0)
 	}
 
@@ -78,18 +85,29 @@ func main() {
 		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "kubevirtbmc-leader-election",
+		LeaderElectionID:       "57e8c451.kubevirt.io",
+		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
+		// when the Manager ends. This requires the binary to immediately end when the
+		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
+		// speeds up voluntary leader transitions as the new leader don't have to wait
+		// LeaseDuration time first.
+		//
+		// In the default scaffold provided, the program ends immediately after
+		// the manager stops, so would be fine to enable this option. However,
+		// if you are doing or is intended to do any operation such as perform cleanups
+		// after the manager stops then its usage might be unsafe.
+		// LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
 		setupLog.Error(err, "Unable to start manager")
 		os.Exit(1)
 	}
 
-	agentImageConfig := ctlvirtualmachinebmc.NewAgentImageConfig()
 	if err := (&ctlvirtualmachinebmc.VirtualMachineBMCReconciler{
 		Client:         mgr.GetClient(),
 		Scheme:         mgr.GetScheme(),
-		AgentImageName: agentImageConfig,
+		AgentImageName: agentImageName,
+		AgentImageTag:  agentImageTag,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Unable to create controller", "controller", "VirtualMachineBMC")
 		os.Exit(1)

@@ -1,5 +1,7 @@
-package cmd
+package main
+
+import "fmt"
 
 func main() {
-	// stub file to allow the package to be built
+	fmt.Println("stub CLI main")
 }

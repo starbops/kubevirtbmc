@@ -8,7 +8,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
-	bmcconsts "kubevirt.io/kubevirtbmc/internal/controller/bmc"
 	"kubevirt.io/kubevirtbmc/pkg/virtbmc"
 )
 
@@ -40,13 +39,13 @@ func main() {
 			},
 			&cli.IntFlag{
 				Name:        "ipmi-port",
-				Value:       bmcconsts.IpmiContainerPort,
+				Value:       10623,
 				Usage:       "listen on `IPMI PORT`",
 				Destination: &options.IPMIPort,
 			},
 			&cli.IntFlag{
 				Name:        "redfish-port",
-				Value:       bmcconsts.RedfishContainerPort,
+				Value:       10080,
 				Usage:       "listen on `REDFISH PORT`",
 				Destination: &options.RedfishPort,
 			},

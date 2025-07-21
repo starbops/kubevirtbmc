@@ -23,11 +23,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Condition type constant.
-const (
-	ConditionReady = "Ready"
-)
-
 // VirtualMachineBMCSpec defines the desired state of VirtualMachineBMC.
 type VirtualMachineBMCSpec struct {
 	// Reference to the VM to manage.

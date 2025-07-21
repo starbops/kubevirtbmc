@@ -23,16 +23,22 @@ import (
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
+)
+
+const (
+	ServiceAccountName   = "kubevirtbmc-virtbmc"
+	virtBMCContainerName = "virtbmc"
+	VirtBMCImageName     = "starbops/virtbmc"
 )
 
 func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineBMC) corev1.PodSpec {
 	return corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
-				Name:  r.AgentImageName,
-				Image: fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag),
+				Name:            virtBMCContainerName,
+				Image:           fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag),
+				ImagePullPolicy: corev1.PullAlways,
 				Args: []string{
 					"--address",
 					"0.0.0.0",
@@ -40,8 +46,8 @@ func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineB
 					strconv.Itoa(IpmiContainerPort),
 					"--redfish-port",
 					strconv.Itoa(RedfishContainerPort),
+					bmc.Namespace,
 					bmc.Spec.VirtualMachineRef.Name,
-					bmc.Spec.AuthSecretRef.Name,
 				},
 				Ports: []corev1.ContainerPort{
 					{
@@ -54,32 +60,6 @@ func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineB
 						ContainerPort: RedfishContainerPort,
 						Protocol:      corev1.ProtocolTCP,
 					},
-				},
-				LivenessProbe: &corev1.Probe{
-					ProbeHandler: corev1.ProbeHandler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path: "/livez",
-							Port: intstr.FromInt(RedfishContainerPort),
-						},
-					},
-					InitialDelaySeconds: 10,
-					PeriodSeconds:       10,
-					SuccessThreshold:    1,
-					TimeoutSeconds:      1,
-					FailureThreshold:    3,
-				},
-				ReadinessProbe: &corev1.Probe{
-					ProbeHandler: corev1.ProbeHandler{
-						HTTPGet: &corev1.HTTPGetAction{
-							Path: "/healthz",
-							Port: intstr.FromInt(RedfishContainerPort),
-						},
-					},
-					InitialDelaySeconds: 5,
-					PeriodSeconds:       10,
-					SuccessThreshold:    1,
-					TimeoutSeconds:      1,
-					FailureThreshold:    3,
 				},
 			},
 		},

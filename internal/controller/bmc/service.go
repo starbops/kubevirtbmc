@@ -21,14 +21,25 @@ package bmc
 import (
 	"context"
 
-	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+)
+
+const (
+	IpmiContainerPort    = 10623
+	RedfishContainerPort = 10080
+	ipmiServicePort      = 623
+	redfishServicePort   = 80
+	ipmiPortName         = "ipmi"
+	redfishPortName      = "redfish"
+	BMCServiceNameSuffix = "-bmc-service"
 )
 
 func (r *VirtualMachineBMCReconciler) NewService(bmc *bmcv1beta1.VirtualMachineBMC) *corev1.Service {
@@ -36,9 +47,10 @@ func (r *VirtualMachineBMCReconciler) NewService(bmc *bmcv1beta1.VirtualMachineB
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      bmc.Name + BMCServiceNameSuffix,
 			Namespace: bmc.Namespace,
+			Labels:    LabelsForBMC(bmc.Name, bmc.Spec.VirtualMachineRef.Name),
 		},
 		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{AppLabelKey: bmc.Name + BMCProxyLabelSuffix},
+			Selector: LabelsForBMC(bmc.Name, bmc.Spec.VirtualMachineRef.Name),
 			Ports: []corev1.ServicePort{
 				{
 					Name:       ipmiPortName,
@@ -57,24 +69,31 @@ func (r *VirtualMachineBMCReconciler) NewService(bmc *bmcv1beta1.VirtualMachineB
 		},
 	}
 
-	controllerutil.SetControllerReference(bmc, svc, r.Scheme)
+	if err := controllerutil.SetControllerReference(bmc, svc, r.Scheme); err != nil {
+		return nil
+	}
+
 	return svc
 }
 
-func (r *VirtualMachineBMCReconciler) deleteService(ctx context.Context, bmc *bmcv1beta1.VirtualMachineBMC, log logr.Logger) error {
-	log.Info("Deleting service for VirtualMachineBMC", "name", bmc.Name)
-
-	svc := &corev1.Service{}
-	if err := r.Get(ctx, client.ObjectKey{
-		Name:      bmc.Name + BMCServiceNameSuffix,
-		Namespace: bmc.Namespace,
-	}, svc); err == nil {
-		if err := r.Delete(ctx, svc); err != nil {
-			return err
-		}
+func (r *VirtualMachineBMCReconciler) ReconcileService(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC) (*corev1.Service, ctrl.Result, error) {
+	foundSvc := &corev1.Service{}
+	svcName := types.NamespacedName{
+		Name:      virtBMC.Name + BMCServiceNameSuffix,
+		Namespace: virtBMC.Namespace,
 	}
-
-	log.Info("Deleted Service", "name", svc.Name)
-
-	return nil
+	if err := r.Get(ctx, svcName, foundSvc); err != nil {
+		if apierrors.IsNotFound(err) {
+			svc := r.NewService(virtBMC)
+			r.Log.Info("Creating Service", "Service", svcName)
+			if err := r.Create(ctx, svc); err != nil {
+				r.Log.Error(err, "Failed to create Service", "Service", svcName)
+				return nil, ctrl.Result{}, err
+			}
+			return svc, ctrl.Result{Requeue: true}, nil
+		}
+		r.Log.Error(err, "Failed to get Service", "Service", svcName)
+		return nil, ctrl.Result{}, err
+	}
+	return foundSvc, ctrl.Result{}, nil
 }

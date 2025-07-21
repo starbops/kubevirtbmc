@@ -2,22 +2,26 @@ package e2e
 
 import (
 	"context"
-	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/ptr"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 )
 
 const (
 	kubeVirtBMCNamespace = "kubevirtbmc-system"
+	testVMName           = "test-vm"
+	testSecretName       = "test-secret"
 )
 
 var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
@@ -30,6 +34,7 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 		}
 		err := k8sClient.List(context.TODO(), &podList, &client.ListOptions{
 			LabelSelector: labels.SelectorFromSet(sets),
+			Namespace:     kubeVirtBMCNamespace,
 		})
 		Expect(err).ToNot(HaveOccurred())
 		Expect(podList.Items).To(HaveLen(1), "expected one controller-manager pod exists")
@@ -63,78 +68,107 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 		})
 	})
 
-	Context("a new virtual machine", func() {
-		var (
-			vm           kubevirtv1.VirtualMachine
-			createdVMBMC *virtualmachinev1.VirtualMachineBMC
-		)
+	Context("a new VirtualMachineBMC setup", func() {
 
-		Specify("a VirtualMachine", func() {
-			vm = kubevirtv1.VirtualMachine{
+		BeforeAll(func() {
+			By("creating the Secret for BMC auth")
+			secret := &corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-vm",
-					Namespace: "default",
+					Name:      testSecretName,
+					Namespace: kubeVirtBMCNamespace,
+				},
+				Data: map[string][]byte{
+					"username": []byte("admin"),
+					"password": []byte("password"),
+				},
+			}
+			Expect(k8sClient.Create(context.TODO(), secret)).To(Succeed())
+
+			By("creating the VirtualMachine")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      testVMName,
+					Namespace: kubeVirtBMCNamespace,
 				},
 				Spec: kubevirtv1.VirtualMachineSpec{
-					Running: func(b bool) *bool { return &b }(true),
+					Running: ptr.To(true),
 					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
 						Spec: kubevirtv1.VirtualMachineInstanceSpec{
-							Domain: kubevirtv1.DomainSpec{
-								Devices: kubevirtv1.Devices{
-									Disks:      []kubevirtv1.Disk{},
-									Interfaces: []kubevirtv1.Interface{},
-								},
-							},
+							Domain: kubevirtv1.DomainSpec{},
 						},
 					},
 				},
 			}
-			err := k8sClient.Create(context.TODO(), &vm)
-			Expect(err).ToNot(HaveOccurred())
+			Expect(k8sClient.Create(context.TODO(), vm)).To(Succeed())
+
+			By("creating the VirtualMachineBMC")
+			bmc := &virtualmachinev1.VirtualMachineBMC{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      testVMName,
+					Namespace: kubeVirtBMCNamespace,
+				},
+				Spec: virtualmachinev1.VirtualMachineBMCSpec{
+					VirtualMachineRef: &corev1.LocalObjectReference{
+						Name: testVMName,
+					},
+					AuthSecretRef: &corev1.LocalObjectReference{
+						Name: testSecretName,
+					},
+				},
+			}
+			Expect(k8sClient.Create(context.TODO(), bmc)).To(Succeed())
 		})
 
-		It("should create a VirtualMachineBMC", func() {
-			vmBMCLookupKey := types.NamespacedName{
-				Name:      strings.Join([]string{vm.Namespace, vm.Name}, "-"),
+		It("should create a Deployment", func() {
+			Eventually(func() error {
+				return k8sClient.Get(context.TODO(), types.NamespacedName{
+					Name:      testVMName + "-bmc-deployment",
+					Namespace: kubeVirtBMCNamespace,
+				}, &appsv1.Deployment{})
+			}, timeout, interval).Should(Succeed())
+		})
+
+		It("should create a Service", func() {
+			Eventually(func() error {
+				return k8sClient.Get(context.TODO(), types.NamespacedName{
+					Name:      testVMName + "-bmc-service",
+					Namespace: kubeVirtBMCNamespace,
+				}, &corev1.Service{})
+			}, timeout, interval).Should(Succeed())
+		})
+	})
+
+	Context("when the VirtualMachineBMC is deleted", func() {
+		It("should delete the associated Deployment and Service", func() {
+			By("deleting the VirtualMachineBMC resource")
+			bmc := &virtualmachinev1.VirtualMachineBMC{}
+			bmcKey := types.NamespacedName{
+				Name:      testVMName,
 				Namespace: kubeVirtBMCNamespace,
 			}
-			createdVMBMC = &virtualmachinev1.VirtualMachineBMC{}
+			Expect(k8sClient.Get(context.TODO(), bmcKey, bmc)).To(Succeed())
+			Expect(k8sClient.Delete(context.TODO(), bmc)).To(Succeed())
+
+			By("verifying the Deployment is deleted")
 			Eventually(func() bool {
-				err := k8sClient.Get(context.TODO(), vmBMCLookupKey, createdVMBMC)
-				return err == nil
+				deploy := &appsv1.Deployment{}
+				err := k8sClient.Get(context.TODO(), types.NamespacedName{
+					Name:      testVMName + "-bmc-deployment",
+					Namespace: kubeVirtBMCNamespace,
+				}, deploy)
+				return apierrors.IsNotFound(err)
 			}, timeout, interval).Should(BeTrue())
-		})
 
-		It("should create a agent Pod", func() {
-			agentPodLookupKey := types.NamespacedName{
-				Name:      strings.Join([]string{createdVMBMC.Name, "virtbmc"}, "-"),
-				Namespace: kubeVirtBMCNamespace,
-			}
-			pod := &corev1.Pod{}
+			By("verifying the Service is deleted")
 			Eventually(func() bool {
-				err := k8sClient.Get(context.TODO(), agentPodLookupKey, pod)
-				if err != nil {
-					return false
-				}
-				for _, condition := range pod.Status.Conditions {
-					if condition.Type == corev1.PodReady && condition.Status == corev1.ConditionTrue {
-						return true
-					}
-				}
-				return false
-			}, timeout, interval).Should(BeTrue())
-		})
-
-		It("should create a agent Service", func() {
-			agentSvcLookupKey := types.NamespacedName{
-				Name:      strings.Join([]string{createdVMBMC.Name, "virtbmc"}, "-"),
-				Namespace: kubeVirtBMCNamespace,
-			}
-			svc := &corev1.Service{}
-			Eventually(func() bool {
-				err := k8sClient.Get(context.TODO(), agentSvcLookupKey, svc)
-				return err == nil
+				svc := &corev1.Service{}
+				err := k8sClient.Get(context.TODO(), types.NamespacedName{
+					Name:      testVMName + "-bmc-service",
+					Namespace: kubeVirtBMCNamespace,
+				}, svc)
+				return apierrors.IsNotFound(err)
 			}, timeout, interval).Should(BeTrue())
 		})
 	})
+
 })

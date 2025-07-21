@@ -22,7 +22,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
+
 	"kubevirt.io/kubevirtbmc/test/util"
 )
 
@@ -114,6 +115,7 @@ var _ = BeforeSuite(func() {
 
 	By("deploying the controller-manager")
 	cmd := exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", controllerManagerImage))
+
 	_, err = util.Run(cmd)
 	Expect(err).ToNot(HaveOccurred())
 })
