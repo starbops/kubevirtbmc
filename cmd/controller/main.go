@@ -49,18 +49,6 @@ func init() {
 	utilruntime.Must(bmcv1beta1.AddToScheme(scheme))
 }
 
-func getAgentImageFromEnv() (string, string) {
-	name := os.Getenv("VIRTBMC_IMAGE_NAME")
-	if name == "" {
-		name = "registry:5000/virtbmc"
-	}
-	tag := os.Getenv("VIRTBMC_IMAGE_TAG")
-	if tag == "" {
-		tag = "latest"
-	}
-	return name, tag
-}
-
 func main() {
 	var (
 		metricsAddr          string
@@ -97,12 +85,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	agentImageName, agentImageTag := getAgentImageFromEnv()
+	agentImageConfig := ctlvirtualmachinebmc.NewAgentImageConfig()
 	if err := (&ctlvirtualmachinebmc.VirtualMachineBMCReconciler{
 		Client:         mgr.GetClient(),
 		Scheme:         mgr.GetScheme(),
-		AgentImageName: agentImageName,
-		AgentImageTag:  agentImageTag,
+		AgentImageName: agentImageConfig,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "Unable to create controller", "controller", "VirtualMachineBMC")
 		os.Exit(1)

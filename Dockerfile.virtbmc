@@ -17,6 +17,7 @@ COPY cmd/virtbmc/main.go cmd/virtbmc/main.go
 COPY pkg/ pkg/
 COPY internal/ internal/
 COPY api api
+COPY .config.env .config.env
 
 # Build
 # the GOARCH has not a default value to allow the binary be built according to the host where the command
