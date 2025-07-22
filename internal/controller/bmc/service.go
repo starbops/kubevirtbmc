@@ -24,7 +24,6 @@ import (
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
@@ -36,12 +35,9 @@ import (
 
 func (r *VirtualMachineBMCReconciler) NewService(bmc *bmcv1beta1.VirtualMachineBMC) *corev1.Service {
 	svc := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      bmc.Name + BMCServiceNameSuffix,
-			Namespace: bmc.Namespace,
-		},
+		ObjectMeta: MetaForBMC(bmc.Name, bmc.Namespace, BMCServiceNameSuffix),
 		Spec: corev1.ServiceSpec{
-			Selector: map[string]string{AppLabelKey: bmc.Name + BMCProxyLabelSuffix},
+			Selector: LabelsForBMC(bmc.Name),
 			Ports: []corev1.ServicePort{
 				{
 					Name:       ipmiPortName,
@@ -82,7 +78,7 @@ func (r *VirtualMachineBMCReconciler) deleteService(ctx context.Context, bmc *bm
 	return nil
 }
 
-func (r *VirtualMachineBMCReconciler) reconcileService(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (*corev1.Service, ctrl.Result, error) {
+func (r *VirtualMachineBMCReconciler) ReconcileService(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (*corev1.Service, ctrl.Result, error) {
 	foundSvc := &corev1.Service{}
 	svcName := types.NamespacedName{
 		Name:      virtBMC.Name + BMCServiceNameSuffix,

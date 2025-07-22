@@ -41,7 +41,7 @@ import (
 type VirtualMachineBMCReconciler struct {
 	client.Client
 	Scheme         *runtime.Scheme
-	AgentImageName agentImageConfig
+	AgentImageName AgentImageConfig
 }
 
 // +kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;update;patch
@@ -63,19 +63,19 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if res, err := r.handleFinalizer(ctx, &virtBMC, log); err != nil || res.Requeue {
+	if res, err := r.HandleFinalizer(ctx, &virtBMC, log); err != nil || res.Requeue {
 		return res, err
 	}
 
-	if res, err := r.validateRefs(ctx, &virtBMC, log); err != nil || res.Requeue {
+	if res, err := r.ValidateRefs(ctx, &virtBMC, log); err != nil || res.Requeue {
 		return res, err
 	}
 
-	if res, err := r.reconcileDeployment(ctx, &virtBMC, log); err != nil || res.Requeue {
+	if res, err := r.ReconcileDeployment(ctx, &virtBMC, log); err != nil || res.Requeue {
 		return res, err
 	}
 
-	svc, res, err := r.reconcileService(ctx, &virtBMC, log)
+	svc, res, err := r.ReconcileService(ctx, &virtBMC, log)
 	if err != nil || res.Requeue {
 		return res, err
 	}
@@ -89,7 +89,7 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		ObservedGeneration: virtBMC.Generation,
 	}
 
-	if err := r.updateStatusIfNeeded(ctx, &virtBMC, svc.Spec.ClusterIP, ready, log); err != nil {
+	if err := r.UpdateStatusIfNeeded(ctx, &virtBMC, svc.Spec.ClusterIP, ready, log); err != nil {
 		log.Error(err, "Failed to update VirtualMachineBMC status")
 		return ctrl.Result{}, err
 	}
@@ -157,7 +157,7 @@ func (r *VirtualMachineBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *VirtualMachineBMCReconciler) updateStatusIfNeeded(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, clusterIP string, condition metav1.Condition, log logr.Logger) error {
+func (r *VirtualMachineBMCReconciler) UpdateStatusIfNeeded(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, clusterIP string, condition metav1.Condition, log logr.Logger) error {
 	updated := false
 
 	if clusterIP != "" && virtBMC.Status.ClusterIP != clusterIP {
@@ -192,7 +192,12 @@ func (r *VirtualMachineBMCReconciler) updateStatusIfNeeded(ctx context.Context, 
 	return nil
 }
 
-func (r *VirtualMachineBMCReconciler) validateRefs(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (ctrl.Result, error) {
+func (r *VirtualMachineBMCReconciler) ValidateRefs(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (ctrl.Result, error) {
+	if virtBMC == nil {
+		log.Error(nil, "VirtualMachineBMC is nil")
+		return ctrl.Result{Requeue: true}, nil
+	}
+
 	if virtBMC.Spec.VirtualMachineRef == nil || virtBMC.Spec.VirtualMachineRef.Name == "" {
 		log.Error(nil, "VirtualMachineRef is required and must specify a name")
 		return ctrl.Result{Requeue: true}, nil
@@ -223,7 +228,7 @@ func (r *VirtualMachineBMCReconciler) validateRefs(ctx context.Context, virtBMC 
 	return ctrl.Result{}, nil
 }
 
-func (r *VirtualMachineBMCReconciler) handleFinalizer(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (ctrl.Result, error) {
+func (r *VirtualMachineBMCReconciler) HandleFinalizer(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (ctrl.Result, error) {
 	if virtBMC.ObjectMeta.DeletionTimestamp.IsZero() {
 		if !controllerutil.ContainsFinalizer(virtBMC, BMCFinalizer) {
 			controllerutil.AddFinalizer(virtBMC, BMCFinalizer)

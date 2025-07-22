@@ -38,18 +38,15 @@ func (r *VirtualMachineBMCReconciler) NewDeployment(bmc *bmcv1beta1.VirtualMachi
 	replicas := int32(DefaultReplicas)
 	podSpec := r.NewPodSpec(bmc)
 	dep := &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      bmc.Name + BMCProxyLabelSuffix,
-			Namespace: bmc.Namespace,
-		},
+		ObjectMeta: MetaForBMC(bmc.Name, bmc.Namespace, BMCDeploymentNameSuffix),
 		Spec: appsv1.DeploymentSpec{
 			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: map[string]string{AppLabelKey: bmc.Name + BMCProxyLabelSuffix},
+				MatchLabels: LabelsForBMC(bmc.Name),
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{AppLabelKey: bmc.Name + BMCProxyLabelSuffix},
+					Labels: LabelsForBMC(bmc.Name),
 				},
 				Spec: podSpec,
 			},
@@ -64,7 +61,7 @@ func (r *VirtualMachineBMCReconciler) deleteDeployment(ctx context.Context, bmc 
 	log.Info("Deleting deployment for VirtualMachineBMC", "name", bmc.Name)
 	deploy := &appsv1.Deployment{}
 	if err := r.Get(ctx, client.ObjectKey{
-		Name:      bmc.Name + BMCProxyLabelSuffix,
+		Name:      bmc.Name + BMCDeploymentNameSuffix,
 		Namespace: bmc.Namespace,
 	}, deploy); err == nil {
 		if err := r.Delete(ctx, deploy); err != nil {
@@ -77,12 +74,12 @@ func (r *VirtualMachineBMCReconciler) deleteDeployment(ctx context.Context, bmc 
 	return nil
 }
 
-func (r *VirtualMachineBMCReconciler) reconcileDeployment(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (ctrl.Result, error) {
+func (r *VirtualMachineBMCReconciler) ReconcileDeployment(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC, log logr.Logger) (ctrl.Result, error) {
 	foundDep := &appsv1.Deployment{}
 	log.Info("Using image config", "containerName", r.AgentImageName.ContainerName, "image", r.AgentImageName.FullImage)
 
 	depName := types.NamespacedName{
-		Name:      virtBMC.Name + BMCProxyLabelSuffix,
+		Name:      virtBMC.Name + BMCDeploymentNameSuffix,
 		Namespace: virtBMC.Namespace,
 	}
 	if err := r.Get(ctx, depName, foundDep); err != nil {

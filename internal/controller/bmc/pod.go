@@ -27,14 +27,14 @@ import (
 	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 )
 
-type agentImageConfig struct {
+type AgentImageConfig struct {
 	ImageName     string
 	ImageTag      string
 	ContainerName string
 	FullImage     string
 }
 
-func NewAgentImageConfig() agentImageConfig {
+func NewAgentImageConfig() AgentImageConfig {
 	registryHost := os.Getenv("REGISTRY_HOST")
 	if registryHost == "" {
 		registryHost = "registry"
@@ -57,7 +57,7 @@ func NewAgentImageConfig() agentImageConfig {
 	registry := fmt.Sprintf("%s:%s", registryHost, registryPort) // e.g. "registry:5000"
 	imageName := fmt.Sprintf("%s/%s", registry, imageRepo)       // e.g. "registry:5000/virtbmc"
 
-	return agentImageConfig{
+	return AgentImageConfig{
 		ImageName:     imageName,
 		ImageTag:      imageTag,
 		ContainerName: imageRepo,
@@ -66,7 +66,6 @@ func NewAgentImageConfig() agentImageConfig {
 }
 
 func (r *VirtualMachineBMCReconciler) NewPodSpec(bmc *bmcv1beta1.VirtualMachineBMC) corev1.PodSpec {
-	fmt.Printf("DEBUG: Using ContainerName=%s, Image=%s\n", r.AgentImageName.ContainerName, r.AgentImageName.FullImage)
 	return corev1.PodSpec{
 		Containers: []corev1.Container{
 			{
