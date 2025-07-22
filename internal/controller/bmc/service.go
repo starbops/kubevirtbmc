@@ -56,7 +56,10 @@ func (r *VirtualMachineBMCReconciler) NewService(bmc *bmcv1beta1.VirtualMachineB
 		},
 	}
 
-	controllerutil.SetControllerReference(bmc, svc, r.Scheme)
+	if err := controllerutil.SetControllerReference(bmc, svc, r.Scheme); err != nil {
+		return nil
+	}
+
 	return svc
 }
 

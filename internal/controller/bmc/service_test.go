@@ -28,7 +28,9 @@ var _ = Describe("ReconcileService", func() {
 
 	BeforeEach(func() {
 		ctx = context.TODO()
-		log = funcr.New(func(prefix, args string) { GinkgoWriter.Write([]byte(args)) }, funcr.Options{})
+		log = funcr.New(func(prefix, args string) {
+			_, _ = GinkgoWriter.Write([]byte(args))
+		}, funcr.Options{})
 
 		scheme := runtime.NewScheme()
 		Expect(bmcv1beta1.AddToScheme(scheme)).To(Succeed())

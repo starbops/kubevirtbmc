@@ -52,7 +52,10 @@ func (r *VirtualMachineBMCReconciler) NewDeployment(bmc *bmcv1beta1.VirtualMachi
 			},
 		},
 	}
-	controllerutil.SetControllerReference(bmc, dep, r.Scheme)
+
+	if err := controllerutil.SetControllerReference(bmc, dep, r.Scheme); err != nil {
+		return nil
+	}
 
 	return dep
 }

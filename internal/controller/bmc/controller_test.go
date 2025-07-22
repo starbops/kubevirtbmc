@@ -40,7 +40,9 @@ var _ = Describe("ValidateRefs", func() {
 
 	BeforeEach(func() {
 		ctx = context.TODO()
-		log = funcr.New(func(prefix, args string) { GinkgoWriter.Write([]byte(args)) }, funcr.Options{})
+		log = funcr.New(func(prefix, args string) {
+			_, _ = GinkgoWriter.Write([]byte(args))
+		}, funcr.Options{})
 
 		scheme := runtime.NewScheme()
 		Expect(bmcv1beta1.AddToScheme(scheme)).To(Succeed())
@@ -167,7 +169,10 @@ var _ = Describe("HandleFinalizer", func() {
 
 	BeforeEach(func() {
 		ctx = context.TODO()
-		log = funcr.New(func(prefix, args string) { GinkgoWriter.Write([]byte(args)) }, funcr.Options{})
+		log = funcr.New(func(prefix, args string) {
+			_, _ = GinkgoWriter.Write([]byte(args))
+		}, funcr.Options{})
+
 		scheme = runtime.NewScheme()
 		Expect(bmcv1beta1.AddToScheme(scheme)).To(Succeed())
 		Expect(appsv1.AddToScheme(scheme)).To(Succeed())
