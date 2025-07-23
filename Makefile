@@ -1,21 +1,24 @@
+include .config.env
+export
+
 # VERSION and COMMIT are set by the CI/CD pipeline. If not set, they are set to
 # the current branch and commit.
-VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "$(shell git rev-parse --abbrev-ref HEAD)-head")
-COMMIT ?= $(shell git rev-parse HEAD)
+# VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "$(shell git rev-parse --abbrev-ref HEAD)-head")
+# COMMIT ?= $(shell git rev-parse HEAD)
 
-DIRTY :=
-ifneq ($(shell git status --porcelain --untracked-files=no),)
-DIRTY := -dirty
-endif
-VERSION := $(VERSION)$(DIRTY)
-# Export the tag to be used in the e2e tests
-export TAG = $(VERSION)
+# DIRTY :=
+# ifneq ($(shell git status --porcelain --untracked-files=no),)
+# DIRTY := -dirty
+# endif
+# VERSION := $(VERSION)$(DIRTY)
+# # Export the tag to be used in the e2e tests
+# export TAG = $(VERSION)
 
-REPO ?= starbops
+# REPO ?= starbops
 
 # Image URL to use all building/pushing image targets
-MGR_IMG ?= $(REPO)/virtbmc-controller:$(TAG)
-AGT_IMG ?= $(REPO)/virtbmc:$(TAG)
+MGR_IMG := $(REGISTRY_HOST):$(REGISTRY_PORT)/$(CONTROLLER_IMAGE_NAME):$(CONTROLLER_IMAGE_TAG)
+AGT_IMG := $(REGISTRY_HOST):$(REGISTRY_PORT)/$(VIRTBMC_IMAGE_NAME):$(VIRTBMC_IMAGE_TAG)
 
 K8S_VERSION = 1.28.13
 KIND_K8S_VERSION = v$(shell echo $(K8S_VERSION))
@@ -163,9 +166,10 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
-docker-build: ## Build docker images with the manager and the agent respectively.
-	$(CONTAINER_TOOL) build -t $(MGR_IMG) --build-arg LINKFLAGS=$(LINKFLAGS) .
-	$(CONTAINER_TOOL) build -t $(AGT_IMG) --build-arg LINKFLAGS=$(LINKFLAGS) --build-arg TARGETARCH=amd64 -f Dockerfile.virtbmc .
+docker-build:
+	docker build -t $(MGR_IMG) -f Dockerfile .
+	docker build -t $(AGT_IMG) -f Dockerfile.virtbmc .
+
 ifeq ($(PUSH),true)
 	$(CONTAINER_TOOL) push $(MGR_IMG)
 	$(CONTAINER_TOOL) push $(AGT_IMG)
@@ -205,12 +209,7 @@ install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
-include .config.env
-export
-
-MGR_IMG := $(REGISTRY_HOST):$(REGISTRY_PORT)/$(CONTROLLER_IMAGE_NAME):$(CONTROLLER_IMAGE_TAG)
 IMG ?= $(MGR_IMG)
-
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
