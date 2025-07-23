@@ -1,21 +1,24 @@
+include .config.env
+export
+
 # VERSION and COMMIT are set by the CI/CD pipeline. If not set, they are set to
 # the current branch and commit.
-VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "$(shell git rev-parse --abbrev-ref HEAD)-head")
-COMMIT ?= $(shell git rev-parse HEAD)
+# VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "$(shell git rev-parse --abbrev-ref HEAD)-head")
+# COMMIT ?= $(shell git rev-parse HEAD)
 
-DIRTY :=
-ifneq ($(shell git status --porcelain --untracked-files=no),)
-DIRTY := -dirty
-endif
-VERSION := $(VERSION)$(DIRTY)
-# Export the tag to be used in the e2e tests
-export TAG = $(VERSION)
+# DIRTY :=
+# ifneq ($(shell git status --porcelain --untracked-files=no),)
+# DIRTY := -dirty
+# endif
+# VERSION := $(VERSION)$(DIRTY)
+# # Export the tag to be used in the e2e tests
+# export TAG = $(VERSION)
 
-REPO ?= starbops
+# REPO ?= starbops
 
 # Image URL to use all building/pushing image targets
-MGR_IMG ?= $(REPO)/virtbmc-controller:$(TAG)
-AGT_IMG ?= $(REPO)/virtbmc:$(TAG)
+MGR_IMG := $(REGISTRY_HOST):$(REGISTRY_PORT)/$(CONTROLLER_IMAGE_NAME):$(CONTROLLER_IMAGE_TAG)
+AGT_IMG := $(REGISTRY_HOST):$(REGISTRY_PORT)/$(VIRTBMC_IMAGE_NAME):$(VIRTBMC_IMAGE_TAG)
 
 K8S_VERSION = 1.28.13
 KIND_K8S_VERSION = v$(shell echo $(K8S_VERSION))
@@ -68,11 +71,14 @@ help: ## Display this help.
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook \
+		paths="./api/...;./internal/...;./pkg/...;./cmd/..." \
+		output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" \
+		paths="./api/...;./internal/...;./pkg/...;./cmd/..."
 
 .PHONY: generate-kubevirt-crd
 generate-kubevirt-crd: controller-gen ## Clone KubeVirt API and generate CustomResourceDefinition objects for integration testing purposes.
@@ -113,7 +119,7 @@ test: manifests generate generate-kubevirt-crd fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test $(shell go list ./... | grep -v /test/) -coverprofile cover.out
 
 GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
-GOLANGCI_LINT_VERSION ?= v1.61.0
+GOLANGCI_LINT_VERSION ?= v1.64.8
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
 	set -e ;\
@@ -160,9 +166,10 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
-docker-build: ## Build docker images with the manager and the agent respectively.
-	$(CONTAINER_TOOL) build -t $(MGR_IMG) --build-arg LINKFLAGS=$(LINKFLAGS) .
-	$(CONTAINER_TOOL) build -t $(AGT_IMG) --build-arg LINKFLAGS=$(LINKFLAGS) --build-arg TARGETARCH=amd64 -f Dockerfile.virtbmc .
+docker-build:
+	docker build -t $(MGR_IMG) -f Dockerfile .
+	docker build -t $(AGT_IMG) -f Dockerfile.virtbmc .
+
 ifeq ($(PUSH),true)
 	$(CONTAINER_TOOL) push $(MGR_IMG)
 	$(CONTAINER_TOOL) push $(AGT_IMG)

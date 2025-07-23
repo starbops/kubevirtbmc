@@ -22,7 +22,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
+
 	"kubevirt.io/kubevirtbmc/test/util"
 )
 
@@ -35,18 +36,17 @@ var (
 	skipCertManagerInstall        = os.Getenv("CERT_MANAGER_INSTALL_SKIP") == "true"
 	isCertManagerAlreadyInstalled = false
 
-	controllerManagerImage = fmt.Sprintf("starbops/virtbmc-controller:%s", func() string {
-		if tag := os.Getenv("TAG"); tag != "" {
-			return tag
-		}
-		return "dev"
-	}())
-	agentImage = fmt.Sprintf("starbops/virtbmc:%s", func() string {
-		if tag := os.Getenv("TAG"); tag != "" {
-			return tag
-		}
-		return "dev"
-	}())
+	controllerManagerImage = fmt.Sprintf("%s:%s/%s:%s",
+		os.Getenv("REGISTRY_HOST"),
+		os.Getenv("REGISTRY_PORT"),
+		os.Getenv("CONTROLLER_IMAGE_NAME"),
+		os.Getenv("CONTROLLER_IMAGE_TAG"))
+
+	agentImage = fmt.Sprintf("%s:%s/%s:%s",
+		os.Getenv("REGISTRY_HOST"),
+		os.Getenv("REGISTRY_PORT"),
+		os.Getenv("VIRTBMC_IMAGE_NAME"),
+		os.Getenv("VIRTBMC_IMAGE_TAG"))
 
 	config    *rest.Config
 	crdClient *apiextcs.Clientset
@@ -114,6 +114,7 @@ var _ = BeforeSuite(func() {
 
 	By("deploying the controller-manager")
 	cmd := exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", controllerManagerImage))
+
 	_, err = util.Run(cmd)
 	Expect(err).ToNot(HaveOccurred())
 })
