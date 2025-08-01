@@ -20,6 +20,7 @@ package bmc
 
 import (
 	"context"
+	"errors"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,6 +34,8 @@ import (
 )
 
 const BMCDeploymentNameSuffix = "-bmc-deployment"
+
+var ErrDeploymentNotReady = errors.New("deployment is not ready")
 
 // deploymentForVirtBMC returns a Deployment object for VirtualMachineBMC
 func (r *VirtualMachineBMCReconciler) NewDeployment(bmc *bmcv1beta1.VirtualMachineBMC) *appsv1.Deployment {
@@ -98,4 +101,21 @@ func (r *VirtualMachineBMCReconciler) ReconcileDeployment(ctx context.Context, v
 	}
 	r.Log.Info("Deployment already exists and is up to date", "Deployment", depName)
 	return ctrl.Result{}, nil
+}
+
+func (r *VirtualMachineBMCReconciler) CheckDeploymentReady(virtBMC *bmcv1beta1.VirtualMachineBMC) error {
+	depName := types.NamespacedName{
+		Name:      virtBMC.Name + BMCDeploymentNameSuffix,
+		Namespace: virtBMC.Namespace,
+	}
+	foundDep := &appsv1.Deployment{}
+	if err := r.Get(context.Background(), depName, foundDep); err != nil {
+		return err
+	}
+
+	if foundDep.Status.ReadyReplicas < 1 {
+		return ErrDeploymentNotReady
+	}
+
+	return nil
 }

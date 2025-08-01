@@ -83,7 +83,39 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if res, err := r.ValidateRefs(ctx, &virtBMC); err != nil || res.Requeue {
+	res, err := r.ValidateRefs(ctx, &virtBMC)
+	if err != nil || res.Requeue {
+		if errors.Is(err, ErrVirtualMachineNotFound) || errors.Is(err, ErrAuthSecretNotFound) {
+			var (
+				errorReason  = AuthSecretNotFound
+				errorMessage = MessageAuthSecretNotFound
+			)
+
+			if errors.Is(err, ErrVirtualMachineNotFound) {
+				errorReason = VirtualMachineNotFound
+				errorMessage = MessageVirtualMachineNotFound
+			}
+			r.Log.Error(err, "Referenced resource not found, setting NotReady condition", "Reason", errorReason, "Message", errorMessage)
+			cond := metav1.Condition{
+				Type:               ConditionNotReady,
+				Status:             metav1.ConditionFalse,
+				Reason:             errorReason,
+				Message:            errorMessage,
+				ObservedGeneration: virtBMC.Generation,
+			}
+			setCondition(&virtBMC, cond)
+			if updateErr := r.Status().Update(ctx, &virtBMC); updateErr != nil {
+				r.Log.Error(updateErr, "Failed to update VirtualMachineBMC status")
+				return ctrl.Result{}, updateErr
+			}
+			r.Log.Info("Cleaning up resources due to missing references")
+			if err := r.DeleteResources(ctx, &virtBMC); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			r.Log.Info("Resources cleaned up due to missing references")
+			return ctrl.Result{Requeue: true}, nil
+		}
 		return res, err
 	}
 
@@ -94,6 +126,11 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	svc, res, err := r.ReconcileService(ctx, &virtBMC)
 	if err != nil || res.Requeue {
 		return res, err
+	}
+
+	if err := r.CheckDeploymentReady(&virtBMC); err != nil {
+		r.Log.Error(err, "Deployment is not ready, requeuing VirtualMachineBMC")
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	ready := metav1.Condition{
@@ -229,19 +266,6 @@ func (r *VirtualMachineBMCReconciler) ValidateRefs(ctx context.Context, virtBMC 
 		Namespace: virtBMC.Namespace,
 	}, &vm); err != nil {
 		if apierrors.IsNotFound(err) {
-			log.Info("Referenced VirtualMachine not found, setting NotReady condition")
-			cond := metav1.Condition{
-				Type:               ConditionNotReady,
-				Status:             metav1.ConditionFalse,
-				Reason:             VirtualMachineNotFound,
-				Message:            MessageVirtualMachineNotFound,
-				ObservedGeneration: virtBMC.Generation,
-			}
-			setCondition(virtBMC, cond)
-			if updateErr := r.Status().Update(ctx, virtBMC); updateErr != nil {
-				log.Error(updateErr, "Failed to update VirtualMachineBMC status")
-				return ctrl.Result{}, updateErr
-			}
 			return ctrl.Result{Requeue: true}, ErrVirtualMachineNotFound
 		}
 		return ctrl.Result{}, err
@@ -258,19 +282,6 @@ func (r *VirtualMachineBMCReconciler) ValidateRefs(ctx context.Context, virtBMC 
 		Namespace: virtBMC.Namespace,
 	}, &secret); err != nil {
 		if apierrors.IsNotFound(err) {
-			log.Info("Referenced Secret not found, setting NotReady condition")
-			cond := metav1.Condition{
-				Type:               ConditionNotReady,
-				Status:             metav1.ConditionFalse,
-				Reason:             AuthSecretNotFound,
-				Message:            MessageAuthSecretNotFound,
-				ObservedGeneration: virtBMC.Generation,
-			}
-			setCondition(virtBMC, cond)
-			if updateErr := r.Status().Update(ctx, virtBMC); updateErr != nil {
-				log.Error(updateErr, "Failed to update VirtualMachineBMC status")
-				return ctrl.Result{}, updateErr
-			}
 			return ctrl.Result{Requeue: true}, ErrAuthSecretNotFound
 		}
 		return ctrl.Result{}, err
@@ -301,4 +312,27 @@ func setCondition(virtBMC *bmcv1beta1.VirtualMachineBMC, condition metav1.Condit
 	if !found {
 		virtBMC.Status.Conditions = append(virtBMC.Status.Conditions, condition)
 	}
+}
+
+func (r *VirtualMachineBMCReconciler) DeleteResources(ctx context.Context, virtBMC *bmcv1beta1.VirtualMachineBMC) error {
+	deploymentErr := client.IgnoreNotFound(r.Delete(ctx, &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      virtBMC.Name + BMCDeploymentNameSuffix,
+			Namespace: virtBMC.Namespace,
+		},
+	}))
+
+	serviceErr := client.IgnoreNotFound(r.Delete(ctx, &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      virtBMC.Name + BMCServiceNameSuffix,
+			Namespace: virtBMC.Namespace,
+		},
+	}))
+	if deploymentErr != nil {
+		return deploymentErr
+	}
+	if serviceErr != nil {
+		return serviceErr
+	}
+	return nil
 }
