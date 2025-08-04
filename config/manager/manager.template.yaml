@@ -70,8 +70,8 @@ spec:
         - /manager
         args:
         - --leader-elect
-        - --agent-image-name=registry:5000/virtbmc
-        - --agent-image-tag=dev
+        - --agent-image-name=${AGENT_IMAGE_NAME}
+        - --agent-image-tag=${AGENT_IMAGE_TAG}
         image: controller:latest
         imagePullPolicy: IfNotPresent
         name: manager

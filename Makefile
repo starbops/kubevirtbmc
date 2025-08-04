@@ -9,13 +9,17 @@ DIRTY := -dirty
 endif
 VERSION := $(VERSION)$(DIRTY)
 # Export the tag to be used in the e2e tests
-export TAG = $(VERSION)
+TAG ?= $(VERSION)
 
 REPO ?= starbops
 
 # Image URL to use all building/pushing image targets
 MGR_IMG ?= $(REPO)/virtbmc-controller:$(TAG)
 AGT_IMG ?= $(REPO)/virtbmc:$(TAG)
+
+LOCAL_REGISTRY := $(shell ./kubevirtci.sh registry)
+MGR_IMG_LOCAL := $(LOCAL_REGISTRY)/virtbmc-controller:$(TAG)
+AGT_IMG_LOCAL := $(LOCAL_REGISTRY)/virtbmc:$(TAG)
 
 K8S_VERSION = 1.28.13
 KIND_K8S_VERSION = v$(shell echo $(K8S_VERSION))
@@ -168,6 +172,15 @@ ifeq ($(PUSH),true)
 	$(CONTAINER_TOOL) push $(AGT_IMG)
 endif
 
+.PHONY: tag-local
+tag-local: ## Tag images to be pushed to local kubevirtci registry.
+	$(CONTAINER_TOOL) tag $(MGR_IMG) $(MGR_IMG_LOCAL)
+	$(CONTAINER_TOOL) tag $(AGT_IMG) $(AGT_IMG_LOCAL)
+
+.PHONY: push-local
+push-local: tag-local ## Push images to local kubevirtci registry.
+	$(CONTAINER_TOOL) push $(MGR_IMG_LOCAL)
+	$(CONTAINER_TOOL) push $(AGT_IMG_LOCAL)
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
 # - be able to use docker buildx. More info: https://docs.docker.com/build/buildx/
@@ -204,8 +217,11 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 IMG ?= $(MGR_IMG)
 .PHONY: deploy
-deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+deploy: manifests kustomize
+	@echo "REPO=$(REPO) TAG=$(TAG)"
+	AGENT_IMAGE_NAME=$(REPO)/virtbmc AGENT_IMAGE_TAG=$(TAG) \
+ 	envsubst < config/manager/manager.template.yaml > config/manager/manager.yaml
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 
 .PHONY: undeploy
