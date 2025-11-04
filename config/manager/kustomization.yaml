@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: starbops/virtbmc-controller
-  newTag: dev
+  newTag: feat-1-head-dirty

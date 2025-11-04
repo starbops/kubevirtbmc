@@ -59,6 +59,7 @@ type VirtualMachineBMCStatus struct {
 //+kubebuilder:subresource:status
 
 // VirtualMachineBMC is the Schema for the virtualmachinebmcs API
+// +kubebuilder:storageversion
 type VirtualMachineBMC struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
