@@ -1,27 +1,5 @@
-# VERSION and COMMIT are set by the CI/CD pipeline. If not set, they are set to
-# the current branch and commit.
-VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || echo "$(shell git rev-parse --abbrev-ref HEAD)-head")
-COMMIT ?= $(shell git rev-parse HEAD)
-
-DIRTY :=
-ifneq ($(shell git status --porcelain --untracked-files=no),)
-DIRTY := -dirty
-endif
-VERSION := $(VERSION)$(DIRTY)
-# Export the tag to be used in the e2e tests
-export TAG = $(VERSION)
-
-REPO ?= starbops
-
 # Image URL to use all building/pushing image targets
-MGR_IMG ?= $(REPO)/virtbmc-controller:$(TAG)
-AGT_IMG ?= $(REPO)/virtbmc:$(TAG)
-
-K8S_VERSION = 1.28.13
-KIND_K8S_VERSION = v$(shell echo $(K8S_VERSION))
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.28.x
-export CERT_MANAGER_VERSION = v1.14.2
+IMG ?= controller:latest
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -35,9 +13,6 @@ endif
 # scaffolded by default. However, you might want to replace it to use other
 # tools. (i.e. podman)
 CONTAINER_TOOL ?= docker
-
-# KUBEVIRT API version to use
-KUBEVIRT_API_VERSION = v1.2.0
 
 # Setting SHELL to bash allows bash commands to be executed by recipes.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
@@ -74,32 +49,6 @@ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and Cust
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
-.PHONY: generate-kubevirt-crd
-generate-kubevirt-crd: controller-gen ## Clone KubeVirt API and generate CustomResourceDefinition objects for integration testing purposes.
-	TMP_DIR=$$(mktemp -d -p /tmp/); \
-	KUBEVIRT_API_DIR=$$TMP_DIR/kubevirt-api; \
-	git clone --depth 1 --branch $(KUBEVIRT_API_VERSION) https://github.com/kubevirt/api $$KUBEVIRT_API_DIR; \
-	$(CONTROLLER_GEN) crd:allowDangerousTypes=true paths="$$KUBEVIRT_API_DIR/core/v1/..." output:crd:artifacts:config=config/kubevirt-crd; \
-	rm -rvf $$TMP_DIR; \
-	rm -vf config/kubevirt-crd/kubevirt.io_datavolumetemplatespecs.yaml
-
-.PHONY: generate-mock
-generate-mock: mockgen ## Generate mocks for interfaces.
-	# $(MOCKGEN) -destination=mocks/mock_resourcemanager.go -package=mocks kubevirt.io/kubevirtbmc/pkg/resourcemanager ResourceManager
-	$(MOCKGEN) -source=pkg/resourcemanager/resource_manager.go -destination=pkg/resourcemanager/mock_resource_manager.go -package=resourcemanager
-
-REDFISH_SCHEMA_BUNDLE ?= DSP8010_2024.3
-.PHONY: download-redfish-schema
-download-schema: ## Download the Redfish schema.
-	test -d ./hack/$(REDFISH_SCHEMA_BUNDLE) || \
-	( curl -sSL https://www.dmtf.org/sites/default/files/standards/documents/$(REDFISH_SCHEMA_BUNDLE).zip -o ./hack/$(REDFISH_SCHEMA_BUNDLE).zip && \
-	unzip -q -d ./hack/ ./hack/$(REDFISH_SCHEMA_BUNDLE).zip && \
-	rm -f ./hack/$(REDFISH_SCHEMA_BUNDLE).zip )
-
-.PHONY: generate-redfish-api
-generate-redfish-api: ## Generate Redfish API server.
-	./hack/redfish/generate.sh
-
 .PHONY: fmt
 fmt: ## Run go fmt against code.
 	go fmt ./...
@@ -109,64 +58,70 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: test
-test: manifests generate generate-kubevirt-crd fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test $(shell go list ./... | grep -v /test/) -coverprofile cover.out
+test: manifests generate fmt vet setup-envtest ## Run tests.
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test $$(go list ./... | grep -v /e2e) -coverprofile cover.out
 
-GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
-GOLANGCI_LINT_VERSION ?= v1.61.0
-golangci-lint:
-	@[ -f $(GOLANGCI_LINT) ] || { \
-	set -e ;\
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell dirname $(GOLANGCI_LINT)) $(GOLANGCI_LINT_VERSION) ;\
+# TODO(user): To use a different vendor for e2e tests, modify the setup under 'tests/e2e'.
+# The default setup assumes Kind is pre-installed and builds/loads the Manager Docker image locally.
+# CertManager is installed by default; skip with:
+# - CERT_MANAGER_INSTALL_SKIP=true
+KIND_CLUSTER ?= kubevirtbmc-test-e2e
+
+.PHONY: setup-test-e2e
+setup-test-e2e: ## Set up a Kind cluster for e2e tests if it does not exist
+	@command -v $(KIND) >/dev/null 2>&1 || { \
+		echo "Kind is not installed. Please install Kind manually."; \
+		exit 1; \
 	}
+	@case "$$($(KIND) get clusters)" in \
+		*"$(KIND_CLUSTER)"*) \
+			echo "Kind cluster '$(KIND_CLUSTER)' already exists. Skipping creation." ;; \
+		*) \
+			echo "Creating Kind cluster '$(KIND_CLUSTER)'..."; \
+			$(KIND) create cluster --name $(KIND_CLUSTER) ;; \
+	esac
 
-.PHONY: e2e-setup
-e2e-setup: kind ## Setup end-to-end test environment.
-	$(KIND) create cluster --name kvbmc-e2e --config test/e2e/kind-config.yaml --image=kindest/node:$(KIND_K8S_VERSION)
+.PHONY: test-e2e
+test-e2e: setup-test-e2e manifests generate fmt vet ## Run the e2e tests. Expected an isolated environment using Kind.
+	KIND=$(KIND) KIND_CLUSTER=$(KIND_CLUSTER) go test -tags=e2e ./test/e2e/ -v -ginkgo.v
+	$(MAKE) cleanup-test-e2e
 
-.PHONY: e2e-teardown
-e2e-teardown: kind ## Teardown end-to-end test environment.
-	$(KIND) delete cluster --name kvbmc-e2e
-
-.PHONY: e2e-test
-e2e-test: generate fmt vet kind ## Run end-to-end tests.
-	go test -v ./test/...
-
-.PHONY: local-e2e-test
-local-e2e-test: e2e-setup e2e-test e2e-teardown ## Run end-to-end tests locally.
+.PHONY: cleanup-test-e2e
+cleanup-test-e2e: ## Tear down the Kind cluster used for e2e tests
+	@$(KIND) delete cluster --name $(KIND_CLUSTER)
 
 .PHONY: lint
-lint: golangci-lint ## Run golangci-lint linter & yamllint
+lint: golangci-lint ## Run golangci-lint linter
 	$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
-##@ Build
+.PHONY: lint-config
+lint-config: golangci-lint ## Verify golangci-lint linter configuration
+	$(GOLANGCI_LINT) config verify
 
-LINKFLAGS := "-X main.AppVersion=$(VERSION) -X main.GitCommit=$(COMMIT)"
+##@ Build
 
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
-	go build -ldflags $(LINKFLAGS) -o bin/manager cmd/controller/main.go
-	go build -ldflags $(LINKFLAGS) -o bin/virtbmc cmd/virtbmc/main.go
+	go build -o bin/manager cmd/main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/controller/main.go
+	go run ./cmd/main.go
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
-docker-build: ## Build docker images with the manager and the agent respectively.
-	$(CONTAINER_TOOL) build -t $(MGR_IMG) --build-arg LINKFLAGS=$(LINKFLAGS) .
-	$(CONTAINER_TOOL) build -t $(AGT_IMG) --build-arg LINKFLAGS=$(LINKFLAGS) --build-arg TARGETARCH=amd64 -f Dockerfile.virtbmc .
-ifeq ($(PUSH),true)
-	$(CONTAINER_TOOL) push $(MGR_IMG)
-	$(CONTAINER_TOOL) push $(AGT_IMG)
-endif
+docker-build: ## Build docker image with the manager.
+	$(CONTAINER_TOOL) build -t ${IMG} .
+
+.PHONY: docker-push
+docker-push: ## Push docker image with the manager.
+	$(CONTAINER_TOOL) push ${IMG}
 
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -179,14 +134,17 @@ PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 docker-buildx: ## Build and push docker image for the manager for cross-platform support
 	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
 	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
-	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile.virtbmc > Dockerfile.virtbmc.cross
-	- $(CONTAINER_TOOL) buildx create --name project-v3-builder
-	$(CONTAINER_TOOL) buildx use project-v3-builder
-	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --build-arg LINKFLAGS=$(LINKFLAGS) --tag $(MGR_IMG) -f Dockerfile.cross .
-	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --build-arg LINKFLAGS=$(LINKFLAGS) --tag $(AGT_IMG) -f Dockerfile.virtbmc.cross .
-	- $(CONTAINER_TOOL) buildx rm project-v3-builder
+	- $(CONTAINER_TOOL) buildx create --name kubevirtbmc-builder
+	$(CONTAINER_TOOL) buildx use kubevirtbmc-builder
+	- $(CONTAINER_TOOL) buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
+	- $(CONTAINER_TOOL) buildx rm kubevirtbmc-builder
 	rm Dockerfile.cross
-	rm Dockerfile.virtbmc.cross
+
+.PHONY: build-installer
+build-installer: manifests generate kustomize ## Generate a consolidated YAML with CRDs and deployment.
+	mkdir -p dist
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/default > dist/install.yaml
 
 ##@ Deployment
 
@@ -196,23 +154,24 @@ endif
 
 .PHONY: install
 install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | $(KUBECTL) apply -f -
+	@out="$$( $(KUSTOMIZE) build config/crd 2>/dev/null || true )"; \
+	if [ -n "$$out" ]; then echo "$$out" | $(KUBECTL) apply -f -; else echo "No CRDs to install; skipping."; fi
 
 .PHONY: uninstall
 uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+	@out="$$( $(KUSTOMIZE) build config/crd 2>/dev/null || true )"; \
+	if [ -n "$$out" ]; then echo "$$out" | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -; else echo "No CRDs to delete; skipping."; fi
 
-IMG ?= $(MGR_IMG)
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 
 .PHONY: undeploy
-undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
-##@ Build Dependencies
+##@ Dependencies
 
 ## Location to install dependencies to
 LOCALBIN ?= $(shell pwd)/bin
@@ -221,45 +180,61 @@ $(LOCALBIN):
 
 ## Tool Binaries
 KUBECTL ?= kubectl
+KIND ?= kind
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
-KIND ?= $(LOCALBIN)/kind
-MOCKGEN ?= $(LOCALBIN)/mockgen
+GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v5.2.1
-CONTROLLER_TOOLS_VERSION ?= v0.15.0
-KIND_VERSION ?= v0.24.0
-MOCKGEN_VERSION ?= v0.5.0
+KUSTOMIZE_VERSION ?= v5.7.1
+CONTROLLER_TOOLS_VERSION ?= v0.19.0
+#ENVTEST_VERSION is the version of controller-runtime release branch to fetch the envtest setup script (i.e. release-0.20)
+ENVTEST_VERSION ?= $(shell go list -m -f "{{ .Version }}" sigs.k8s.io/controller-runtime | awk -F'[v.]' '{printf "release-%d.%d", $$2, $$3}')
+#ENVTEST_K8S_VERSION is the version of Kubernetes to use for setting up ENVTEST binaries (i.e. 1.31)
+ENVTEST_K8S_VERSION ?= $(shell go list -m -f "{{ .Version }}" k8s.io/api | awk -F'[v.]' '{printf "1.%d", $$3}')
+GOLANGCI_LINT_VERSION ?= v2.4.0
 
 .PHONY: kustomize
-kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. If wrong version is installed, it will be removed before downloading.
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
-	@if test -x $(LOCALBIN)/kustomize && ! $(LOCALBIN)/kustomize version | grep -q $(KUSTOMIZE_VERSION); then \
-		echo "$(LOCALBIN)/kustomize version is not expected $(KUSTOMIZE_VERSION). Removing it before installing."; \
-		rm -rf $(LOCALBIN)/kustomize; \
-	fi
-	test -s $(LOCALBIN)/kustomize || GOBIN=$(LOCALBIN) GO111MODULE=on go install sigs.k8s.io/kustomize/kustomize/v5@$(KUSTOMIZE_VERSION)
+	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5,$(KUSTOMIZE_VERSION))
 
 .PHONY: controller-gen
-controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary. If wrong version is installed, it will be overwritten.
+controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
 $(CONTROLLER_GEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/controller-gen && $(LOCALBIN)/controller-gen --version | grep -q $(CONTROLLER_TOOLS_VERSION) || \
-	GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_TOOLS_VERSION)
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_TOOLS_VERSION))
+
+.PHONY: setup-envtest
+setup-envtest: envtest ## Download the binaries required for ENVTEST in the local bin directory.
+	@echo "Setting up envtest binaries for Kubernetes version $(ENVTEST_K8S_VERSION)..."
+	@$(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path || { \
+		echo "Error: Failed to set up envtest binaries for version $(ENVTEST_K8S_VERSION)."; \
+		exit 1; \
+	}
 
 .PHONY: envtest
-envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
+envtest: $(ENVTEST) ## Download setup-envtest locally if necessary.
 $(ENVTEST): $(LOCALBIN)
-	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest,$(ENVTEST_VERSION))
 
-.PHONY: kind
-kind: $(KIND) ## Download kind locally if necessary.
-$(KIND): $(LOCALBIN)
-	test -s $(LOCALBIN)/kind || GOBIN=$(LOCALBIN) GO111MODULE=on go install sigs.k8s.io/kind@$(KIND_VERSION)
+.PHONY: golangci-lint
+golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
+$(GOLANGCI_LINT): $(LOCALBIN)
+	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
 
-.PHONY: mockgen
-mockgen: $(MOCKGEN) ## Download mockgen locally if necessary.
-$(MOCKGEN): $(LOCALBIN)
-	test -s $(LOCALBIN)/mockgen || GOBIN=$(LOCALBIN) go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
-
+# go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
+# $1 - target path with name of binary
+# $2 - package url which can be installed
+# $3 - specific version of package
+define go-install-tool
+@[ -f "$(1)-$(3)" ] && [ "$$(readlink -- "$(1)" 2>/dev/null)" = "$(1)-$(3)" ] || { \
+set -e; \
+package=$(2)@$(3) ;\
+echo "Downloading $${package}" ;\
+rm -f $(1) ;\
+GOBIN=$(LOCALBIN) go install $${package} ;\
+mv $(1) $(1)-$(3) ;\
+} ;\
+ln -sf $$(realpath $(1)-$(3)) $(1)
+endef

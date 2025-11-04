@@ -13,7 +13,7 @@ import (
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/virtualmachine/v1alpha1"
 )
 
 const (

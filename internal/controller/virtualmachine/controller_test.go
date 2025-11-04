@@ -27,7 +27,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	kubevirtv1 "kubevirt.io/api/core/v1"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/virtualmachine/v1alpha1"
 )
 
 var _ = Describe("VirtualMachine Controller", func() {

@@ -30,7 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/virtualmachine/v1alpha1"
 )
 
 // VirtualMachineBMCReconciler reconciles a VirtualMachineBMC object
