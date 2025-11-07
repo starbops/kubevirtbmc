@@ -267,15 +267,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app.kubernetes.io/name: clusterrolebinding
-    app.kubernetes.io/instance: virtbmc-rolebinding
-    app.kubernetes.io/component: virtbmc-rbac
-    app.kubernetes.io/created-by: kubevirtbmc
-    app.kubernetes.io/part-of: kubevirtbmc
-    app.kubernetes.io/managed-by: kustomize
-  name: virtbmc-rolebinding
-
-  labels:
     {{- include "chart.labels" . | nindent 4 }}
     app.kubernetes.io/component: agent-rbac
     app.kubernetes.io/part-of: {{ include "chart.name" . }}
