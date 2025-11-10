@@ -23,7 +23,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'
+        go-version: '1.24.5'
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
@@ -33,6 +33,14 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: ${{ matrix.image }}
+    - name: Verify generated files are up-to-date
+      run: |
+        make manifests generate generate-kubevirt-crd
+        if ! git diff --exit-code; then
+          echo "Generated files are out of sync!"
+          echo "Please run 'make manifests generate generate-kubevirt-crd' locally and commit changes"
+          exit 1
+        fi
     - name: Lint
       run: make lint
     - name: Run tests

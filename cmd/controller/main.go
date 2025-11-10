@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"os"
@@ -31,12 +32,15 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
 	ctlservice "kubevirt.io/kubevirtbmc/internal/controller/service"
 	ctlvirtualmachine "kubevirt.io/kubevirtbmc/internal/controller/virtualmachine"
 	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
+	webhookvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/webhook/v1alpha1"
 
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	//+kubebuilder:scaffold:imports
@@ -62,19 +66,21 @@ func main() {
 		metricsAddr          string
 		enableLeaderElection bool
 		probeAddr            string
-
-		agentImageName string
-		agentImageTag  string
+		secureMetrics        bool
+		enableHTTP2          bool
+		tlsOpts              []func(*tls.Config)
+		agentImageName       string
+		agentImageTag        string
 	)
-	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8443", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
-	flag.StringVar(&agentImageName, "agent-image-name", ctlvirtualmachinebmc.VirtBMCImageName,
-		"The name of the agent image.")
+	flag.BoolVar(&secureMetrics, "secure-metrics", true, "Enable secure (HTTPS) metrics endpoint.")
+	flag.BoolVar(&enableHTTP2, "enable-http2", false, "Enable HTTP/2 support (default: disabled for security).")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election for controller manager.")
+	flag.StringVar(&agentImageName, "agent-image-name", ctlvirtualmachinebmc.VirtBMCImageName, "The name of the agent image.")
 	flag.StringVar(&agentImageTag, "agent-image-tag", AppVersion, "The tag of the agent image.")
 	showVersion := flag.Bool("version", false, "Show version.")
+
 	opts := zap.Options{
 		Development: true,
 	}
@@ -89,9 +95,36 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
+	// Disable HTTP/2 unless explicitly enabled
+	disableHTTP2 := func(c *tls.Config) {
+		setupLog.Info("disabling http/2")
+		c.NextProtos = []string{"http/1.1"}
+	}
+	if !enableHTTP2 {
+		tlsOpts = append(tlsOpts, disableHTTP2)
+	}
+
+	// Create webhook server
+	webhookServer := webhook.NewServer(webhook.Options{
+		TLSOpts: tlsOpts,
+	})
+
+	// Configure metrics server
+	metricsServerOptions := metricsserver.Options{
+		BindAddress:   metricsAddr,
+		SecureServing: secureMetrics,
+		TLSOpts:       tlsOpts,
+	}
+
+	// Add built-in authn/authz filters if using secure metrics
+	if secureMetrics {
+		metricsServerOptions.FilterProvider = filters.WithAuthenticationAndAuthorization
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
+		Metrics:                metricsServerOptions,
+		WebhookServer:          webhookServer,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "5e66b2cf.kubevirt.io",
@@ -135,11 +168,9 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "VirtualMachine")
 		os.Exit(1)
 	}
-	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-		if err = (&virtualmachinev1.VirtualMachineBMC{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "VirtualMachineBMC")
-			os.Exit(1)
-		}
+	if err = webhookvirtualmachinebmc.SetupVirtualMachineBMCWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to set up webhook", "webhook", "VirtualMachineBMC")
+		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
 

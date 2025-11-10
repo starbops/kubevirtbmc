@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.15.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: kubevirts.kubevirt.io
 spec:
   group: kubevirt.io
@@ -799,10 +799,8 @@ spec:
                                 Claims lists the names of resources, defined in spec.resourceClaims,
                                 that are used by this container.
 
-
                                 This is an alpha field and requires enabling the
                                 DynamicResourceAllocation feature gate.
-
 
                                 This field is immutable. It can only be set for containers.
                               items:
@@ -875,9 +873,7 @@ spec:
                           MinTLSVersion is a way to specify the minimum protocol version that is acceptable for TLS connections.
                           Protocol versions are based on the following most common TLS configurations:
 
-
                             https://ssl-config.mozilla.org/
-
 
                           Note that SSLv3.0 is not a supported protocol version due to well known
                           vulnerabilities such as POODLE: https://en.wikipedia.org/wiki/POODLE
@@ -1011,7 +1007,6 @@ spec:
                       description: |-
                         Name of the referent.
                         More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
-                        TODO: Add other useful fields. apiVersion, kind, uid?
                       type: string
                   type: object
                   x-kubernetes-map-type: atomic
@@ -1923,14 +1918,12 @@ spec:
                       BatchEvictionInterval Represents the interval to wait before issuing the next
                       batch of shutdowns
 
-
                       Defaults to 1 minute
                     type: string
                   batchEvictionSize:
                     description: |-
                       BatchEvictionSize Represents the number of VMIs that can be forced updated per
                       the BatchShutdownInteral interval
-
 
                       Defaults to 10
                     type: integer
@@ -1941,7 +1934,6 @@ spec:
                       When multiple methods are present, the least disruptive method takes
                       precedence over more disruptive methods. For example if both LiveMigrate and Shutdown
                       methods are listed, only VMs which are not live migratable will be restarted/shutdown
-
 
                       An empty list defaults to no automated workload updating
                     items:

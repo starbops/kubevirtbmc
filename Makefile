@@ -17,10 +17,10 @@ REPO ?= starbops
 MGR_IMG ?= $(REPO)/virtbmc-controller:$(TAG)
 AGT_IMG ?= $(REPO)/virtbmc:$(TAG)
 
-K8S_VERSION = 1.28.13
+K8S_VERSION = 1.34.0
 KIND_K8S_VERSION = v$(shell echo $(K8S_VERSION))
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.28.x
+ENVTEST_K8S_VERSION = 1.34.x
 export CERT_MANAGER_VERSION = v1.14.2
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -113,7 +113,7 @@ test: manifests generate generate-kubevirt-crd fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test $(shell go list ./... | grep -v /test/) -coverprofile cover.out
 
 GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
-GOLANGCI_LINT_VERSION ?= v1.61.0
+GOLANGCI_LINT_VERSION ?= v2.6.1
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
 	set -e ;\
@@ -229,8 +229,8 @@ MOCKGEN ?= $(LOCALBIN)/mockgen
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.2.1
-CONTROLLER_TOOLS_VERSION ?= v0.15.0
-KIND_VERSION ?= v0.24.0
+CONTROLLER_TOOLS_VERSION ?= v0.19.0
+KIND_VERSION ?= v0.29.0
 MOCKGEN_VERSION ?= v0.5.0
 
 .PHONY: kustomize
