@@ -1,5 +1,4 @@
 ## Append samples of your project ##
 resources:
 - virtualmachine_v1_virtualmachinebmc.yaml
-- bmc_v1beta1_virtualmachinebmc.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples
