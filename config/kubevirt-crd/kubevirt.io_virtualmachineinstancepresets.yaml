@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.15.0
+    controller-gen.kubebuilder.io/version: v0.19.0
   name: virtualmachineinstancepresets.kubevirt.io
 spec:
   group: kubevirt.io
@@ -19,7 +19,6 @@ spec:
       openAPIV3Schema:
         description: |-
           Deprecated for removal in v2, please use VirtualMachineInstanceType and VirtualMachinePreference instead.
-
 
           VirtualMachineInstancePreset defines a VMI spec.domain to be applied to all VMIs that match the provided label selector
           More info: https://kubevirt.io/user-guide/virtual_machines/presets/#overrides
@@ -633,7 +632,6 @@ spec:
                                 Interface model.
                                 One of: e1000, e1000e, ne2k_pci, pcnet, rtl8139, virtio.
                                 Defaults to virtio.
-                                TODO:(ihar) switch to enums once opengen-api supports them. See: https://github.com/kubernetes/kube-openapi/issues/51
                               type: string
                             name:
                               description: |-
