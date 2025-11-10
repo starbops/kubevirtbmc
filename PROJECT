@@ -5,7 +5,6 @@
 domain: kubevirt.io
 layout:
 - go.kubebuilder.io/v4
-multigroup: true
 projectName: kubevirtbmc
 repo: kubevirt.io/kubevirtbmc
 resources:
@@ -22,12 +21,4 @@ resources:
     defaulting: true
     validation: true
     webhookVersion: v1
-- api:
-    crdVersion: v1
-    namespaced: true
-  domain: kubevirt.io
-  group: bmc
-  kind: VirtualMachineBMC
-  path: kubevirt.io/kubevirtbmc/api/bmc/v1beta1
-  version: v1beta1
 version: "3"
