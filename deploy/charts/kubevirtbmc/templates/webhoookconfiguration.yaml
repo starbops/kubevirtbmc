@@ -17,7 +17,7 @@ webhooks:
       namespace: {{ .Release.Namespace }}
       path: /mutate-virtualmachine-kubevirt-io-v1alpha1-virtualmachinebmc
   failurePolicy: Fail
-  name: mvirtualmachinebmc.kb.io
+  name: mvirtualmachinebmc-v1alpha1.kb.io
   rules:
   - apiGroups:
     - virtualmachine.kubevirt.io
@@ -49,7 +49,7 @@ webhooks:
       namespace: {{ .Release.Namespace }}
       path: /validate-virtualmachine-kubevirt-io-v1alpha1-virtualmachinebmc
   failurePolicy: Fail
-  name: vvirtualmachinebmc.kb.io
+  name: vvirtualmachinebmc-v1alpha1.kb.io
   rules:
   - apiGroups:
     - virtualmachine.kubevirt.io

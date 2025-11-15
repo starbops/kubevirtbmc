@@ -3,33 +3,31 @@ kind: Service
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
-    app.kubernetes.io/component: kube-rbac-proxy
-    app.kubernetes.io/part-of: {{ include "chart.name" . }}
-  name: {{ include "chart.name" . }}-metrics-service
+    control-plane: controller-manager
+  name: {{ include "chart.name" . }}-controller-manager-metrics-service
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
   - name: https
-    port: {{ .Values.service.metricsPort }}
+    port: 8443
     protocol: TCP
-    targetPort: metrics-server
+    targetPort: 8443
   selector:
-    {{- include "chart.selectorLabels" . | nindent 6 }}
+    {{- include "chart.selectorLabels" . | nindent 4 }}
+    control-plane: controller-manager
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     {{- include "chart.labels" . | nindent 4 }}
-    app.kubernetes.io/component: webhook
-    app.kubernetes.io/part-of: kubevirtbmc
   name: {{ include "chart.name" . }}-webhook-service
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
-  - name: https
-    port: {{ .Values.service.webhookPort }}
+  - port: 443
     protocol: TCP
-    targetPort: webhook-server
+    targetPort: 9443
   selector:
-    {{- include "chart.selectorLabels" . | nindent 6 }}
+    {{- include "chart.selectorLabels" . | nindent 4 }}
+    control-plane: controller-manager
