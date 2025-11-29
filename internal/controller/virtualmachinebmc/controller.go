@@ -158,20 +158,52 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Prepare the virtBMC Pod
-	pod := r.constructPodFromVirtualMachineBMC(&virtualMachineBMC)
-	if err := ctrl.SetControllerReference(&virtualMachineBMC, pod, r.Scheme); err != nil {
+	desiredPod := r.constructPodFromVirtualMachineBMC(&virtualMachineBMC)
+	if err := ctrl.SetControllerReference(&virtualMachineBMC, desiredPod, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// Create the virtBMC Pod on the cluster
-	if err := r.Create(ctx, pod); err != nil && !apierrors.IsAlreadyExists(err) {
-		log.Error(err, "unable to create Pod for VirtualMachineBMC", "pod", pod)
+	existingPod := &corev1.Pod{}
+	podKey := client.ObjectKey{Name: desiredPod.Name, Namespace: desiredPod.Namespace}
+
+	err := r.Get(ctx, podKey, existingPod)
+	podExists := err == nil
+
+	if err != nil && !apierrors.IsNotFound(err) {
+		log.Error(err, "unable to fetch existing Pod", "pod", podKey)
 		return ctrl.Result{}, err
 	}
 
-	log.V(1).Info("created Pod for VirtualMachineBMC", "pod", pod)
+	if podExists {
+		desiredImage := fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag)
+		existingImage := existingPod.Spec.Containers[0].Image
 
+		if existingImage != desiredImage {
+			log.Info("agent pod image mismatch detected, deleting pod for rollout",
+				"pod", podKey,
+				"existingImage", existingImage,
+				"desiredImage", desiredImage)
+
+			if err := r.Delete(ctx, existingPod); err != nil {
+				if apierrors.IsNotFound(err) {
+					log.Info("Pod already deleted by another reconcile, continuing", "pod", podKey)
+				} else {
+					log.Error(err, "unable to delete Pod", "pod", podKey)
+					return ctrl.Result{}, err
+				}
+			}
+			return ctrl.Result{Requeue: true}, nil
+		}
+
+		log.V(1).Info("Pod already exists with correct image", "pod", podKey)
+
+	} else {
+		if err := r.Create(ctx, desiredPod); err != nil {
+			log.Error(err, "unable to create Pod", "pod", desiredPod)
+			return ctrl.Result{}, err
+		}
+		log.V(1).Info("created Pod", "pod", desiredPod)
+	}
 	// Prepare the virtBMC Service
 	svc := r.constructServiceFromVirtualMachineBMC(&virtualMachineBMC)
 	if err := ctrl.SetControllerReference(&virtualMachineBMC, svc, r.Scheme); err != nil {
