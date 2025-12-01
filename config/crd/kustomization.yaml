@@ -3,6 +3,7 @@
 # It should be run by config/default
 resources:
 - bases/virtualmachine.kubevirt.io_virtualmachinebmcs.yaml
+- bases/bmc.kubevirt.io_virtualmachinebmcs.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patches:

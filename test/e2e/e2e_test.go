@@ -13,7 +13,7 @@ import (
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	bmcv1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 )
 
 const (
@@ -56,7 +56,7 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 
 	Context("initially", func() {
 		It("should have no VirtualMachineBMCs", func() {
-			var vmBMCList virtualmachinev1.VirtualMachineBMCList
+			var vmBMCList bmcv1.VirtualMachineBMCList
 			err := k8sClient.List(context.TODO(), &vmBMCList, &client.ListOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(vmBMCList.Items).To(HaveLen(0))
@@ -66,7 +66,7 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 	Context("a new virtual machine", func() {
 		var (
 			vm           kubevirtv1.VirtualMachine
-			createdVMBMC *virtualmachinev1.VirtualMachineBMC
+			createdVMBMC *bmcv1.VirtualMachineBMC
 		)
 
 		Specify("a VirtualMachine", func() {
@@ -98,7 +98,7 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 				Name:      strings.Join([]string{vm.Namespace, vm.Name}, "-"),
 				Namespace: kubeVirtBMCNamespace,
 			}
-			createdVMBMC = &virtualmachinev1.VirtualMachineBMC{}
+			createdVMBMC = &bmcv1.VirtualMachineBMC{}
 			Eventually(func() bool {
 				err := k8sClient.Get(context.TODO(), vmBMCLookupKey, createdVMBMC)
 				return err == nil

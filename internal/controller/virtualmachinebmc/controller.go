@@ -22,15 +22,21 @@ import (
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	kubevirtv1 "kubevirt.io/api/core/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	bmcv1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 )
 
 // VirtualMachineBMCReconciler reconciles a VirtualMachineBMC object
@@ -42,22 +48,98 @@ type VirtualMachineBMCReconciler struct {
 	AgentImageTag  string
 }
 
-var (
-	ownerKey = ".metadata.controller"
-	apiGVStr = virtualmachinev1.GroupVersion.String()
+const (
+	serviceAccountName = "kubevirtbmc-virtbmc"
+	clusterRoleName    = "kubevirtbmc-virtbmc-role"
+	roleBindingName    = "kubevirtbmc-virtbmc-rolebinding"
 )
 
-func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualMachineBMC *virtualmachinev1.VirtualMachineBMC) *corev1.Pod {
-	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Name)
+var (
+	ownerKey = ".metadata.controller"
+	apiGVStr = bmcv1.GroupVersion.String()
+)
+
+func (r *VirtualMachineBMCReconciler) constructServiceAccount(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.ServiceAccount {
+	sa := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceAccountName,
+			Namespace: virtualMachineBMC.Namespace,
+		},
+	}
+	return sa
+}
+
+func (r *VirtualMachineBMCReconciler) constructRoleBinding(virtualMachineBMC *bmcv1.VirtualMachineBMC) *rbacv1.RoleBinding {
+	rb := &rbacv1.RoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      roleBindingName,
+			Namespace: virtualMachineBMC.Namespace,
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     clusterRoleName,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      serviceAccountName,
+				Namespace: virtualMachineBMC.Namespace,
+			},
+		},
+	}
+	return rb
+}
+
+func (r *VirtualMachineBMCReconciler) ensureRBACResources(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC) error {
+	log := log.FromContext(ctx)
+
+	sa := r.constructServiceAccount(virtualMachineBMC)
+
+	if err := ctrl.SetControllerReference(virtualMachineBMC, sa, r.Scheme); err != nil {
+		return err
+	}
+
+	if err := r.Create(ctx, sa); err != nil {
+		if !apierrors.IsAlreadyExists(err) {
+			log.Error(err, "unable to create ServiceAccount", "serviceAccount", sa.Name)
+			return err
+		}
+		log.V(1).Info("ServiceAccount already exists", "serviceAccount", sa.Name)
+	} else {
+		log.V(1).Info("created ServiceAccount", "serviceAccount", sa.Name)
+	}
+
+	rb := r.constructRoleBinding(virtualMachineBMC)
+
+	if err := ctrl.SetControllerReference(virtualMachineBMC, rb, r.Scheme); err != nil {
+		return err
+	}
+
+	if err := r.Create(ctx, rb); err != nil {
+		if !apierrors.IsAlreadyExists(err) {
+			log.Error(err, "unable to create RoleBinding", "roleBinding", rb.Name)
+			return err
+		}
+		log.V(1).Info("RoleBinding already exists", "roleBinding", rb.Name)
+	} else {
+		log.V(1).Info("created RoleBinding", "roleBinding", rb.Name)
+	}
+
+	return nil
+}
+
+func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.Pod {
+	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
 
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
 				VirtualMachineBMCNameLabel: virtualMachineBMC.Name,
-				VMNameLabel:                virtualMachineBMC.Spec.VirtualMachineName,
+				VMNameLabel:                virtualMachineBMC.Spec.VirtualMachineRef.Name,
 			},
 			Name:      name,
-			Namespace: VirtualMachineBMCNamespace,
+			Namespace: virtualMachineBMC.Namespace,
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
@@ -71,8 +153,8 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 						strconv.Itoa(ipmiPort),
 						"--redfish-port",
 						strconv.Itoa(redfishPort),
-						virtualMachineBMC.Spec.VirtualMachineNamespace,
-						virtualMachineBMC.Spec.VirtualMachineName,
+						virtualMachineBMC.Namespace,
+						virtualMachineBMC.Spec.VirtualMachineRef.Name,
 					},
 					Ports: []corev1.ContainerPort{
 						{
@@ -88,24 +170,24 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 					},
 				},
 			},
-			ServiceAccountName: "kubevirtbmc-virtbmc",
+			ServiceAccountName: serviceAccountName,
 		},
 	}
 
 	return pod
 }
 
-func (r *VirtualMachineBMCReconciler) constructServiceFromVirtualMachineBMC(virtualMachineBMC *virtualmachinev1.VirtualMachineBMC) *corev1.Service {
-	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Name)
+func (r *VirtualMachineBMCReconciler) constructServiceFromVirtualMachineBMC(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.Service {
+	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
 				VirtualMachineBMCNameLabel: virtualMachineBMC.Name,
-				VMNameLabel:                virtualMachineBMC.Spec.VirtualMachineName,
+				VMNameLabel:                virtualMachineBMC.Spec.VirtualMachineRef.Name,
 			},
 			Name:      name,
-			Namespace: VirtualMachineBMCNamespace,
+			Namespace: virtualMachineBMC.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Selector: map[string]string{
@@ -131,11 +213,48 @@ func (r *VirtualMachineBMCReconciler) constructServiceFromVirtualMachineBMC(virt
 	return svc
 }
 
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs/finalizers,verbs=update
-//+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
+func (r *VirtualMachineBMCReconciler) validateVirtualMachineExists(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC) (bool, error) {
+	log := log.FromContext(ctx)
+
+	vmKey := client.ObjectKey{
+		Namespace: virtualMachineBMC.Namespace,
+		Name:      virtualMachineBMC.Spec.VirtualMachineRef.Name,
+	}
+
+	var vm kubevirtv1.VirtualMachine
+	if err := r.Get(ctx, vmKey, &vm); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info("Referenced VirtualMachine not found",
+				"vm", virtualMachineBMC.Spec.VirtualMachineRef.Name,
+				"namespace", virtualMachineBMC.Namespace)
+
+			if changed := meta.SetStatusCondition(&virtualMachineBMC.Status.Conditions, metav1.Condition{
+				Type:   bmcv1.ConditionReady,
+				Status: metav1.ConditionFalse,
+				Reason: "VirtualMachineNotFound",
+				Message: fmt.Sprintf("VirtualMachine %q not found in namespace %q",
+					virtualMachineBMC.Spec.VirtualMachineRef.Name,
+					virtualMachineBMC.Namespace),
+			}); changed {
+				return false, r.Status().Update(ctx, virtualMachineBMC)
+			}
+			return false, nil
+		}
+
+		log.Error(err, "error checking VirtualMachine existence")
+		return false, err
+	}
+
+	return true, nil
+}
+
+//+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch;update;patch
+//+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachineinstances,verbs=get;list;watch;delete
+//+kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs/finalizers,verbs=update
+//+kubebuilder:rbac:groups="",resources=pods;services;serviceaccounts,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -149,13 +268,25 @@ func (r *VirtualMachineBMCReconciler) constructServiceFromVirtualMachineBMC(virt
 func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 
-	var virtualMachineBMC virtualmachinev1.VirtualMachineBMC
+	var virtualMachineBMC bmcv1.VirtualMachineBMC
 	if err := r.Get(ctx, req.NamespacedName, &virtualMachineBMC); err != nil {
 		if apierrors.IsNotFound(err) {
 			return ctrl.Result{}, nil
 		}
 		log.Error(err, "unable to fetch VirtualMachineBMC")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	exists, err := r.validateVirtualMachineExists(ctx, &virtualMachineBMC)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if !exists {
+		return ctrl.Result{}, nil
+	}
+
+	if err := r.ensureRBACResources(ctx, &virtualMachineBMC); err != nil {
+		return ctrl.Result{}, err
 	}
 
 	// Prepare the virtBMC Pod
@@ -228,8 +359,42 @@ func (r *VirtualMachineBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&virtualmachinev1.VirtualMachineBMC{}).
+		For(&bmcv1.VirtualMachineBMC{}).
 		Owns(&corev1.Pod{}).
 		Owns(&corev1.Service{}).
+		Owns(&corev1.ServiceAccount{}).
+		Owns(&rbacv1.RoleBinding{}).
+		Watches(
+			&kubevirtv1.VirtualMachine{},
+			handler.EnqueueRequestsFromMapFunc(r.findVirtualMachineBMCsForVM),
+		).
 		Complete(r)
+}
+
+func (r *VirtualMachineBMCReconciler) findVirtualMachineBMCsForVM(ctx context.Context, vm client.Object) []reconcile.Request {
+	log := log.FromContext(ctx)
+
+	// List all VirtualMachineBMCs in the same namespace as the VM
+	var vmBMCList bmcv1.VirtualMachineBMCList
+	if err := r.List(ctx, &vmBMCList, client.InNamespace(vm.GetNamespace())); err != nil {
+		log.Error(err, "unable to list VirtualMachineBMCs")
+		return []reconcile.Request{}
+	}
+
+	var requests []reconcile.Request
+	for _, vmBMC := range vmBMCList.Items {
+		if vmBMC.Spec.VirtualMachineRef.Name == vm.GetName() {
+			log.Info("Enqueueing VirtualMachineBMC due to VirtualMachine change",
+				"vm", vm.GetName(),
+				"vmBMC", vmBMC.Name)
+			requests = append(requests, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      vmBMC.Name,
+					Namespace: vmBMC.Namespace,
+				},
+			})
+		}
+	}
+
+	return requests
 }

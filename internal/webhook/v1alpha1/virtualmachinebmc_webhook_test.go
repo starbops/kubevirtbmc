@@ -20,7 +20,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	virtualmachinev1alpha1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	virtualmachinev1alpha1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 	// TODO (user): Add any additional imports if needed
 )
 

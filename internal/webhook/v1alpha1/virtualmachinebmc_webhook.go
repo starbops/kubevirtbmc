@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
-	virtualmachinev1alpha1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	virtualmachinev1alpha1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 )
 
 // nolint:unused
