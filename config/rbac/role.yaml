@@ -8,6 +8,7 @@ rules:
   - ""
   resources:
   - pods
+  - serviceaccounts
   - services
   verbs:
   - create
@@ -16,6 +17,42 @@ rules:
   - list
   - patch
   - update
+  - watch
+- apiGroups:
+  - bmc.kubevirt.io
+  resources:
+  - virtualmachinebmcs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - bmc.kubevirt.io
+  resources:
+  - virtualmachinebmcs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - bmc.kubevirt.io
+  - virtualmachine.kubevirt.io
+  resources:
+  - virtualmachinebmcs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - kubevirt.io
+  resources:
+  - virtualmachineinstances
+  verbs:
+  - delete
+  - get
+  - list
   - watch
 - apiGroups:
   - kubevirt.io
@@ -28,9 +65,9 @@ rules:
   - update
   - watch
 - apiGroups:
-  - virtualmachine.kubevirt.io
+  - rbac.authorization.k8s.io
   resources:
-  - virtualmachinebmcs
+  - rolebindings
   verbs:
   - create
   - delete
@@ -42,14 +79,8 @@ rules:
 - apiGroups:
   - virtualmachine.kubevirt.io
   resources:
-  - virtualmachinebmcs/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - virtualmachine.kubevirt.io
-  resources:
-  - virtualmachinebmcs/status
+  - virtualmachinebmcs
   verbs:
   - get
-  - patch
-  - update
+  - list
+  - watch

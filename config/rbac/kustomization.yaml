@@ -22,6 +22,9 @@ resources:
 # default, aiding admins in cluster management. Those roles are
 # not used by the kubevirtbmc itself. You can comment the following lines
 # if you do not want those helpers be installed with your Project.
+- bmc_virtualmachinebmc_admin_role.yaml
+- bmc_virtualmachinebmc_editor_role.yaml
+- bmc_virtualmachinebmc_viewer_role.yaml
 - virtualmachinebmc_admin_role.yaml
 - virtualmachinebmc_editor_role.yaml
 - virtualmachinebmc_viewer_role.yaml

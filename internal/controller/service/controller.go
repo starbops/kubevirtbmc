@@ -23,13 +23,15 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	bmcv1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
 )
 
@@ -67,7 +69,7 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		Name:      virtualMachineBMCName,
 	}
 
-	var virtualMachineBMC virtualmachinev1.VirtualMachineBMC
+	var virtualMachineBMC bmcv1.VirtualMachineBMC
 	if err := s.Get(ctx, virtualMachineBMCNamespacedName, &virtualMachineBMC); err != nil {
 		log.Error(err, "unable to fetch VirtualMachineBMC")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -77,8 +79,21 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if svc.Spec.ClusterIP == "" {
 		return ctrl.Result{RequeueAfter: time.Second * 10}, fmt.Errorf("clusterIP is not ready yet")
 	}
-	virtualMachineBMC.Status.Ready = true
-	virtualMachineBMC.Status.ServiceIP = svc.Spec.ClusterIP
+	if changed := meta.SetStatusCondition(
+		&virtualMachineBMC.Status.Conditions,
+		metav1.Condition{
+			Type:    bmcv1.ConditionReady,
+			Status:  metav1.ConditionTrue,
+			Reason:  "ServiceReady",
+			Message: "ClusterIP assigned to the Service",
+		},
+	); changed {
+		if err := s.Status().Update(ctx, &virtualMachineBMC); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	virtualMachineBMC.Status.ClusterIP = svc.Spec.ClusterIP
 	if err := s.Status().Update(ctx, &virtualMachineBMC); err != nil {
 		log.Error(err, "unable to update VirtualMachineBMC status")
 		return ctrl.Result{}, err

@@ -1,0 +1,9 @@
+apiVersion: bmc.kubevirt.io/v1beta1
+kind: VirtualMachineBMC
+metadata:
+  name: virtualmachinebmc-sample
+spec:
+  virtualMachineRef:
+    name: testvm
+  authSecretRef:
+    name: bmc-credentials-secret

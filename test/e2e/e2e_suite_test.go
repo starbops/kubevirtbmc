@@ -22,7 +22,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	bmcv1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 	"kubevirt.io/kubevirtbmc/test/util"
 )
 
@@ -76,7 +76,7 @@ var _ = BeforeSuite(func() {
 	crdClient, err = apiextcs.NewForConfig(config)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(kubevirtv1.AddToScheme(scheme.Scheme)).To(Succeed())
-	Expect(virtualmachinev1.AddToScheme(scheme.Scheme)).To(Succeed())
+	Expect(bmcv1.AddToScheme(scheme.Scheme)).To(Succeed())
 	k8sClient, err = client.New(config, client.Options{Scheme: scheme.Scheme})
 	Expect(err).ToNot(HaveOccurred())
 
