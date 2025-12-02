@@ -39,7 +39,7 @@ import (
 	bmcv1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 	ctlservice "kubevirt.io/kubevirtbmc/internal/controller/service"
 	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
-	webhookvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/webhook/v1alpha1"
+	webhookvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/webhook/bmc/v1beta1"
 
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	//+kubebuilder:scaffold:imports

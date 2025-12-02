@@ -1,0 +1,362 @@
+/*
+Copyright 2024.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package v1beta1
+
+import (
+	"context"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kubevirtv1 "kubevirt.io/api/core/v1"
+
+	bmcv1beta1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
+)
+
+func boolPtr(b bool) *bool {
+	return &b
+}
+
+var _ = Describe("VirtualMachineBMC Webhook", func() {
+	var (
+		ctx        context.Context
+		obj        *bmcv1beta1.VirtualMachineBMC
+		oldObj     *bmcv1beta1.VirtualMachineBMC
+		validator  VirtualMachineBMCCustomValidator
+		defaulter  VirtualMachineBMCCustomDefaulter
+		namespace  string
+		vmName     string
+		secretName string
+	)
+
+	BeforeEach(func() {
+		ctx = context.Background()
+		namespace = "default"
+		vmName = "test-vm"
+		secretName = "test-secret"
+
+		obj = &bmcv1beta1.VirtualMachineBMC{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test-vmbmc",
+				Namespace: namespace,
+			},
+		}
+		oldObj = &bmcv1beta1.VirtualMachineBMC{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "test-vmbmc",
+				Namespace: namespace,
+			},
+		}
+		validator = VirtualMachineBMCCustomValidator{
+			Client: k8sClient,
+		}
+		defaulter = VirtualMachineBMCCustomDefaulter{}
+	})
+
+	AfterEach(func() {
+		// Clean up test resources
+		vm := &kubevirtv1.VirtualMachine{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      vmName,
+				Namespace: namespace,
+			},
+		}
+		_ = k8sClient.Delete(ctx, vm)
+
+		secret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      secretName,
+				Namespace: namespace,
+			},
+		}
+		_ = k8sClient.Delete(ctx, secret)
+	})
+
+	Context("When creating VirtualMachineBMC under Defaulting Webhook", func() {
+		It("Should not modify the object when defaults are not needed", func() {
+			By("calling the Default method")
+			originalSpec := obj.Spec.DeepCopy()
+			err := defaulter.Default(ctx, obj)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(obj.Spec).To(Equal(*originalSpec))
+		})
+	})
+
+	Context("When creating VirtualMachineBMC under Validating Webhook", func() {
+		It("Should deny creation if VirtualMachineRef is nil", func() {
+			By("creating a VirtualMachineBMC without VirtualMachineRef")
+			obj.Spec.VirtualMachineRef = nil
+
+			_, err := validator.ValidateCreate(ctx, obj)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("spec.virtualMachineRef is required"))
+		})
+
+		It("Should deny creation if VirtualMachineRef.Name is empty", func() {
+			By("creating a VirtualMachineBMC with empty VirtualMachineRef.Name")
+			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
+				Name: "",
+			}
+
+			_, err := validator.ValidateCreate(ctx, obj)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("spec.virtualMachineRef.name cannot be empty"))
+		})
+
+		It("Should deny creation if VirtualMachine does not exist", func() {
+			By("creating a VirtualMachineBMC referencing a non-existent VirtualMachine")
+			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
+				Name: "non-existent-vm",
+			}
+
+			_, err := validator.ValidateCreate(ctx, obj)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not found in namespace"))
+		})
+
+		It("Should deny creation if AuthSecretRef is provided but Secret does not exist", func() {
+			By("creating a VirtualMachine first")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName,
+					Namespace: namespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					Running: boolPtr(false),
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
+
+			By("creating a VirtualMachineBMC with non-existent Secret reference")
+			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
+				Name: vmName,
+			}
+			obj.Spec.AuthSecretRef = &corev1.LocalObjectReference{
+				Name: "non-existent-secret",
+			}
+
+			_, err := validator.ValidateCreate(ctx, obj)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not found in namespace"))
+		})
+
+		It("Should deny creation if AuthSecretRef.Name is empty", func() {
+			By("creating a VirtualMachine first")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName,
+					Namespace: namespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					Running: boolPtr(false),
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
+
+			By("creating a VirtualMachineBMC with empty AuthSecretRef.Name")
+			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
+				Name: vmName,
+			}
+			obj.Spec.AuthSecretRef = &corev1.LocalObjectReference{
+				Name: "",
+			}
+
+			_, err := validator.ValidateCreate(ctx, obj)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("spec.authSecretRef.name cannot be empty"))
+		})
+
+		It("Should accept creation if VirtualMachine exists and AuthSecretRef is not provided", func() {
+			By("creating a VirtualMachine first")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName,
+					Namespace: namespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					Running: boolPtr(false),
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
+
+			By("creating a VirtualMachineBMC with valid VirtualMachineRef and no AuthSecretRef")
+			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
+				Name: vmName,
+			}
+			obj.Spec.AuthSecretRef = nil
+
+			_, err := validator.ValidateCreate(ctx, obj)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("Should accept creation if VirtualMachine and Secret both exist", func() {
+			By("creating a VirtualMachine first")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName,
+					Namespace: namespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					Running: boolPtr(false),
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
+
+			By("creating a Secret")
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretName,
+					Namespace: namespace,
+				},
+				Data: map[string][]byte{
+					"username": []byte("admin"),
+					"password": []byte("password"),
+				},
+			}
+			Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
+
+			By("creating a VirtualMachineBMC with valid VirtualMachineRef and AuthSecretRef")
+			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
+				Name: vmName,
+			}
+			obj.Spec.AuthSecretRef = &corev1.LocalObjectReference{
+				Name: secretName,
+			}
+
+			_, err := validator.ValidateCreate(ctx, obj)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
+	Context("When updating VirtualMachineBMC under Validating Webhook", func() {
+		It("Should deny update if VirtualMachineRef is nil", func() {
+			By("updating a VirtualMachineBMC without VirtualMachineRef")
+			obj.Spec.VirtualMachineRef = nil
+
+			_, err := validator.ValidateUpdate(ctx, oldObj, obj)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("spec.virtualMachineRef is required"))
+		})
+
+		It("Should deny update if VirtualMachine does not exist", func() {
+			By("updating a VirtualMachineBMC referencing a non-existent VirtualMachine")
+			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
+				Name: "non-existent-vm",
+			}
+
+			_, err := validator.ValidateUpdate(ctx, oldObj, obj)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not found in namespace"))
+		})
+
+		It("Should deny update if AuthSecretRef is provided but Secret does not exist", func() {
+			By("creating a VirtualMachine first")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName,
+					Namespace: namespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					Running: boolPtr(false),
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
+
+			By("updating a VirtualMachineBMC with non-existent Secret reference")
+			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
+				Name: vmName,
+			}
+			obj.Spec.AuthSecretRef = &corev1.LocalObjectReference{
+				Name: "non-existent-secret",
+			}
+
+			_, err := validator.ValidateUpdate(ctx, oldObj, obj)
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("not found in namespace"))
+		})
+
+		It("Should accept update if VirtualMachine and Secret both exist", func() {
+			By("creating a VirtualMachine first")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName,
+					Namespace: namespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					Running: boolPtr(false),
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
+
+			By("creating a Secret")
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretName,
+					Namespace: namespace,
+				},
+				Data: map[string][]byte{
+					"username": []byte("admin"),
+					"password": []byte("password"),
+				},
+			}
+			Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
+
+			By("updating a VirtualMachineBMC with valid VirtualMachineRef and AuthSecretRef")
+			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
+				Name: vmName,
+			}
+			obj.Spec.AuthSecretRef = &corev1.LocalObjectReference{
+				Name: secretName,
+			}
+
+			_, err := validator.ValidateUpdate(ctx, oldObj, obj)
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
+})
