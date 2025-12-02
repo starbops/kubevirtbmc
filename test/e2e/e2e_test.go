@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
@@ -17,7 +18,8 @@ import (
 )
 
 const (
-	kubeVirtBMCNamespace = "kubevirtbmc-system"
+	serviceAccountName = "kubevirtbmc-virtbmc"
+	roleBindingName    = "kubevirtbmc-virtbmc-rolebinding"
 )
 
 var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
@@ -93,22 +95,48 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("should create a VirtualMachineBMC", func() {
-			vmBMCLookupKey := types.NamespacedName{
-				Name:      strings.Join([]string{vm.Namespace, vm.Name}, "-"),
-				Namespace: kubeVirtBMCNamespace,
+		It("should allow the user to create a VirtualMachineBMC in the same namespace", func() {
+			createdVMBMC = &bmcv1.VirtualMachineBMC{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      strings.Join([]string{vm.Namespace, vm.Name}, "-"),
+					Namespace: vm.Namespace,
+				},
+				Spec: bmcv1.VirtualMachineBMCSpec{
+					VirtualMachineRef: &corev1.LocalObjectReference{
+						Name: vm.Name,
+					},
+				},
 			}
-			createdVMBMC = &bmcv1.VirtualMachineBMC{}
+			err := k8sClient.Create(context.TODO(), createdVMBMC)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should create ServiceAccount and RoleBinding in the same namespace", func() {
+			saLookupKey := types.NamespacedName{
+				Name:      serviceAccountName,
+				Namespace: createdVMBMC.Namespace,
+			}
+			sa := &corev1.ServiceAccount{}
 			Eventually(func() bool {
-				err := k8sClient.Get(context.TODO(), vmBMCLookupKey, createdVMBMC)
+				err := k8sClient.Get(context.TODO(), saLookupKey, sa)
+				return err == nil
+			}, timeout, interval).Should(BeTrue())
+
+			rbLookupKey := types.NamespacedName{
+				Name:      roleBindingName,
+				Namespace: createdVMBMC.Namespace,
+			}
+			rb := &rbacv1.RoleBinding{}
+			Eventually(func() bool {
+				err := k8sClient.Get(context.TODO(), rbLookupKey, rb)
 				return err == nil
 			}, timeout, interval).Should(BeTrue())
 		})
 
-		It("should create a agent Pod", func() {
+		It("should create an agent Pod in the same namespace", func() {
 			agentPodLookupKey := types.NamespacedName{
-				Name:      strings.Join([]string{createdVMBMC.Name, "virtbmc"}, "-"),
-				Namespace: kubeVirtBMCNamespace,
+				Name:      strings.Join([]string{createdVMBMC.Spec.VirtualMachineRef.Name, "virtbmc"}, "-"),
+				Namespace: createdVMBMC.Namespace,
 			}
 			pod := &corev1.Pod{}
 			Eventually(func() bool {
@@ -125,10 +153,10 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 			}, timeout, interval).Should(BeTrue())
 		})
 
-		It("should create a agent Service", func() {
+		It("should create an agent Service in the same namespace", func() {
 			agentSvcLookupKey := types.NamespacedName{
-				Name:      strings.Join([]string{createdVMBMC.Name, "virtbmc"}, "-"),
-				Namespace: kubeVirtBMCNamespace,
+				Name:      strings.Join([]string{createdVMBMC.Spec.VirtualMachineRef.Name, "virtbmc"}, "-"),
+				Namespace: createdVMBMC.Namespace,
 			}
 			svc := &corev1.Service{}
 			Eventually(func() bool {
