@@ -46,7 +46,7 @@ type VirtualMachineBMCStatus struct {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:shortName=vmbmc;vmbcms
+// +kubebuilder:resource:shortName=vmbmc;vmbmcs
 
 // VirtualMachineBMC is the Schema for the virtualmachinebmcs API
 type VirtualMachineBMC struct {

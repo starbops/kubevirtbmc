@@ -13,7 +13,7 @@ spec:
     plural: virtualmachinebmcs
     shortNames:
     - vmbmc
-    - vmbcms
+    - vmbmcs
     singular: virtualmachinebmc
   scope: Namespaced
   versions:
