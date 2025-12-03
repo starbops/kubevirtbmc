@@ -49,9 +49,7 @@ type VirtualMachineBMCReconciler struct {
 }
 
 const (
-	serviceAccountName = "kubevirtbmc-virtbmc"
-	clusterRoleName    = "kubevirtbmc-virtbmc-role"
-	roleBindingName    = "kubevirtbmc-virtbmc-rolebinding"
+	clusterRoleName = "kubevirtbmc-virtbmc-role"
 )
 
 var (
@@ -60,6 +58,7 @@ var (
 )
 
 func (r *VirtualMachineBMCReconciler) constructServiceAccount(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.ServiceAccount {
+	serviceAccountName := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
 	sa := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceAccountName,
@@ -70,6 +69,8 @@ func (r *VirtualMachineBMCReconciler) constructServiceAccount(virtualMachineBMC 
 }
 
 func (r *VirtualMachineBMCReconciler) constructRoleBinding(virtualMachineBMC *bmcv1.VirtualMachineBMC) *rbacv1.RoleBinding {
+	serviceAccountName := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
+	roleBindingName := fmt.Sprintf("%s-virtbmc-rolebinding", virtualMachineBMC.Spec.VirtualMachineRef.Name)
 	rb := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      roleBindingName,
@@ -131,6 +132,7 @@ func (r *VirtualMachineBMCReconciler) ensureRBACResources(ctx context.Context, v
 
 func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.Pod {
 	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
+	serviceAccountName := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
 
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
