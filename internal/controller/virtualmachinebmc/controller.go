@@ -255,8 +255,9 @@ func (r *VirtualMachineBMCReconciler) validateVirtualMachineExists(ctx context.C
 //+kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs/finalizers,verbs=update
-//+kubebuilder:rbac:groups="",resources=pods;services;serviceaccounts;secrets,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=pods;services;serviceaccounts,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=rolebindings,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
