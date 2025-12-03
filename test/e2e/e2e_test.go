@@ -73,6 +73,7 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 	Context("a new virtual machine", func() {
 		var (
 			vm           kubevirtv1.VirtualMachine
+			secret       corev1.Secret
 			createdVMBMC *bmcv1.VirtualMachineBMC
 		)
 
@@ -100,6 +101,21 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 			Expect(err).ToNot(HaveOccurred())
 		})
 
+		Specify("a Secret for BMC credentials", func() {
+			secret = corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "bmc-credentials-secret",
+					Namespace: "default",
+				},
+				Data: map[string][]byte{
+					"username": []byte("admin"),
+					"password": []byte("password"),
+				},
+			}
+			err := k8sClient.Create(context.TODO(), &secret)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
 		It("should allow the user to create a VirtualMachineBMC in the same namespace", func() {
 			createdVMBMC = &bmcv1.VirtualMachineBMC{
 				ObjectMeta: metav1.ObjectMeta{
@@ -109,6 +125,9 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 				Spec: bmcv1.VirtualMachineBMCSpec{
 					VirtualMachineRef: &corev1.LocalObjectReference{
 						Name: vm.Name,
+					},
+					AuthSecretRef: &corev1.LocalObjectReference{
+						Name: secret.Name,
 					},
 				},
 			}
