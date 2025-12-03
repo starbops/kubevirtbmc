@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -18,11 +19,15 @@ import (
 )
 
 const (
-	serviceAccountName = "kubevirtbmc-virtbmc"
-	roleBindingName    = "kubevirtbmc-virtbmc-rolebinding"
+	vmName      = "test-vm"
+	vmNamespace = "default"
+	bmcName     = "test-bmc"
 )
 
 var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
+
+	serviceAccountName := fmt.Sprintf("%s-virtbmc", vmName)
+	roleBindingName := fmt.Sprintf("%s-virtbmc-rolebinding", vmName)
 
 	It("should run successfully", func() {
 		By("validating the controller-manager pod exists")
@@ -74,8 +79,8 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 		Specify("a VirtualMachine", func() {
 			vm = kubevirtv1.VirtualMachine{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-vm",
-					Namespace: "default",
+					Name:      vmName,
+					Namespace: vmNamespace,
 				},
 				Spec: kubevirtv1.VirtualMachineSpec{
 					Running: func(b bool) *bool { return &b }(true),
@@ -98,7 +103,7 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 		It("should allow the user to create a VirtualMachineBMC in the same namespace", func() {
 			createdVMBMC = &bmcv1.VirtualMachineBMC{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      strings.Join([]string{vm.Namespace, vm.Name}, "-"),
+					Name:      bmcName,
 					Namespace: vm.Namespace,
 				},
 				Spec: bmcv1.VirtualMachineBMCSpec{

@@ -18,6 +18,7 @@ package virtualmachinebmc
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -43,6 +44,9 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 	)
 
 	Context("When creating a VirtualMachineBMC", func() {
+		serviceAccountName := fmt.Sprintf("%s-virtbmc", testVMName)
+		roleBindingName := fmt.Sprintf("%s-virtbmc-rolebinding", testVMName)
+
 		It("Should create RBAC resources, Pod and Service", func() {
 			ctx := context.Background()
 
@@ -252,7 +256,7 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 
 			By("Verifying that the controller reconciles and creates RBAC resources")
 			saLookupKey := types.NamespacedName{
-				Name:      serviceAccountName,
+				Name:      "late-created-vm-virtbmc",
 				Namespace: testVirtualMachineBMCNamespace,
 			}
 			createdSA := &corev1.ServiceAccount{}
@@ -262,7 +266,7 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 			}, timeout, interval).Should(BeTrue())
 
 			rbLookupKey := types.NamespacedName{
-				Name:      roleBindingName,
+				Name:      "late-created-vm-virtbmc-rolebinding",
 				Namespace: testVirtualMachineBMCNamespace,
 			}
 			createdRB := &rbacv1.RoleBinding{}
@@ -279,7 +283,7 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 
 			Expect(createdPod.Labels).To(HaveKeyWithValue(VirtualMachineBMCNameLabel, "test-vmbmc-late-vm"))
 			Expect(createdPod.Labels).To(HaveKeyWithValue(VMNameLabel, "late-created-vm"))
-			Expect(createdPod.Spec.ServiceAccountName).To(Equal(serviceAccountName))
+			Expect(createdPod.Spec.ServiceAccountName).To(Equal("late-created-vm-virtbmc"))
 
 			By("Verifying that the Service is now created")
 			svcLookupKey := types.NamespacedName{
