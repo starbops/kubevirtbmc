@@ -19,9 +19,11 @@ import (
 )
 
 const (
-	vmName      = "test-vm"
-	vmNamespace = "default"
-	bmcName     = "test-bmc"
+	vmName                  = "test-vm"
+	vmNamespace             = "default"
+	bmcName                 = "test-bmc"
+	webhookServiceName      = "kubevirtbmc-webhook-service"
+	webhookServiceNamespace = "kubevirtbmc-system"
 )
 
 var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
@@ -59,6 +61,40 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 			}
 			return false
 		}, timeout, interval).Should(BeTrue())
+	})
+
+	Specify("the webhook service is ready", func() {
+		By("waiting for the webhook service to be ready")
+		webhookServiceKey := types.NamespacedName{
+			Name:      webhookServiceName,
+			Namespace: webhookServiceNamespace,
+		}
+		var webhookService corev1.Service
+		Eventually(func() bool {
+			err := k8sClient.Get(context.TODO(), webhookServiceKey, &webhookService)
+			if err != nil {
+				return false
+			}
+			// Check if pods matching the service selector are ready
+			selector := labels.SelectorFromSet(webhookService.Spec.Selector)
+			var podList corev1.PodList
+			err = k8sClient.List(context.TODO(), &podList, &client.ListOptions{
+				Namespace:     webhookServiceKey.Namespace,
+				LabelSelector: selector,
+			})
+			if err != nil {
+				return false
+			}
+			// Check if at least one pod is ready
+			for _, pod := range podList.Items {
+				for _, condition := range pod.Status.Conditions {
+					if condition.Type == corev1.PodReady && condition.Status == corev1.ConditionTrue {
+						return true
+					}
+				}
+			}
+			return false
+		}, timeout, interval).Should(BeTrue(), "webhook service should be ready with ready pods")
 	})
 
 	Context("initially", func() {
