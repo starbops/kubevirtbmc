@@ -173,12 +173,11 @@ func (v *VirtualMachineBMCCustomValidator) validateVirtualMachineRef(ctx context
 // validateAuthSecretRef checks if the referenced Secret exists in the same namespace.
 func (v *VirtualMachineBMCCustomValidator) validateAuthSecretRef(ctx context.Context, virtualmachinebmc *bmcv1beta1.VirtualMachineBMC) error {
 	if virtualmachinebmc.Spec.AuthSecretRef == nil {
-		// AuthSecretRef is optional, so we don't validate if it's not provided
-		return nil
+		return fmt.Errorf("spec.authSecretRef is required")
 	}
 
 	if virtualmachinebmc.Spec.AuthSecretRef.Name == "" {
-		return fmt.Errorf("spec.authSecretRef.name cannot be empty when authSecretRef is specified")
+		return fmt.Errorf("spec.authSecretRef.name cannot be empty")
 	}
 
 	secretKey := client.ObjectKey{

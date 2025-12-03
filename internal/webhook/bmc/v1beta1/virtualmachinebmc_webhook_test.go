@@ -191,7 +191,7 @@ var _ = Describe("VirtualMachineBMC Webhook", func() {
 			Expect(err.Error()).To(ContainSubstring("spec.authSecretRef.name cannot be empty"))
 		})
 
-		It("Should accept creation if VirtualMachine exists and AuthSecretRef is not provided", func() {
+		It("Should deny creation if AuthSecretRef is not provided", func() {
 			By("creating a VirtualMachine first")
 			vm := &kubevirtv1.VirtualMachine{
 				ObjectMeta: metav1.ObjectMeta{
@@ -209,14 +209,15 @@ var _ = Describe("VirtualMachineBMC Webhook", func() {
 			}
 			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
 
-			By("creating a VirtualMachineBMC with valid VirtualMachineRef and no AuthSecretRef")
+			By("creating a VirtualMachineBMC with valid VirtualMachineRef but no AuthSecretRef")
 			obj.Spec.VirtualMachineRef = &corev1.LocalObjectReference{
 				Name: vmName,
 			}
 			obj.Spec.AuthSecretRef = nil
 
 			_, err := validator.ValidateCreate(ctx, obj)
-			Expect(err).NotTo(HaveOccurred())
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("spec.authSecretRef is required"))
 		})
 
 		It("Should accept creation if VirtualMachine and Secret both exist", func() {
