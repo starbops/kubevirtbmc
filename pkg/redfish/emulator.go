@@ -12,26 +12,27 @@ import (
 	"kubevirt.io/kubevirtbmc/pkg/session"
 )
 
-const (
-	defaultUserName = "admin"
-	defaultPassword = "password"
-)
-
 type Emulator struct {
-	ctx    context.Context
-	port   int
+	ctx  context.Context
+	port int
+
+	bmcUser     string
+	bmcPassword string
+
 	wg     sync.WaitGroup
 	server *http.Server
 }
 
-func NewEmulator(ctx context.Context, port int, resourceManager resourcemanager.ResourceManager) *Emulator {
-	apiService := NewAPIService(resourceManager)
+func NewEmulator(ctx context.Context, port int, bmcUser string, bmcPassword string, resourceManager resourcemanager.ResourceManager) *Emulator {
+	apiService := NewAPIService(bmcUser, bmcPassword, resourceManager)
 	apiController := server.NewDefaultAPIController(apiService)
-	router := server.NewRouter(session.AuthMiddleware, apiController)
+	router := server.NewRouter(session.AuthMiddleware(bmcUser, bmcPassword), apiController)
 
 	return &Emulator{
-		ctx:  ctx,
-		port: port,
+		ctx:         ctx,
+		port:        port,
+		bmcUser:     bmcUser,
+		bmcPassword: bmcPassword,
 		server: &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
 			Handler: router,
