@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -80,24 +81,31 @@ func GetTokenFromSessionID(sessionID string) (TokenInfo, bool) {
 	return TokenInfo{}, false
 }
 
-func AuthMiddleware(next http.Handler) http.Handler {
+func AuthMiddleware(bmcUser, bmcPassword string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			user, pass, ok := r.BasicAuth()
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("X-Auth-Token")
-		if token == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
+			if !ok || user != bmcUser || pass != bmcPassword {
+				// Also check for X-Auth-Token for session-based authentication
+				token := r.Header.Get("X-Auth-Token")
+				if token != "" {
+					ts.rwMutex.RLock()
+					_, exists := ts.store[token]
+					ts.rwMutex.RUnlock()
+					if exists {
+						next.ServeHTTP(w, r)
+						return
+					}
+				}
 
-		ts.rwMutex.RLock()
-		_, exists := ts.store[token]
-		ts.rwMutex.RUnlock()
-
-		if !exists {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
+				w.Header().Set("WWW-Authenticate", `Basic realm="Redfish"`)
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			ctx := context.WithValue(r.Context(), "user", user)
+			r = r.WithContext(ctx)
+			next.ServeHTTP(w, r)
+		})
+	}
 }

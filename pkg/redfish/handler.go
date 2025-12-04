@@ -12,11 +12,16 @@ import (
 
 type handler struct {
 	rm resourcemanager.ResourceManager
+
+	bmcUser     string
+	bmcPassword string
 }
 
-func NewHandler(resourceManager resourcemanager.ResourceManager) *handler {
+func NewHandler(bmcUser string, bmcPassword string, resourceManager resourcemanager.ResourceManager) *handler {
 	return &handler{
 		rm: resourceManager,
+		bmcUser: bmcUser,
+		bmcPassword: bmcPassword,
 	}
 }
 
@@ -26,7 +31,7 @@ func (h *handler) Authenticate(username, password *string) (string, string, erro
 		return id, token, fmt.Errorf("username and password must be provided")
 	}
 
-	if *username != defaultUserName || *password != defaultPassword {
+	if *username != h.bmcUser || *password != h.bmcPassword {
 		return id, token, fmt.Errorf("invalid username or password")
 	}
 

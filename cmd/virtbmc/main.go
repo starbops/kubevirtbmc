@@ -70,6 +70,9 @@ func main() {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
+			options.BMCUser = os.Getenv("BMC_USERNAME")
+			options.BMCPassword = os.Getenv("BMC_PASSWORD")
+
 			ctx := context.WithValue(cCtx.Context, virtbmc.VMNamespaceKey{}, cCtx.Args().Get(0))
 			ctx = context.WithValue(ctx, virtbmc.VMNameKey{}, cCtx.Args().Get(1))
 			return run(ctx, options)

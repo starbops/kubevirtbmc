@@ -16,7 +16,7 @@ func TestAuthenticate(t *testing.T) {
 	defer ctl.Finish()
 
 	mockRM := resourcemanager.NewMockResourceManager(ctl)
-	h := NewHandler(mockRM)
+	h := NewHandler("admin", "password", mockRM)
 
 	testCases := []struct {
 		username    string
@@ -25,7 +25,6 @@ func TestAuthenticate(t *testing.T) {
 	}{
 		{username: "", password: "", expectError: true},
 		{username: "invalid", password: "credentials", expectError: true},
-		// Assuming defaultUserName and defaultPassword are "admin" and "password" respectively
 		{username: "admin", password: "password", expectError: false},
 	}
 
