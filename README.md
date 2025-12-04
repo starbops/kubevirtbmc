@@ -292,6 +292,32 @@ Content-Type: application/json; charset=UTF-8
 Date: Wed, 18 Dec 2024 16:06:12 GMT
 ```
 
+You can even attach/detach an ISO image to the VM with the Redfish virtual media function:
+
+```sh
+# Insert virtual media to the VM
+$ curl -i -X POST -H "Content-Type: application/json" -H "X-Auth-Token: 55f88d07289cf1207b7b967f1823f5b28e08c8977f6c742f8175274afb214c93" http://test-vm-virtbmc.default.svc/redfish/v1/Managers/BMC/VirtualMedia/CD1/Actions/VirtualMedia.InsertMedia -d '{"Image": "https://releases.ubuntu.com/noble/ubuntu-24.04.3-live-server-amd64.iso", "Inserted": true, "TransferMethod": "Upload", "TransferProtocolType": "HTTP"}'
+
+# Get virtual media status
+$ curl -i -H "X-Auth-Token: cd2514606d1c6996c2745560de8633db5339c73137a5063569124511543db657" http://test-vm-virtbmc.default.svc/redfish/v1/Managers/BMC/VirtualMedia/CD1
+{"@odata.context":"/redfish/v1/$metadata#VirtualMedia.VirtualMedia","@odata.id":"/redfish/v1/Managers/BMC/VirtualMedia/CD1","@odata.type":"#VirtualMedia.v1_6_3.VirtualMedia","Actions":{"#VirtualMedia.EjectMedia":{},"#VirtualMedia.InsertMedia":{}},"Certificates":{},"ClientCertificates":{},"ConnectedVia":"URI","Description":"Virtual Media","Id":"CD1","Image":"https://releases.ubuntu.com/noble/ubuntu-24.04.3-live-server-amd64.iso","ImageName":"","Inserted":true,"MediaTypes":["CD","DVD"],"Name":"Virtual Media","Status":{},"WriteProtected":false}
+
+# Eject virtual media from the VM
+$ curl -i -X POST -H "Content-Type: application/json" -H "X-Auth-Token: 55f88d07289cf1207b7b967f1823f5b28e08c8977f6c742f8175274afb214c93" http://test-vm-virtbmc.default.svc/redfish/v1/Managers/BMC/VirtualMedia/CD1/Actions/VirtualMedia.EjectMedia -d '{}'
+```
+
+Under the hood, KubeVirtBMC's Redfish virtual media function is backed by KubeVirt's `DeclarativeHotplugVolumes` feature and CDI DataVolume. As a result, you need to enable the feature gate and have CDI installed in the cluster as prerequisites. For each virtual machine that you want to use the virtual media function, its VirtualMachine resource must have a CD-ROM disk defined as a stub for volume hotplug. For instance:
+
+```yaml
+        ...
+        devices:
+          disks:
+          - cdrom:
+              bus: sata
+            name: cdrom  # The name of the CD-ROM disk can be any
+        ...
+```
+
 **Expose the Redfish API to external**
 
 Due to the nature of the Redfish API, you can expose the Redfish service to the outside of the cluster with the aid of Ingress controllers. What's more, you can use cert-manager to issue a certificate for the Redfish service. To do so, you need to create an Ingress object (assuming you have an Ingress controller, e.g. `nginx-ingress`, and cert-manager installed) for each of the VirtualMachineBMC objects you want to expose:

@@ -1,5 +1,68 @@
 package util
 
+import (
+	"fmt"
+	"net/http"
+
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kubevirtv1 "kubevirt.io/api/core/v1"
+	cdiv1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+)
+
 func Ptr[T any](value T) *T {
 	return &value
+}
+
+func GetRemoteFileSize(url string) (int64, error) {
+	resp, err := http.Head(url)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("bad status: %s", resp.Status)
+	}
+
+	size := resp.ContentLength
+	if size < 0 {
+		return 0, fmt.Errorf("content-length not available")
+	}
+
+	return size, nil
+}
+
+func ConstructDataVolume(namespace, name, url string, size int64) *cdiv1.DataVolume {
+	return &cdiv1.DataVolume{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+		},
+		Spec: cdiv1.DataVolumeSpec{
+			Source: &cdiv1.DataVolumeSource{
+				HTTP: &cdiv1.DataVolumeSourceHTTP{
+					URL: url,
+				},
+			},
+			Storage: &cdiv1.StorageSpec{
+				Resources: corev1.VolumeResourceRequirements{
+					Requests: corev1.ResourceList{
+						corev1.ResourceStorage: *resource.NewQuantity(size, resource.BinarySI),
+					},
+				},
+			},
+		},
+	}
+}
+
+func GetCdromDisk(disks []kubevirtv1.Disk) (*kubevirtv1.Disk, error) {
+	for i := range disks {
+		if disks[i].CDRom != nil {
+			return &disks[i], nil
+		}
+	}
+
+	return nil, fmt.Errorf("no cdrom disks can be found")
 }
