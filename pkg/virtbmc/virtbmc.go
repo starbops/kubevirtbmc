@@ -22,6 +22,7 @@ type Options struct {
 	Address        string
 	IPMIPort       int
 	RedfishPort    int
+	SecretRef      string
 }
 
 type VirtBMC struct {
