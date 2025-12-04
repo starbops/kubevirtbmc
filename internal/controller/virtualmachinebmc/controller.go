@@ -152,9 +152,14 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 					Name:  virtBMCContainerName,
 					Image: fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag),
 					Args: []string{
-						"--address", "0.0.0.0",
-						"--ipmi-port", strconv.Itoa(ipmiPort),
-						"--redfish-port", strconv.Itoa(redfishPort),
+						"--address",
+						"0.0.0.0",
+						"--ipmi-port",
+						strconv.Itoa(ipmiPort),
+						"--redfish-port",
+						strconv.Itoa(redfishPort),
+						"--secret-ref",
+						secretName,
 						virtualMachineBMC.Namespace,
 						virtualMachineBMC.Spec.VirtualMachineRef.Name,
 					},
@@ -236,6 +241,31 @@ func (r *VirtualMachineBMCReconciler) constructServiceFromVirtualMachineBMC(virt
 	}
 
 	return svc
+}
+
+func (r *VirtualMachineBMCReconciler) deleteVirtBMCPod(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC) error {
+	log := log.FromContext(ctx)
+	podName := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
+
+	pod := &corev1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      podName,
+			Namespace: virtualMachineBMC.Namespace,
+		},
+	}
+
+	if err := r.Delete(ctx, pod); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.V(1).Info("virtBMC Pod already absent", "pod", podName)
+			return nil
+		}
+
+		log.Error(err, "unable to delete virtBMC Pod", "pod", podName)
+		return err
+	}
+
+	log.Info("Deleted virtBMC Pod after Secret change", "pod", podName)
+	return nil
 }
 
 func (r *VirtualMachineBMCReconciler) validateVirtualMachineExists(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC) (bool, error) {
@@ -495,6 +525,10 @@ func (r *VirtualMachineBMCReconciler) findVirtualMachineBMCsForSecretAndVM(ctx c
 
 		case *corev1.Secret:
 			if vmBMC.Spec.AuthSecretRef.Name == o.GetName() {
+				vmBMCCopy := vmBMC
+				if err := r.deleteVirtBMCPod(ctx, &vmBMCCopy); err != nil {
+					log.Error(err, "unable to delete virtBMC Pod during Secret change", "vmBMC", vmBMC.Name)
+				}
 				match = true
 			}
 		}
