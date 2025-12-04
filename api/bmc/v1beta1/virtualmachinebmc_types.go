@@ -23,7 +23,9 @@ import (
 
 // Condition type constant.
 const (
-	ConditionReady = "Ready"
+	ConditionReady                   = "Ready"
+	ConditionVirtualMachineAvailable = "VirtualMachineAvailable"
+	ConditionSecretAvailable         = "SecretAvailable"
 )
 
 // VirtualMachineBMCSpec defines the desired state of VirtualMachineBMC.

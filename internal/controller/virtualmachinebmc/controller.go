@@ -53,8 +53,9 @@ const (
 )
 
 var (
-	ownerKey = ".metadata.controller"
-	apiGVStr = bmcv1.GroupVersion.String()
+	ownerKey   = ".metadata.controller"
+	apiGVStr   = bmcv1.GroupVersion.String()
+	secretKeys = []string{"username", "password"}
 )
 
 func (r *VirtualMachineBMCReconciler) constructServiceAccount(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.ServiceAccount {
@@ -133,6 +134,7 @@ func (r *VirtualMachineBMCReconciler) ensureRBACResources(ctx context.Context, v
 func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.Pod {
 	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
 	serviceAccountName := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
+	secretName := virtualMachineBMC.Spec.AuthSecretRef.Name
 
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -144,17 +146,15 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 			Namespace: virtualMachineBMC.Namespace,
 		},
 		Spec: corev1.PodSpec{
+			ServiceAccountName: serviceAccountName,
 			Containers: []corev1.Container{
 				{
 					Name:  virtBMCContainerName,
 					Image: fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag),
 					Args: []string{
-						"--address",
-						"0.0.0.0",
-						"--ipmi-port",
-						strconv.Itoa(ipmiPort),
-						"--redfish-port",
-						strconv.Itoa(redfishPort),
+						"--address", "0.0.0.0",
+						"--ipmi-port", strconv.Itoa(ipmiPort),
+						"--redfish-port", strconv.Itoa(redfishPort),
 						virtualMachineBMC.Namespace,
 						virtualMachineBMC.Spec.VirtualMachineRef.Name,
 					},
@@ -170,9 +170,32 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 							Protocol:      corev1.ProtocolTCP,
 						},
 					},
+					Env: []corev1.EnvVar{
+						{
+							Name: "BMC_USERNAME",
+							ValueFrom: &corev1.EnvVarSource{
+								SecretKeyRef: &corev1.SecretKeySelector{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: secretName,
+									},
+									Key: secretKeys[0],
+								},
+							},
+						},
+						{
+							Name: "BMC_PASSWORD",
+							ValueFrom: &corev1.EnvVarSource{
+								SecretKeyRef: &corev1.SecretKeySelector{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: secretName,
+									},
+									Key: secretKeys[1],
+								},
+							},
+						},
+					},
 				},
 			},
-			ServiceAccountName: serviceAccountName,
 		},
 	}
 
@@ -231,20 +254,81 @@ func (r *VirtualMachineBMCReconciler) validateVirtualMachineExists(ctx context.C
 				"namespace", virtualMachineBMC.Namespace)
 
 			if changed := meta.SetStatusCondition(&virtualMachineBMC.Status.Conditions, metav1.Condition{
-				Type:   bmcv1.ConditionReady,
+				Type:   bmcv1.ConditionVirtualMachineAvailable,
 				Status: metav1.ConditionFalse,
 				Reason: "VirtualMachineNotFound",
 				Message: fmt.Sprintf("VirtualMachine %q not found in namespace %q",
 					virtualMachineBMC.Spec.VirtualMachineRef.Name,
 					virtualMachineBMC.Namespace),
 			}); changed {
-				return false, r.Status().Update(ctx, virtualMachineBMC)
+				if err := r.Status().Update(ctx, virtualMachineBMC); err != nil {
+					return false, err
+				}
 			}
 			return false, nil
 		}
 
 		log.Error(err, "error checking VirtualMachine existence")
 		return false, err
+	}
+
+	if changed := meta.SetStatusCondition(&virtualMachineBMC.Status.Conditions, metav1.Condition{
+		Type:    bmcv1.ConditionVirtualMachineAvailable,
+		Status:  metav1.ConditionTrue,
+		Reason:  "VirtualMachineFound",
+		Message: fmt.Sprintf("VirtualMachine %q is available", virtualMachineBMC.Spec.VirtualMachineRef.Name),
+	}); changed {
+		if err := r.Status().Update(ctx, virtualMachineBMC); err != nil {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+func (r *VirtualMachineBMCReconciler) validateSecretExists(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC) (bool, error) {
+	log := log.FromContext(ctx)
+
+	secretKey := client.ObjectKey{
+		Namespace: virtualMachineBMC.Namespace,
+		Name:      virtualMachineBMC.Spec.AuthSecretRef.Name,
+	}
+
+	var secret corev1.Secret
+	if err := r.Get(ctx, secretKey, &secret); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info("Referenced Secret not found",
+				"secret", virtualMachineBMC.Spec.AuthSecretRef.Name,
+				"namespace", virtualMachineBMC.Namespace)
+
+			if changed := meta.SetStatusCondition(&virtualMachineBMC.Status.Conditions, metav1.Condition{
+				Type:   bmcv1.ConditionSecretAvailable,
+				Status: metav1.ConditionFalse,
+				Reason: "SecretNotFound",
+				Message: fmt.Sprintf("Secret %q not found in namespace %q",
+					virtualMachineBMC.Spec.AuthSecretRef.Name,
+					virtualMachineBMC.Namespace),
+			}); changed {
+				if err := r.Status().Update(ctx, virtualMachineBMC); err != nil {
+					return false, err
+				}
+			}
+			return false, nil
+		}
+
+		log.Error(err, "error checking Secret existence")
+		return false, err
+	}
+
+	if changed := meta.SetStatusCondition(&virtualMachineBMC.Status.Conditions, metav1.Condition{
+		Type:    bmcv1.ConditionSecretAvailable,
+		Status:  metav1.ConditionTrue,
+		Reason:  "SecretFound",
+		Message: fmt.Sprintf("Secret %q is available", virtualMachineBMC.Spec.AuthSecretRef.Name),
+	}); changed {
+		if err := r.Status().Update(ctx, virtualMachineBMC); err != nil {
+			return false, err
+		}
 	}
 
 	return true, nil
@@ -280,11 +364,21 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	exists, err := r.validateVirtualMachineExists(ctx, &virtualMachineBMC)
+	vmExists, err := r.validateVirtualMachineExists(ctx, &virtualMachineBMC)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	if !exists {
+	if !vmExists {
+		log.Info("VirtualMachine does not exist, skipping reconciliation")
+		return ctrl.Result{}, nil
+	}
+
+	secretExists, err := r.validateSecretExists(ctx, &virtualMachineBMC)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	if !secretExists {
+		log.Info("Secret does not exist, skipping reconciliation")
 		return ctrl.Result{}, nil
 	}
 
@@ -369,27 +463,46 @@ func (r *VirtualMachineBMCReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&rbacv1.RoleBinding{}).
 		Watches(
 			&kubevirtv1.VirtualMachine{},
-			handler.EnqueueRequestsFromMapFunc(r.findVirtualMachineBMCsForVM),
+			handler.EnqueueRequestsFromMapFunc(r.findVirtualMachineBMCsForSecretAndVM),
+		).
+		Watches(
+			&corev1.Secret{},
+			handler.EnqueueRequestsFromMapFunc(r.findVirtualMachineBMCsForSecretAndVM),
 		).
 		Complete(r)
 }
 
-func (r *VirtualMachineBMCReconciler) findVirtualMachineBMCsForVM(ctx context.Context, vm client.Object) []reconcile.Request {
+func (r *VirtualMachineBMCReconciler) findVirtualMachineBMCsForSecretAndVM(ctx context.Context, obj client.Object) []reconcile.Request {
 	log := log.FromContext(ctx)
 
-	// List all VirtualMachineBMCs in the same namespace as the VM
 	var vmBMCList bmcv1.VirtualMachineBMCList
-	if err := r.List(ctx, &vmBMCList, client.InNamespace(vm.GetNamespace())); err != nil {
+	if err := r.List(ctx, &vmBMCList, client.InNamespace(obj.GetNamespace())); err != nil {
 		log.Error(err, "unable to list VirtualMachineBMCs")
-		return []reconcile.Request{}
+		return nil
 	}
 
 	var requests []reconcile.Request
+
 	for _, vmBMC := range vmBMCList.Items {
-		if vmBMC.Spec.VirtualMachineRef.Name == vm.GetName() {
-			log.Info("Enqueueing VirtualMachineBMC due to VirtualMachine change",
-				"vm", vm.GetName(),
+		match := false
+
+		switch o := obj.(type) {
+		case *kubevirtv1.VirtualMachine:
+			if vmBMC.Spec.VirtualMachineRef.Name == o.GetName() {
+				match = true
+			}
+
+		case *corev1.Secret:
+			if vmBMC.Spec.AuthSecretRef.Name == o.GetName() {
+				match = true
+			}
+		}
+
+		if match {
+			log.Info("Enqueueing VirtualMachineBMC",
+				"changedObject", obj.GetName(),
 				"vmBMC", vmBMC.Name)
+
 			requests = append(requests, reconcile.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      vmBMC.Name,
