@@ -20,8 +20,8 @@ type handler struct {
 
 func NewHandler(bmcUser string, bmcPassword string, resourceManager resourcemanager.ResourceManager) *handler {
 	return &handler{
-		rm: resourceManager,
-		bmcUser: bmcUser,
+		rm:          resourceManager,
+		bmcUser:     bmcUser,
 		bmcPassword: bmcPassword,
 	}
 }
