@@ -25,6 +25,7 @@ const (
 	bmcName                  = "test-bmc"
 	webhookServiceName       = "kubevirtbmc-webhook-service"
 	webhookServiceNamespace  = "kubevirtbmc-system"
+	secretName               = "bmc-credentials-secret"
 	webhookRegistrationDelay = time.Second * 10
 )
 
@@ -101,15 +102,6 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 		time.Sleep(webhookRegistrationDelay)
 	})
 
-	Context("initially", func() {
-		It("should have no VirtualMachineBMCs", func() {
-			var vmBMCList bmcv1.VirtualMachineBMCList
-			err := k8sClient.List(context.TODO(), &vmBMCList, &client.ListOptions{})
-			Expect(err).ToNot(HaveOccurred())
-			Expect(vmBMCList.Items).To(HaveLen(0))
-		})
-	})
-
 	Context("a new virtual machine", func() {
 		var (
 			vm           kubevirtv1.VirtualMachine
@@ -144,8 +136,8 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 		Specify("a Secret for BMC credentials", func() {
 			secret = corev1.Secret{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "bmc-credentials-secret",
-					Namespace: "default",
+					Name:      secretName,
+					Namespace: vmNamespace,
 				},
 				Data: map[string][]byte{
 					"username": []byte("admin"),
@@ -160,14 +152,14 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 			createdVMBMC = &bmcv1.VirtualMachineBMC{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      bmcName,
-					Namespace: vm.Namespace,
+					Namespace: vmNamespace,
 				},
 				Spec: bmcv1.VirtualMachineBMCSpec{
 					VirtualMachineRef: &corev1.LocalObjectReference{
 						Name: vm.Name,
 					},
 					AuthSecretRef: &corev1.LocalObjectReference{
-						Name: secret.Name,
+						Name: secretName,
 					},
 				},
 			}

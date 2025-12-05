@@ -134,7 +134,10 @@ func (r *VirtualMachineBMCReconciler) ensureRBACResources(ctx context.Context, v
 func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.Pod {
 	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
 	serviceAccountName := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
-	secretName := virtualMachineBMC.Spec.AuthSecretRef.Name
+	var secretName string
+	if virtualMachineBMC.Spec.AuthSecretRef != nil {
+		secretName = virtualMachineBMC.Spec.AuthSecretRef.Name
+	}
 
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -319,6 +322,11 @@ func (r *VirtualMachineBMCReconciler) validateVirtualMachineExists(ctx context.C
 func (r *VirtualMachineBMCReconciler) validateSecretExists(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC) (bool, error) {
 	log := log.FromContext(ctx)
 
+	if virtualMachineBMC.Spec.AuthSecretRef == nil {
+		log.Info("AuthSecretRef is not set, skipping secret validation")
+		return false, nil
+	}
+
 	secretKey := client.ObjectKey{
 		Namespace: virtualMachineBMC.Namespace,
 		Name:      virtualMachineBMC.Spec.AuthSecretRef.Name,
@@ -400,6 +408,11 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 	if !vmExists {
 		log.Info("VirtualMachine does not exist, skipping reconciliation")
+		return ctrl.Result{}, nil
+	}
+
+	if virtualMachineBMC.Spec.AuthSecretRef == nil {
+		log.Info("AuthSecretRef is not set, skipping pod creation")
 		return ctrl.Result{}, nil
 	}
 
@@ -523,7 +536,7 @@ func (r *VirtualMachineBMCReconciler) findVirtualMachineBMCsForSecretAndVM(ctx c
 			}
 
 		case *corev1.Secret:
-			if vmBMC.Spec.AuthSecretRef.Name == o.GetName() {
+			if vmBMC.Spec.AuthSecretRef != nil && vmBMC.Spec.AuthSecretRef.Name == o.GetName() {
 				vmBMCCopy := vmBMC
 				if err := r.deleteVirtBMCPod(ctx, &vmBMCCopy); err != nil {
 					log.Error(err, "unable to delete virtBMC Pod during Secret change", "vmBMC", vmBMC.Name)

@@ -12,19 +12,14 @@ type Simulator struct {
 	ip   string
 	port int
 
-	bmcUser     string
-	bmcPassword string
-
 	handler *handler
 	sim     *goipmi.Simulator
 }
 
-func NewSimulator(ip string, port int, bmcUser string, bmcPassword string, resourceManager resourcemanager.ResourceManager) *Simulator {
+func NewSimulator(ip string, port int, resourceManager resourcemanager.ResourceManager) *Simulator {
 	return &Simulator{
-		ip:          ip,
-		port:        port,
-		bmcUser:     bmcUser,
-		bmcPassword: bmcPassword,
+		ip:   ip,
+		port: port,
 
 		handler: NewHandler(resourceManager),
 		sim: goipmi.NewSimulator(net.UDPAddr{

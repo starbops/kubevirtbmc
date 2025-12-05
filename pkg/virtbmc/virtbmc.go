@@ -59,7 +59,7 @@ func NewVirtBMC(ctx context.Context, options Options, inCluster bool) (*VirtBMC,
 		vmName:          ctx.Value(VMNameKey{}).(string),
 		kvClient:        kvClient,
 		resourceManager: resourceManager,
-		ipmiSimulator:   ipmi.NewSimulator(options.Address, options.IPMIPort, options.BMCUser, options.BMCPassword, resourceManager),
+		ipmiSimulator:   ipmi.NewSimulator(options.Address, options.IPMIPort, resourceManager),
 		redfishEmulator: redfish.NewEmulator(ctx, options.RedfishPort, options.BMCUser, options.BMCPassword, resourceManager),
 	}, nil
 }
