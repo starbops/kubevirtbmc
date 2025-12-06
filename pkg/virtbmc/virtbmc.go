@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
+	"kubevirt.io/client-go/kubecli"
+	cdiclient "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned"
 
-	kubevirtv1 "kubevirt.io/kubevirtbmc/pkg/generated/clientset/versioned/typed/core/v1"
 	"kubevirt.io/kubevirtbmc/pkg/ipmi"
 	"kubevirt.io/kubevirtbmc/pkg/redfish"
 	"kubevirt.io/kubevirtbmc/pkg/resourcemanager"
@@ -23,11 +24,6 @@ type Options struct {
 	RedfishPort    int
 }
 
-type KubeVirtClientInterface interface {
-	VirtualMachines(namespace string) kubevirtv1.VirtualMachineInterface
-	VirtualMachineInstances(namespace string) kubevirtv1.VirtualMachineInstanceInterface
-}
-
 type VirtBMC struct {
 	context     context.Context
 	address     string
@@ -36,7 +32,8 @@ type VirtBMC struct {
 	vmNamespace string
 	vmName      string
 
-	kvClient KubeVirtClientInterface
+	virtClient kubecli.KubevirtClient
+	cdiClient  *cdiclient.Clientset
 
 	resourceManager *resourcemanager.VirtualMachineResourceManager
 
@@ -45,8 +42,9 @@ type VirtBMC struct {
 }
 
 func NewVirtBMC(ctx context.Context, options Options, inCluster bool) (*VirtBMC, error) {
-	kvClient := NewK8sClient(options)
-	resourceManager := resourcemanager.NewVirtualMachineResourceManager(ctx, kvClient)
+	virtClient := NewVirtClient(options)
+	cdiClient := NewCdiClient(options)
+	resourceManager := resourcemanager.NewVirtualMachineResourceManager(ctx, virtClient, cdiClient)
 	return &VirtBMC{
 		context:         ctx,
 		address:         options.Address,
@@ -54,7 +52,8 @@ func NewVirtBMC(ctx context.Context, options Options, inCluster bool) (*VirtBMC,
 		redfishPort:     options.RedfishPort,
 		vmNamespace:     ctx.Value(VMNamespaceKey{}).(string),
 		vmName:          ctx.Value(VMNameKey{}).(string),
-		kvClient:        kvClient,
+		virtClient:      virtClient,
+		cdiClient:       cdiClient,
 		resourceManager: resourceManager,
 		ipmiSimulator:   ipmi.NewSimulator(options.Address, options.IPMIPort, resourceManager),
 		redfishEmulator: redfish.NewEmulator(ctx, options.RedfishPort, resourceManager),

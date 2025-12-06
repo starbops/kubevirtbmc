@@ -8,6 +8,7 @@ import (
 	"kubevirt.io/kubevirtbmc/pkg/generated/redfish/server"
 	"kubevirt.io/kubevirtbmc/pkg/resourcemanager"
 	"kubevirt.io/kubevirtbmc/pkg/session"
+	"kubevirt.io/kubevirtbmc/pkg/util"
 )
 
 type handler struct {
@@ -58,7 +59,7 @@ func (h *handler) GetServiceRoot() *server.ServiceRootV1161ServiceRoot {
 		Description:    "ServiceRoot",
 		Name:           "ServiceRoot",
 		RedfishVersion: "1.16.1",
-		UUID:           Ptr("00000000-0000-0000-0000-000000000000"),
+		UUID:           util.Ptr("00000000-0000-0000-0000-000000000000"),
 		Chassis: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Chassis",
 		},
@@ -141,33 +142,31 @@ func (h *handler) GetVirtualMediaCollection() *server.VirtualMediaCollectionVirt
 		Name:         "Virtual Media Collection",
 		Members: []server.OdataV4IdRef{
 			{
-				OdataId: "/redfish/v1/Managers/BMC/VirtualMedia/1",
+				OdataId: "/redfish/v1/Managers/BMC/VirtualMedia/CD1",
 			},
 		},
+		MembersodataCount: 1,
 	}
 }
 
-func (h *handler) GetVirtualMedia() *server.VirtualMediaV163VirtualMedia {
-	return &server.VirtualMediaV163VirtualMedia{
-		OdataContext: "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
-		OdataId:      "/redfish/v1/Managers/BMC/VirtualMedia/1",
-		OdataType:    "#VirtualMedia.v1_6_3.VirtualMedia",
-		Description:  "Virtual Media",
-		Name:         "Virtual Media",
-		Id:           "1",
-		Image:        Ptr(""),
-		ImageName:    Ptr(""),
-		Inserted:     Ptr(false),
-		MediaTypes: []server.VirtualMediaV163MediaType{
-			"CD",
-			"DVD",
-			"USBStick",
-			"Floppy",
-			"ISO",
-			"OEM",
-		},
-		WriteProtected: Ptr(false),
+func (h *handler) GetVirtualMedia() (*server.VirtualMediaV163VirtualMedia, error) {
+	virtualMedia, err := h.rm.GetVirtualMedia()
+	if err != nil {
+		return nil, err
 	}
+	adapter, ok := virtualMedia.(*resourcemanager.VirtualMediaAdapter)
+	if !ok {
+		return nil, fmt.Errorf("unexpected virtual media type: %T", virtualMedia)
+	}
+	return adapter.GetVirtualMedia(), nil
+}
+
+func (h *handler) VirtualMediaEject() error {
+	return h.rm.EjectMedia()
+}
+
+func (h *handler) VirtualMediaInsert(image string) error {
+	return h.rm.InsertMedia(image)
 }
 
 func (h *handler) GetComputerSystemCollection() *server.ComputerSystemCollectionComputerSystemCollection {
@@ -243,8 +242,4 @@ func (h *handler) ComputerSystemSetDefaultBootOrder(bootDevices []string) error 
 		bootDevice = resourcemanager.BootDevice(bootDevices[0])
 	}
 	return h.rm.SetBootDevice(bootDevice)
-}
-
-func Ptr[T any](value T) *T {
-	return &value
 }
