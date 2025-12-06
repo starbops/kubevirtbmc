@@ -292,20 +292,4 @@ subjects:
 - kind: ServiceAccount
   name: {{ include "chart.serviceAccountName" . }}-controller-manager
   namespace: {{ .Release.Namespace }}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  labels:
-    {{- include "chart.labels" . | nindent 4 }}
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/part-of: {{ include "chart.name" . }}
-  name: {{ include "chart.name" . }}-virtbmc-rolebinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ include "chart.name" . }}-virtbmc-role
-subjects:
-- kind: ServiceAccount
-  name: {{ include "chart.serviceAccountName" . }}-virtbmc
-  namespace: {{ .Release.Namespace }}
+
