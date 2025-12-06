@@ -21,6 +21,9 @@ type Options struct {
 	Address        string
 	IPMIPort       int
 	RedfishPort    int
+	SecretRef      string
+	BMCUser        string
+	BMCPassword    string
 }
 
 type KubeVirtClientInterface interface {
@@ -57,7 +60,7 @@ func NewVirtBMC(ctx context.Context, options Options, inCluster bool) (*VirtBMC,
 		kvClient:        kvClient,
 		resourceManager: resourceManager,
 		ipmiSimulator:   ipmi.NewSimulator(options.Address, options.IPMIPort, resourceManager),
-		redfishEmulator: redfish.NewEmulator(ctx, options.RedfishPort, resourceManager),
+		redfishEmulator: redfish.NewEmulator(ctx, options.RedfishPort, options.BMCUser, options.BMCPassword, resourceManager),
 	}, nil
 }
 

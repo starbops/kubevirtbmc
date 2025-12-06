@@ -93,7 +93,7 @@ func TestAuthMiddleware(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			authMiddleware := AuthMiddleware(nextHandler)
+			authMiddleware := AuthMiddleware("admin", "admin123")(nextHandler)
 
 			req, err := http.NewRequest("GET", "/", nil)
 			if err != nil {

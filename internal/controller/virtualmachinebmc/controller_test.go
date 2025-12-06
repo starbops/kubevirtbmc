@@ -25,6 +25,7 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	kubevirtv1 "kubevirt.io/api/core/v1"
@@ -37,17 +38,17 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 		testVirtualMachineBMCName      = "test-vmbmc"
 		testVirtualMachineBMCNamespace = "default"
 		testVMName                     = "test-vm"
-
-		timeout  = time.Second * 10
-		duration = time.Second * 10
-		interval = time.Millisecond * 250
+		testSecretName                 = "test-secret"
+		timeout                        = time.Second * 10
+		duration                       = time.Second * 10
+		interval                       = time.Millisecond * 250
 	)
 
 	Context("When creating a VirtualMachineBMC", func() {
 		serviceAccountName := fmt.Sprintf("%s-virtbmc", testVMName)
 		roleBindingName := fmt.Sprintf("%s-virtbmc-rolebinding", testVMName)
 
-		It("Should create RBAC resources, Pod and Service", func() {
+		It("Should create RBAC resources, Pod and Service ", func() {
 			ctx := context.Background()
 
 			By("Creating the referenced VirtualMachine first")
@@ -67,6 +68,21 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 			}
 			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
 
+			By("Creating the referenced Secret")
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      testSecretName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Type: corev1.SecretTypeOpaque,
+				Data: map[string][]byte{
+					"username": []byte("admin"),
+					"password": []byte("password123"),
+				},
+			}
+
+			Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
+
 			By("Creating a new VirtualMachineBMC")
 			virtualMachineBMC := &bmcv1.VirtualMachineBMC{
 				ObjectMeta: metav1.ObjectMeta{
@@ -80,6 +96,9 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 				Spec: bmcv1.VirtualMachineBMCSpec{
 					VirtualMachineRef: &corev1.LocalObjectReference{
 						Name: testVMName,
+					},
+					AuthSecretRef: &corev1.LocalObjectReference{
+						Name: testSecretName,
 					},
 				},
 			}
@@ -114,7 +133,6 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 			Expect(createdRB.Subjects[0].Name).To(Equal(serviceAccountName))
 
 			By("Checking that the Pod is created with correct name")
-			// Pod name is based on VM name, not BMC name
 			podLookupKey := types.NamespacedName{
 				Name:      testVMName + "-virtbmc",
 				Namespace: testVirtualMachineBMCNamespace,
@@ -133,7 +151,6 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 			Expect(createdPod.Spec.Containers[0].Name).To(Equal(virtBMCContainerName))
 
 			By("Checking that the Service is created with correct name")
-			// Service name is also based on VM name, not BMC name
 			svcLookupKey := types.NamespacedName{
 				Name:      testVMName + "-virtbmc",
 				Namespace: testVirtualMachineBMCNamespace,
@@ -149,6 +166,98 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 			Expect(createdSvc.Labels).To(HaveKeyWithValue(VMNameLabel, testVMName))
 			Expect(createdSvc.Spec.Selector).To(HaveKeyWithValue(VirtualMachineBMCNameLabel, testVirtualMachineBMCName))
 			Expect(createdSvc.Spec.Ports).To(HaveLen(2))
+		})
+
+		It("Should set correct status conditions when VirtualMachine and Secret exist", func() {
+			ctx := context.Background()
+
+			vmName := "testvm-conditions"
+			secretName := "secret-conditions"
+			bmcName := "bmc-conditions"
+
+			By("Creating the referenced VirtualMachine")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					Running: boolPtr(false),
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
+
+			By("Creating the referenced Secret")
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Type: corev1.SecretTypeOpaque,
+				Data: map[string][]byte{
+					"username": []byte("admin"),
+					"password": []byte("password123"),
+				},
+			}
+			Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
+
+			By("Creating a new VirtualMachineBMC")
+			virtualMachineBMC := &bmcv1.VirtualMachineBMC{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      bmcName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Spec: bmcv1.VirtualMachineBMCSpec{
+					VirtualMachineRef: &corev1.LocalObjectReference{
+						Name: vmName,
+					},
+					AuthSecretRef: &corev1.LocalObjectReference{
+						Name: secretName,
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, virtualMachineBMC)).To(Succeed())
+
+			By("Checking that VirtualMachineAvailable condition is set to True")
+			bmcLookupKey := types.NamespacedName{
+				Name:      bmcName,
+				Namespace: testVirtualMachineBMCNamespace,
+			}
+			Eventually(func() bool {
+				var bmc bmcv1.VirtualMachineBMC
+				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
+					return false
+				}
+				for _, cond := range bmc.Status.Conditions {
+					if cond.Type == bmcv1.ConditionVirtualMachineAvailable &&
+						cond.Status == metav1.ConditionTrue &&
+						cond.Reason == "VirtualMachineFound" {
+						return true
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+
+			By("Checking that SecretAvailable condition is set to True")
+			Eventually(func() bool {
+				var bmc bmcv1.VirtualMachineBMC
+				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
+					return false
+				}
+				for _, cond := range bmc.Status.Conditions {
+					if cond.Type == bmcv1.ConditionSecretAvailable &&
+						cond.Status == metav1.ConditionTrue &&
+						cond.Reason == "SecretFound" {
+						return true
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
 		})
 
 		It("Should set status condition when VirtualMachine does not exist", func() {
@@ -179,7 +288,7 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 					return false
 				}
 				for _, cond := range bmc.Status.Conditions {
-					if cond.Type == bmcv1.ConditionReady &&
+					if cond.Type == bmcv1.ConditionVirtualMachineAvailable &&
 						cond.Status == metav1.ConditionFalse &&
 						cond.Reason == "VirtualMachineNotFound" {
 						return true
@@ -189,58 +298,17 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 			}, timeout, interval).Should(BeTrue())
 		})
 
-		It("Should reconcile and create resources when VirtualMachine is created after VirtualMachineBMC", func() {
+		It("Should update condition when VirtualMachine is deleted and reconcile", func() {
 			ctx := context.Background()
 
-			By("Creating a VirtualMachineBMC first, before the VM exists")
-			virtualMachineBMC := &bmcv1.VirtualMachineBMC{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-vmbmc-late-vm",
-					Namespace: testVirtualMachineBMCNamespace,
-				},
-				Spec: bmcv1.VirtualMachineBMCSpec{
-					VirtualMachineRef: &corev1.LocalObjectReference{
-						Name: "late-created-vm",
-					},
-				},
-			}
-			Expect(k8sClient.Create(ctx, virtualMachineBMC)).To(Succeed())
+			vmName := "testvm-delete"
+			secretName := "secret-delete"
+			bmcName := "bmc-vm-delete"
 
-			By("Verifying that the status condition shows VM not found")
-			bmcLookupKey := types.NamespacedName{
-				Name:      "test-vmbmc-late-vm",
-				Namespace: testVirtualMachineBMCNamespace,
-			}
-			Eventually(func() bool {
-				var bmc bmcv1.VirtualMachineBMC
-				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
-					return false
-				}
-				for _, cond := range bmc.Status.Conditions {
-					if cond.Type == bmcv1.ConditionReady &&
-						cond.Status == metav1.ConditionFalse &&
-						cond.Reason == "VirtualMachineNotFound" {
-						return true
-					}
-				}
-				return false
-			}, timeout, interval).Should(BeTrue())
-
-			By("Verifying that Pod and Service are NOT created yet")
-			podLookupKey := types.NamespacedName{
-				Name:      "late-created-vm-virtbmc",
-				Namespace: testVirtualMachineBMCNamespace,
-			}
-			createdPod := &corev1.Pod{}
-			Consistently(func() bool {
-				err := k8sClient.Get(ctx, podLookupKey, createdPod)
-				return err != nil // Should not exist
-			}, time.Second*2, interval).Should(BeTrue())
-
-			By("Now creating the VirtualMachine in the same namespace")
+			By("Creating the VirtualMachine and Secret")
 			vm := &kubevirtv1.VirtualMachine{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "late-created-vm",
+					Name:      vmName,
 					Namespace: testVirtualMachineBMCNamespace,
 				},
 				Spec: kubevirtv1.VirtualMachineSpec{
@@ -254,52 +322,322 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 			}
 			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
 
-			By("Verifying that the controller reconciles and creates RBAC resources")
-			saLookupKey := types.NamespacedName{
-				Name:      "late-created-vm-virtbmc",
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Type: corev1.SecretTypeOpaque,
+				Data: map[string][]byte{
+					"username": []byte("admin"),
+					"password": []byte("password123"),
+				},
+			}
+			Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
+
+			By("Creating VirtualMachineBMC")
+			virtualMachineBMC := &bmcv1.VirtualMachineBMC{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      bmcName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Spec: bmcv1.VirtualMachineBMCSpec{
+					VirtualMachineRef: &corev1.LocalObjectReference{
+						Name: vmName,
+					},
+					AuthSecretRef: &corev1.LocalObjectReference{
+						Name: secretName,
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, virtualMachineBMC)).To(Succeed())
+
+			By("Waiting for VirtualMachineAvailable condition to be True")
+			bmcLookupKey := types.NamespacedName{
+				Name:      bmcName,
 				Namespace: testVirtualMachineBMCNamespace,
 			}
-			createdSA := &corev1.ServiceAccount{}
 			Eventually(func() bool {
-				err := k8sClient.Get(ctx, saLookupKey, createdSA)
-				return err == nil
+				var bmc bmcv1.VirtualMachineBMC
+				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
+					return false
+				}
+				for _, cond := range bmc.Status.Conditions {
+					if cond.Type == bmcv1.ConditionVirtualMachineAvailable &&
+						cond.Status == metav1.ConditionTrue {
+						return true
+					}
+				}
+				return false
 			}, timeout, interval).Should(BeTrue())
 
-			rbLookupKey := types.NamespacedName{
-				Name:      "late-created-vm-virtbmc-rolebinding",
+			By("Waiting for Pod to be created")
+			podLookupKey := types.NamespacedName{
+				Name:      vmName + "-virtbmc",
 				Namespace: testVirtualMachineBMCNamespace,
 			}
-			createdRB := &rbacv1.RoleBinding{}
 			Eventually(func() bool {
-				err := k8sClient.Get(ctx, rbLookupKey, createdRB)
+				pod := &corev1.Pod{}
+				err := k8sClient.Get(ctx, podLookupKey, pod)
 				return err == nil
 			}, timeout, interval).Should(BeTrue())
 
-			By("Verifying that the Pod is now created")
+			By("Deleting the VirtualMachine")
+			vmToDelete := &kubevirtv1.VirtualMachine{}
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: vmName, Namespace: testVirtualMachineBMCNamespace}, vmToDelete)).Should(Succeed())
+			Expect(k8sClient.Delete(ctx, vmToDelete)).Should(Succeed())
+
+			By("Checking that VirtualMachineAvailable condition is updated to False")
 			Eventually(func() bool {
-				err := k8sClient.Get(ctx, podLookupKey, createdPod)
-				return err == nil
+				var bmc bmcv1.VirtualMachineBMC
+				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
+					return false
+				}
+				for _, cond := range bmc.Status.Conditions {
+					if cond.Type == bmcv1.ConditionVirtualMachineAvailable &&
+						cond.Status == metav1.ConditionFalse &&
+						cond.Reason == "VirtualMachineNotFound" {
+						return true
+					}
+				}
+				return false
 			}, timeout, interval).Should(BeTrue())
 
-			Expect(createdPod.Labels).To(HaveKeyWithValue(VirtualMachineBMCNameLabel, "test-vmbmc-late-vm"))
-			Expect(createdPod.Labels).To(HaveKeyWithValue(VMNameLabel, "late-created-vm"))
-			Expect(createdPod.Spec.ServiceAccountName).To(Equal("late-created-vm-virtbmc"))
-
-			By("Verifying that the Service is now created")
-			svcLookupKey := types.NamespacedName{
-				Name:      "late-created-vm-virtbmc",
-				Namespace: testVirtualMachineBMCNamespace,
+			By("Verifying that reconcile function was triggered")
+			// The reconcile should have been triggered by the VM deletion watch
+			// We verify this by checking the condition was updated
+			var bmc bmcv1.VirtualMachineBMC
+			Expect(k8sClient.Get(ctx, bmcLookupKey, &bmc)).Should(Succeed())
+			foundCondition := false
+			for _, cond := range bmc.Status.Conditions {
+				if cond.Type == bmcv1.ConditionVirtualMachineAvailable &&
+					cond.Status == metav1.ConditionFalse {
+					foundCondition = true
+					break
+				}
 			}
-			createdSvc := &corev1.Service{}
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, svcLookupKey, createdSvc)
-				return err == nil
-			}, timeout, interval).Should(BeTrue())
-
-			Expect(createdSvc.Labels).To(HaveKeyWithValue(VirtualMachineBMCNameLabel, "test-vmbmc-late-vm"))
-			Expect(createdSvc.Labels).To(HaveKeyWithValue(VMNameLabel, "late-created-vm"))
-			Expect(createdSvc.Spec.Ports).To(HaveLen(2))
+			Expect(foundCondition).To(BeTrue())
 		})
+
+		It("Should update condition and delete Pod when Secret is deleted", func() {
+			ctx := context.Background()
+
+			vmName := "testvm-secret-delete"
+			secretName := "secret-to-delete"
+			bmcName := "bmc-secret-delete"
+
+			By("Creating the VirtualMachine and Secret")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					Running: boolPtr(false),
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
+
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Type: corev1.SecretTypeOpaque,
+				Data: map[string][]byte{
+					"username": []byte("admin"),
+					"password": []byte("password123"),
+				},
+			}
+			Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
+
+			By("Creating VirtualMachineBMC")
+			virtualMachineBMC := &bmcv1.VirtualMachineBMC{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      bmcName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Spec: bmcv1.VirtualMachineBMCSpec{
+					VirtualMachineRef: &corev1.LocalObjectReference{
+						Name: vmName,
+					},
+					AuthSecretRef: &corev1.LocalObjectReference{
+						Name: secretName,
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, virtualMachineBMC)).To(Succeed())
+
+			By("Waiting for SecretAvailable condition to be True")
+			bmcLookupKey := types.NamespacedName{
+				Name:      bmcName,
+				Namespace: testVirtualMachineBMCNamespace,
+			}
+			Eventually(func() bool {
+				var bmc bmcv1.VirtualMachineBMC
+				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
+					return false
+				}
+				for _, cond := range bmc.Status.Conditions {
+					if cond.Type == bmcv1.ConditionSecretAvailable &&
+						cond.Status == metav1.ConditionTrue {
+						return true
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+
+			By("Waiting for Pod to be created")
+			podLookupKey := types.NamespacedName{
+				Name:      vmName + "-virtbmc",
+				Namespace: testVirtualMachineBMCNamespace,
+			}
+			Eventually(func() bool {
+				pod := &corev1.Pod{}
+				err := k8sClient.Get(ctx, podLookupKey, pod)
+				return err == nil
+			}, timeout, interval).Should(BeTrue())
+
+			By("Deleting the Secret")
+			secretToDelete := &corev1.Secret{}
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secretName, Namespace: testVirtualMachineBMCNamespace}, secretToDelete)).Should(Succeed())
+			Expect(k8sClient.Delete(ctx, secretToDelete)).Should(Succeed())
+
+			By("Checking that SecretAvailable condition is updated to False")
+			Eventually(func() bool {
+				var bmc bmcv1.VirtualMachineBMC
+				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
+					return false
+				}
+				for _, cond := range bmc.Status.Conditions {
+					if cond.Type == bmcv1.ConditionSecretAvailable &&
+						cond.Status == metav1.ConditionFalse &&
+						cond.Reason == "SecretNotFound" {
+						return true
+					}
+				}
+				return false
+			}, timeout, interval).Should(BeTrue())
+
+			By("Verifying that the Pod is deleted")
+			Eventually(func() bool {
+				pod := &corev1.Pod{}
+				err := k8sClient.Get(ctx, podLookupKey, pod)
+				return errors.IsNotFound(err)
+			}, timeout, interval).Should(BeTrue())
+		})
+
+		It("Should delete and recreate Pod when Secret is changed", func() {
+			ctx := context.Background()
+
+			vmName := "testvm-secret-change"
+			secretName := "secret-to-change"
+			bmcName := "bmc-secret-change"
+
+			By("Creating the VirtualMachine and Secret")
+			vm := &kubevirtv1.VirtualMachine{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Spec: kubevirtv1.VirtualMachineSpec{
+					Running: boolPtr(false),
+					Template: &kubevirtv1.VirtualMachineInstanceTemplateSpec{
+						Spec: kubevirtv1.VirtualMachineInstanceSpec{
+							Domain: kubevirtv1.DomainSpec{},
+						},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, vm)).Should(Succeed())
+
+			secret := &corev1.Secret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      secretName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Type: corev1.SecretTypeOpaque,
+				Data: map[string][]byte{
+					"username": []byte("admin"),
+					"password": []byte("password123"),
+				},
+			}
+			Expect(k8sClient.Create(ctx, secret)).Should(Succeed())
+
+			By("Creating VirtualMachineBMC")
+			virtualMachineBMC := &bmcv1.VirtualMachineBMC{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      bmcName,
+					Namespace: testVirtualMachineBMCNamespace,
+				},
+				Spec: bmcv1.VirtualMachineBMCSpec{
+					VirtualMachineRef: &corev1.LocalObjectReference{
+						Name: vmName,
+					},
+					AuthSecretRef: &corev1.LocalObjectReference{
+						Name: secretName,
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, virtualMachineBMC)).To(Succeed())
+
+			By("Waiting for Pod to be created")
+			podLookupKey := types.NamespacedName{
+				Name:      vmName + "-virtbmc",
+				Namespace: testVirtualMachineBMCNamespace,
+			}
+			var originalPod corev1.Pod
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, podLookupKey, &originalPod)
+				return err == nil
+			}, timeout, interval).Should(BeTrue())
+
+			originalPodUID := originalPod.UID
+
+			By("Updating the Secret with new credentials")
+			updatedSecret := &corev1.Secret{}
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: secretName, Namespace: testVirtualMachineBMCNamespace}, updatedSecret)).Should(Succeed())
+			updatedSecret.Data = map[string][]byte{
+				"username": []byte("newadmin"),
+				"password": []byte("newpassword456"),
+			}
+			Expect(k8sClient.Update(ctx, updatedSecret)).Should(Succeed())
+
+			By("Verifying that the old Pod is deleted")
+			Eventually(func() bool {
+				pod := &corev1.Pod{}
+				err := k8sClient.Get(ctx, podLookupKey, pod)
+				if err != nil {
+					return errors.IsNotFound(err)
+				}
+				// Check if it's a different pod (new UID)
+				return pod.UID != originalPodUID
+			}, timeout, interval).Should(BeTrue())
+
+			By("Verifying that a new Pod is created by the controller")
+			Eventually(func() bool {
+				pod := &corev1.Pod{}
+				err := k8sClient.Get(ctx, podLookupKey, pod)
+				if err != nil {
+					return false
+				}
+				// Verify it's a new pod with different UID
+				return pod.UID != originalPodUID
+			}, timeout, interval).Should(BeTrue())
+
+			By("Verifying the new Pod has correct labels and service account")
+			var newPod corev1.Pod
+			Expect(k8sClient.Get(ctx, podLookupKey, &newPod)).Should(Succeed())
+			Expect(newPod.Labels).To(HaveKeyWithValue(VirtualMachineBMCNameLabel, bmcName))
+			Expect(newPod.Labels).To(HaveKeyWithValue(VMNameLabel, vmName))
+			Expect(newPod.Spec.ServiceAccountName).To(Equal(vmName + "-virtbmc"))
+		})
+
 	})
 })
 
