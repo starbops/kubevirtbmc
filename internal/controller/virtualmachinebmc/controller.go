@@ -161,8 +161,6 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 						strconv.Itoa(ipmiPort),
 						"--redfish-port",
 						strconv.Itoa(redfishPort),
-						"--secret-ref",
-						secretName,
 						virtualMachineBMC.Namespace,
 						virtualMachineBMC.Spec.VirtualMachineRef.Name,
 					},
