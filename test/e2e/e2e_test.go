@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -19,11 +20,12 @@ import (
 )
 
 const (
-	vmName                  = "test-vm"
-	vmNamespace             = "default"
-	bmcName                 = "test-bmc"
-	webhookServiceName      = "kubevirtbmc-webhook-service"
-	webhookServiceNamespace = "kubevirtbmc-system"
+	vmName                   = "test-vm"
+	vmNamespace              = "default"
+	bmcName                  = "test-bmc"
+	webhookServiceName       = "kubevirtbmc-webhook-service"
+	webhookServiceNamespace  = "kubevirtbmc-system"
+	webhookRegistrationDelay = time.Second * 10
 )
 
 var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
@@ -95,6 +97,8 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 			}
 			return false
 		}, timeout, interval).Should(BeTrue(), "webhook service should be ready with ready pods")
+		By("waiting for webhook registration to complete")
+		time.Sleep(webhookRegistrationDelay)
 	})
 
 	Context("initially", func() {
