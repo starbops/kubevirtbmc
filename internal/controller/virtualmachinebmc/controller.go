@@ -50,12 +50,13 @@ type VirtualMachineBMCReconciler struct {
 
 const (
 	clusterRoleName = "kubevirtbmc-virtbmc-role"
+	bmcUserKey      = "username"
+	bmcPasswordKey  = "password"
 )
 
 var (
-	ownerKey   = ".metadata.controller"
-	apiGVStr   = bmcv1.GroupVersion.String()
-	secretKeys = []string{"username", "password"}
+	ownerKey = ".metadata.controller"
+	apiGVStr = bmcv1.GroupVersion.String()
 )
 
 func (r *VirtualMachineBMCReconciler) constructServiceAccount(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.ServiceAccount {
@@ -184,7 +185,7 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 									LocalObjectReference: corev1.LocalObjectReference{
 										Name: secretName,
 									},
-									Key: secretKeys[0],
+									Key: bmcUserKey,
 								},
 							},
 						},
@@ -195,7 +196,7 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 									LocalObjectReference: corev1.LocalObjectReference{
 										Name: secretName,
 									},
-									Key: secretKeys[1],
+									Key: bmcPasswordKey,
 								},
 							},
 						},
@@ -265,7 +266,6 @@ func (r *VirtualMachineBMCReconciler) deleteVirtBMCPod(ctx context.Context, virt
 		return err
 	}
 
-	log.Info("Deleted virtBMC Pod after Secret change", "pod", podName)
 	return nil
 }
 
@@ -292,13 +292,10 @@ func (r *VirtualMachineBMCReconciler) validateVirtualMachineExists(ctx context.C
 					virtualMachineBMC.Spec.VirtualMachineRef.Name,
 					virtualMachineBMC.Namespace),
 			}); changed {
-				if err := r.Status().Update(ctx, virtualMachineBMC); err != nil {
-					return false, err
-				}
+				return false, r.Status().Update(ctx, virtualMachineBMC)
 			}
 			return false, nil
 		}
-
 		log.Error(err, "error checking VirtualMachine existence")
 		return false, err
 	}
@@ -309,11 +306,8 @@ func (r *VirtualMachineBMCReconciler) validateVirtualMachineExists(ctx context.C
 		Reason:  "VirtualMachineFound",
 		Message: fmt.Sprintf("VirtualMachine %q is available", virtualMachineBMC.Spec.VirtualMachineRef.Name),
 	}); changed {
-		if err := r.Status().Update(ctx, virtualMachineBMC); err != nil {
-			return false, err
-		}
+		return false, r.Status().Update(ctx, virtualMachineBMC)
 	}
-
 	return true, nil
 }
 
@@ -345,13 +339,11 @@ func (r *VirtualMachineBMCReconciler) validateSecretExists(ctx context.Context, 
 					virtualMachineBMC.Spec.AuthSecretRef.Name,
 					virtualMachineBMC.Namespace),
 			}); changed {
-				if err := r.Status().Update(ctx, virtualMachineBMC); err != nil {
-					return false, err
-				}
+				return false, r.Status().Update(ctx, virtualMachineBMC)
+
 			}
 			return false, nil
 		}
-
 		log.Error(err, "error checking Secret existence")
 		return false, err
 	}
@@ -362,11 +354,8 @@ func (r *VirtualMachineBMCReconciler) validateSecretExists(ctx context.Context, 
 		Reason:  "SecretFound",
 		Message: fmt.Sprintf("Secret %q is available", virtualMachineBMC.Spec.AuthSecretRef.Name),
 	}); changed {
-		if err := r.Status().Update(ctx, virtualMachineBMC); err != nil {
-			return false, err
-		}
+		return false, r.Status().Update(ctx, virtualMachineBMC)
 	}
-
 	return true, nil
 }
 
@@ -529,16 +518,18 @@ func (r *VirtualMachineBMCReconciler) findVirtualMachineBMCsForSecretAndVM(ctx c
 
 		switch o := obj.(type) {
 		case *kubevirtv1.VirtualMachine:
-			if vmBMC.Spec.VirtualMachineRef.Name == o.GetName() {
+			if vmBMC.Spec.VirtualMachineRef != nil && vmBMC.Spec.VirtualMachineRef.Name == o.GetName() {
 				match = true
 			}
 
 		case *corev1.Secret:
 			if vmBMC.Spec.AuthSecretRef != nil && vmBMC.Spec.AuthSecretRef.Name == o.GetName() {
-				vmBMCCopy := vmBMC
-				if err := r.deleteVirtBMCPod(ctx, &vmBMCCopy); err != nil {
+				vmBMCCopy := vmBMC.DeepCopy()
+				if err := r.deleteVirtBMCPod(ctx, vmBMCCopy); err != nil {
 					log.Error(err, "unable to delete virtBMC Pod during Secret change", "vmBMC", vmBMC.Name)
 				}
+				log.Info("Deleted virtBMC Pod after Secret change")
+
 				match = true
 			}
 		}

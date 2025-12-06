@@ -67,6 +67,10 @@ func main() {
 			options.BMCUser = os.Getenv("BMC_USERNAME")
 			options.BMCPassword = os.Getenv("BMC_PASSWORD")
 
+			if options.BMCUser == "" || options.BMCPassword == "" {
+				panic("BMC credentials missing: both BMC_USERNAME and BMC_PASSWORD must be provided")
+			}
+
 			ctx := context.WithValue(cCtx.Context, virtbmc.VMNamespaceKey{}, cCtx.Args().Get(0))
 			ctx = context.WithValue(ctx, virtbmc.VMNameKey{}, cCtx.Args().Get(1))
 			return run(ctx, options)
