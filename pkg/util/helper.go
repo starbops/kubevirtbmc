@@ -3,6 +3,8 @@ package util
 import (
 	"fmt"
 	"net/http"
+	neturl "net/url"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -16,7 +18,20 @@ func Ptr[T any](value T) *T {
 }
 
 func GetRemoteFileSize(url string) (int64, error) {
-	resp, err := http.Head(url)
+	parsedURL, err := neturl.Parse(url)
+	if err != nil {
+		return 0, fmt.Errorf("invalid URL: %w", err)
+	}
+
+	if parsedURL.Scheme != "http" && parsedURL.Scheme != "https" {
+		return 0, fmt.Errorf("invalid scheme: only http/https allowed")
+	}
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	resp, err := client.Head(parsedURL.String())
 	if err != nil {
 		return 0, err
 	}
