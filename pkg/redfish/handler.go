@@ -126,11 +126,13 @@ func (h *handler) GetManager() (*server.ManagerV1190Manager, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	adapter, ok := manager.(*resourcemanager.ManagerAdapter)
 	if !ok {
-		return nil, fmt.Errorf("unexpected manager type: %T", manager)
+		return nil, fmt.Errorf("manager is not a *resourcemanager.ManagerAdapter (got %T)", manager)
 	}
-	return adapter.GetManager(), nil
+
+	return adapter.Manager(), nil
 }
 
 func (h *handler) GetVirtualMediaCollection() *server.VirtualMediaCollectionVirtualMediaCollection {
@@ -154,11 +156,13 @@ func (h *handler) GetVirtualMedia() (*server.VirtualMediaV163VirtualMedia, error
 	if err != nil {
 		return nil, err
 	}
+
 	adapter, ok := virtualMedia.(*resourcemanager.VirtualMediaAdapter)
 	if !ok {
-		return nil, fmt.Errorf("unexpected virtual media type: %T", virtualMedia)
+		return nil, fmt.Errorf("virtualMedia is not a *resourcemanager.VirtualMediaAdapter (got %T)", virtualMedia)
 	}
-	return adapter.GetVirtualMedia(), nil
+
+	return adapter.VirtualMedia(), nil
 }
 
 func (h *handler) VirtualMediaEject() error {
@@ -189,11 +193,13 @@ func (h *handler) GetComputerSystem() (*server.ComputerSystemV1220ComputerSystem
 	if err != nil {
 		return nil, err
 	}
+
 	adapter, ok := computerSystem.(*resourcemanager.ComputerSystemAdapter)
 	if !ok {
-		return nil, fmt.Errorf("unexpected computer system type: %T", computerSystem)
+		return nil, fmt.Errorf("computerSystem is not a *resourcemanager.ComputerSystemAdapter (got %T)", computerSystem)
 	}
-	return adapter.GetComputerSystem(), nil
+
+	return adapter.ComputerSystem(), nil
 }
 
 func (h *handler) PatchComputerSystem(computerSystemPatch *server.ComputerSystemV1220ComputerSystem) error {

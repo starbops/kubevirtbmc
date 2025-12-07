@@ -8,9 +8,10 @@ import (
 )
 
 type VirtualMediaInterface interface {
-	GetID() string
+	OdataInterface
 
-	GetVirtualMedia() *server.VirtualMediaV163VirtualMedia
+	Id() string
+	SetVirtualMedia(string, bool)
 }
 
 type VirtualMediaAdapter struct {
@@ -39,23 +40,23 @@ func NewVirtualMedia(id, name string) *VirtualMediaAdapter {
 	return &VirtualMediaAdapter{virtualMedia: generatedVirtualMedia}
 }
 
-func (a *VirtualMediaAdapter) GetID() string {
+func (a *VirtualMediaAdapter) Id() string {
 	return a.virtualMedia.Id
 }
 
-func (a *VirtualMediaAdapter) GetODataID() string {
+func (a *VirtualMediaAdapter) OdataId() string {
 	return a.virtualMedia.OdataId
 }
 
-func (a *VirtualMediaAdapter) Manage(resource ODataInterface) error {
+func (a *VirtualMediaAdapter) Manage(resource OdataInterface) error {
 	panic("implement me")
 }
 
-func (a *VirtualMediaAdapter) ManagedBy(resource ODataInterface) error {
+func (a *VirtualMediaAdapter) ManagedBy(resource OdataInterface) error {
 	panic("implement me")
 }
 
-func (a *VirtualMediaAdapter) GetVirtualMedia() *server.VirtualMediaV163VirtualMedia {
+func (a *VirtualMediaAdapter) VirtualMedia() *server.VirtualMediaV163VirtualMedia {
 	return a.virtualMedia
 }
 

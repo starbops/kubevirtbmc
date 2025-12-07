@@ -85,7 +85,6 @@ generate-kubevirt-crd: controller-gen ## Clone KubeVirt API and generate CustomR
 
 .PHONY: generate-mock
 generate-mock: mockgen ## Generate mocks for interfaces.
-	# $(MOCKGEN) -destination=mocks/mock_resourcemanager.go -package=mocks kubevirt.io/kubevirtbmc/pkg/resourcemanager ResourceManager
 	$(MOCKGEN) -source=pkg/resourcemanager/resourcemanager.go -destination=pkg/resourcemanager/mock_resourcemanager.go -package=resourcemanager
 
 REDFISH_SCHEMA_BUNDLE ?= DSP8010_2024.3

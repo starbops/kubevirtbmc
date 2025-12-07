@@ -296,7 +296,7 @@ You can even attach/detach an ISO image to the VM with the Redfish virtual media
 
 ```sh
 # Insert virtual media to the VM
-$ curl -i -X POST -H "Content-Type: application/json" -H "X-Auth-Token: 55f88d07289cf1207b7b967f1823f5b28e08c8977f6c742f8175274afb214c93" http://test-vm-virtbmc.default.svc/redfish/v1/Managers/BMC/VirtualMedia/CD1/Actions/VirtualMedia.InsertMedia -d '{"Image": "https://releases.ubuntu.com/noble/ubuntu-24.04.3-live-server-amd64.iso", "Inserted": true, "TransferMethod": "Upload", "TransferProtocolType": "HTTP"}'
+$ curl -i -X POST -H "Content-Type: application/json" -H "X-Auth-Token: 55f88d07289cf1207b7b967f1823f5b28e08c8977f6c742f8175274afb214c93" http://test-vm-virtbmc.default.svc/redfish/v1/Managers/BMC/VirtualMedia/CD1/Actions/VirtualMedia.InsertMedia -d '{"Image": "https://releases.ubuntu.com/noble/ubuntu-24.04.3-live-server-amd64.iso", "Inserted": true}'
 
 # Get virtual media status
 $ curl -i -H "X-Auth-Token: cd2514606d1c6996c2745560de8633db5339c73137a5063569124511543db657" http://test-vm-virtbmc.default.svc/redfish/v1/Managers/BMC/VirtualMedia/CD1

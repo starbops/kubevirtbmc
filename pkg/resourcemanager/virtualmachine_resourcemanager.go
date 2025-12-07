@@ -7,11 +7,10 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubevirtv1 "kubevirt.io/api/core/v1"
-	"kubevirt.io/client-go/kubecli"
-	cdiclient "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned"
+	cdiclient "kubevirt.io/client-go/containerizeddataimporter"
+	kvclient "kubevirt.io/client-go/kubevirt"
 
 	"kubevirt.io/kubevirtbmc/pkg/generated/redfish/server"
 	"kubevirt.io/kubevirtbmc/pkg/util"
@@ -38,21 +37,21 @@ var (
 
 type VirtualMachineResourceManager struct {
 	ctx        context.Context
-	virtClient kubecli.KubevirtClient
-	cdiClient  *cdiclient.Clientset
+	virtClient kvclient.Interface
+	cdiClient  cdiclient.Interface
 
 	namespace string
 	name      string
 
-	computerSystem *ComputerSystemAdapter
-	manager        *ManagerAdapter
-	virtualMedia   *VirtualMediaAdapter
+	computerSystem ComputerSystemInterface
+	manager        ManagerInterface
+	virtualMedia   VirtualMediaInterface
 }
 
 func NewVirtualMachineResourceManager(
 	ctx context.Context,
-	virtClient kubecli.KubevirtClient,
-	cdiClient *cdiclient.Clientset,
+	virtClient kvclient.Interface,
+	cdiClient cdiclient.Interface,
 ) *VirtualMachineResourceManager {
 	return &VirtualMachineResourceManager{
 		ctx:        ctx,
@@ -62,7 +61,7 @@ func NewVirtualMachineResourceManager(
 }
 
 func (m *VirtualMachineResourceManager) Initialize(namespace, name string) error {
-	vm, err := m.virtClient.VirtualMachine(namespace).Get(m.ctx, name, metav1.GetOptions{})
+	vm, err := m.virtClient.KubevirtV1().VirtualMachines(namespace).Get(m.ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
@@ -85,8 +84,8 @@ func (m *VirtualMachineResourceManager) Initialize(namespace, name string) error
 
 	// Build relationships
 	var (
-		oDataManager        ODataInterface = m.manager
-		oDataComputerSystem ODataInterface = m.computerSystem
+		oDataComputerSystem OdataInterface = m.computerSystem
+		oDataManager        OdataInterface = m.manager
 	)
 	if err := oDataComputerSystem.ManagedBy(oDataManager); err != nil {
 		return err
@@ -104,7 +103,7 @@ func (m *VirtualMachineResourceManager) GetComputerSystem() (ComputerSystemInter
 	}
 
 	// Update the power state just-in-time until we actually implement a control loop for it
-	vm, err := m.virtClient.VirtualMachine(m.namespace).
+	vm, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -130,11 +129,10 @@ func (m *VirtualMachineResourceManager) GetVirtualMedia() (VirtualMediaInterface
 
 func (m *VirtualMachineResourceManager) EjectMedia() error {
 	if m.virtualMedia == nil {
-		logrus.Warn("virtual media not initialized")
-		return nil
+		return fmt.Errorf("virtual media not initialized")
 	}
 
-	vm, err := m.virtClient.VirtualMachine(m.namespace).
+	vm, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -158,7 +156,11 @@ func (m *VirtualMachineResourceManager) EjectMedia() error {
 		return false
 	})
 
-	if _, err := m.virtClient.VirtualMachine(m.namespace).
+	if dvName == "" {
+		return fmt.Errorf("no media inserted")
+	}
+
+	if _, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Update(m.ctx, vm, metav1.UpdateOptions{}); err != nil {
 		return err
 	}
@@ -174,11 +176,10 @@ func (m *VirtualMachineResourceManager) EjectMedia() error {
 
 func (m *VirtualMachineResourceManager) InsertMedia(imageURL string) error {
 	if m.virtualMedia == nil {
-		logrus.Warn("virtual media not initialized")
-		return nil
+		return fmt.Errorf("virtual media not initialized")
 	}
 
-	vm, err := m.virtClient.VirtualMachine(m.namespace).
+	vm, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -186,6 +187,11 @@ func (m *VirtualMachineResourceManager) InsertMedia(imageURL string) error {
 
 	if vm.Spec.Template == nil {
 		return fmt.Errorf("no template found")
+	}
+
+	cdromDisk, err := util.GetCdromDisk(vm.Spec.Template.Spec.Domain.Devices.Disks)
+	if err != nil {
+		return err
 	}
 
 	imageSize, err := util.GetRemoteFileSize(imageURL)
@@ -196,14 +202,6 @@ func (m *VirtualMachineResourceManager) InsertMedia(imageURL string) error {
 	// Create DataVolume
 	dv := util.ConstructDataVolume(m.namespace, m.name, imageURL, imageSize)
 	_, err = m.cdiClient.CdiV1beta1().DataVolumes(m.namespace).Create(m.ctx, dv, metav1.CreateOptions{})
-	if err != nil {
-		if !apierrors.IsAlreadyExists(err) {
-			return err
-		}
-		logrus.Debugf("data volume %s already created", dv.Name)
-	}
-
-	cdromDisk, err := util.GetCdromDisk(vm.Spec.Template.Spec.Domain.Devices.Disks)
 	if err != nil {
 		return err
 	}
@@ -220,7 +218,7 @@ func (m *VirtualMachineResourceManager) InsertMedia(imageURL string) error {
 	}
 	vm.Spec.Template.Spec.Volumes = append(vm.Spec.Template.Spec.Volumes, volume)
 
-	if _, err := m.virtClient.VirtualMachine(m.namespace).
+	if _, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Update(m.ctx, vm, metav1.UpdateOptions{}); err != nil {
 		return err
 	}
@@ -243,7 +241,7 @@ func (m *VirtualMachineResourceManager) GetPowerStatus() (bool, error) {
 	// default:
 	// 	return false, nil
 	// }
-	vm, err := m.virtClient.VirtualMachine(m.namespace).
+	vm, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return false, err
@@ -253,7 +251,7 @@ func (m *VirtualMachineResourceManager) GetPowerStatus() (bool, error) {
 }
 
 func (m *VirtualMachineResourceManager) PowerOn() error {
-	vm, err := m.virtClient.VirtualMachine(m.namespace).
+	vm, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -269,7 +267,7 @@ func (m *VirtualMachineResourceManager) PowerOn() error {
 		}(kubevirtv1.RunStrategyRerunOnFailure)
 		vm.Spec.RunStrategy = runStrategy
 	}
-	if _, err := m.virtClient.VirtualMachine(m.namespace).
+	if _, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Update(m.ctx, vm, metav1.UpdateOptions{}); err != nil {
 		return err
 	}
@@ -277,7 +275,7 @@ func (m *VirtualMachineResourceManager) PowerOn() error {
 }
 
 func (m *VirtualMachineResourceManager) PowerOff() error {
-	vm, err := m.virtClient.VirtualMachine(m.namespace).
+	vm, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -291,7 +289,7 @@ func (m *VirtualMachineResourceManager) PowerOff() error {
 		}(kubevirtv1.RunStrategyHalted)
 		vm.Spec.RunStrategy = runStrategy
 	}
-	if _, err := m.virtClient.VirtualMachine(m.namespace).
+	if _, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Update(m.ctx, vm, metav1.UpdateOptions{}); err != nil {
 		return err
 	}
@@ -299,13 +297,13 @@ func (m *VirtualMachineResourceManager) PowerOff() error {
 }
 
 func (m *VirtualMachineResourceManager) PowerCycle() error {
-	return m.virtClient.VirtualMachineInstance(m.namespace).
+	return m.virtClient.KubevirtV1().VirtualMachineInstances(m.namespace).
 		Delete(m.ctx, m.name, metav1.DeleteOptions{})
 }
 
 func (m *VirtualMachineResourceManager) SetBootDevice(bootDevice BootDevice) error {
 	logrus.Info("SetBootDevice")
-	vm, err := m.virtClient.VirtualMachine(m.namespace).
+	vm, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Get(m.ctx, m.name, metav1.GetOptions{})
 	if err != nil {
 		return err
@@ -340,7 +338,7 @@ func (m *VirtualMachineResourceManager) SetBootDevice(bootDevice BootDevice) err
 		logrus.Infof("To be updated vm: %+v", vm.Spec.Template.Spec.Domain.Devices.Disks[0])
 	}
 
-	if _, err := m.virtClient.VirtualMachine(m.namespace).
+	if _, err := m.virtClient.KubevirtV1().VirtualMachines(m.namespace).
 		Update(m.ctx, vm, metav1.UpdateOptions{}); err != nil {
 		logrus.Errorf("update vm error: %v", err)
 		return err
