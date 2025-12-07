@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
-	"kubevirt.io/client-go/kubecli"
-	cdiclient "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned"
+	cdiclient "kubevirt.io/client-go/containerizeddataimporter"
+	kvclient "kubevirt.io/client-go/kubevirt"
 
 	"kubevirt.io/kubevirtbmc/pkg/ipmi"
 	"kubevirt.io/kubevirtbmc/pkg/redfish"
@@ -32,8 +32,8 @@ type VirtBMC struct {
 	vmNamespace string
 	vmName      string
 
-	virtClient kubecli.KubevirtClient
-	cdiClient  *cdiclient.Clientset
+	virtClient kvclient.Interface
+	cdiClient  cdiclient.Interface
 
 	resourceManager *resourcemanager.VirtualMachineResourceManager
 

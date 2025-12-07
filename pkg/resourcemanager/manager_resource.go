@@ -9,7 +9,9 @@ import (
 )
 
 type ManagerInterface interface {
-	GetID() string
+	OdataInterface
+
+	Id() string
 }
 
 type ManagerAdapter struct {
@@ -48,26 +50,26 @@ func NewManager(id, name string) *ManagerAdapter {
 	return &ManagerAdapter{manager: generatedManager}
 }
 
-func (a *ManagerAdapter) GetID() string {
+func (a *ManagerAdapter) Id() string {
 	return a.manager.Id
 }
 
-func (a *ManagerAdapter) GetODataID() string {
+func (a *ManagerAdapter) OdataId() string {
 	return a.manager.OdataId
 }
 
-func (a *ManagerAdapter) Manage(resource ODataInterface) error {
+func (a *ManagerAdapter) Manage(resource OdataInterface) error {
 	a.manager.Links.ManagerForServers = append(a.manager.Links.ManagerForServers, server.OdataV4IdRef{
-		OdataId: resource.GetODataID(),
+		OdataId: resource.OdataId(),
 	})
 
 	return nil
 }
 
-func (a *ManagerAdapter) ManagedBy(resource ODataInterface) error {
+func (a *ManagerAdapter) ManagedBy(resource OdataInterface) error {
 	panic("implement me")
 }
 
-func (a *ManagerAdapter) GetManager() *server.ManagerV1190Manager {
+func (a *ManagerAdapter) Manager() *server.ManagerV1190Manager {
 	return a.manager
 }

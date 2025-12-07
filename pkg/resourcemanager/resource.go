@@ -1,8 +1,8 @@
 package resourcemanager
 
-type ODataInterface interface {
-	GetODataID() string
+type OdataInterface interface {
+	OdataId() string
 
-	Manage(ODataInterface) error
-	ManagedBy(ODataInterface) error
+	Manage(OdataInterface) error
+	ManagedBy(OdataInterface) error
 }

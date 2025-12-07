@@ -8,8 +8,9 @@ import (
 )
 
 type ComputerSystemInterface interface {
-	GetID() string
+	OdataInterface
 
+	Id() string
 	GetPowerState() server.ResourcePowerState
 	SetPowerState(powerState server.ResourcePowerState)
 	SetBootOverride(server.ComputerSystemBootSource)
@@ -79,27 +80,27 @@ func NewComputerSystem(id, name string, powerState server.ResourcePowerState) *C
 	return &ComputerSystemAdapter{computerSystem: generatedComputerSystem}
 }
 
-func (a *ComputerSystemAdapter) GetID() string {
+func (a *ComputerSystemAdapter) Id() string {
 	return a.computerSystem.Id
 }
 
-func (a *ComputerSystemAdapter) GetODataID() string {
+func (a *ComputerSystemAdapter) OdataId() string {
 	return a.computerSystem.OdataId
 }
 
-func (a *ComputerSystemAdapter) Manage(resource ODataInterface) error {
+func (a *ComputerSystemAdapter) Manage(resource OdataInterface) error {
 	panic("implement me")
 }
 
-func (a *ComputerSystemAdapter) ManagedBy(resource ODataInterface) error {
+func (a *ComputerSystemAdapter) ManagedBy(resource OdataInterface) error {
 	a.computerSystem.Links.ManagedBy = append(a.computerSystem.Links.ManagedBy, server.OdataV4IdRef{
-		OdataId: resource.GetODataID(),
+		OdataId: resource.OdataId(),
 	})
 
 	return nil
 }
 
-func (a *ComputerSystemAdapter) GetComputerSystem() *server.ComputerSystemV1220ComputerSystem {
+func (a *ComputerSystemAdapter) ComputerSystem() *server.ComputerSystemV1220ComputerSystem {
 	return a.computerSystem
 }
 
