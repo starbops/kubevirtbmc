@@ -30,16 +30,34 @@ const (
 
 // VirtualMachineBMCSpec defines the desired state of VirtualMachineBMC.
 type VirtualMachineBMCSpec struct {
-	// Reference to the VM to manage.
-	VirtualMachineRef *corev1.LocalObjectReference `json:"virtualMachineRef,omitempty"`
+	// BMC Service configuration
+	// +optional
+	Service *BMCServiceSpec `json:"service,omitempty"`
 
-	// Reference to the Secret containing IPMI/Redfish credentials.
-	AuthSecretRef *corev1.LocalObjectReference `json:"authSecretRef,omitempty"`
+	// Reference to the Secret containing IPMI/Redfish credentials
+	// +Required
+	AuthSecretRef *corev1.LocalObjectReference `json:"authSecretRef"`
+
+	// Reference to the VM to manage
+	// +Required
+	VirtualMachineRef *corev1.LocalObjectReference `json:"virtualMachineRef"`
+}
+
+// Service configuration for the BMC service.
+type BMCServiceSpec struct {
+	// Type of service (LoadBalancer, NodePort, ClusterIP, etc)
+	Type corev1.ServiceType `json:"type,omitempty"`
+
+	// labels to apply to the service
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 // VirtualMachineBMCStatus defines the observed state of VirtualMachineBMC.
 type VirtualMachineBMCStatus struct {
-	// IP address exposed by the BMC service
+	// IP address assigned to the LoadBalancer Type BMC service
+	LoadBalancerIP string `json:"loadBalancerIP,omitempty"`
+
+	// IP address assigned to the ClusterIP Type BMC service
 	ClusterIP string `json:"clusterIP,omitempty"`
 
 	// List of current conditions (e.g., Ready)
