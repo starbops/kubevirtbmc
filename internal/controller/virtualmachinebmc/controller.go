@@ -212,16 +212,30 @@ func (r *VirtualMachineBMCReconciler) constructPodFromVirtualMachineBMC(virtualM
 func (r *VirtualMachineBMCReconciler) constructServiceFromVirtualMachineBMC(virtualMachineBMC *bmcv1.VirtualMachineBMC) *corev1.Service {
 	name := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
 
+	labels := map[string]string{
+		VirtualMachineBMCNameLabel: virtualMachineBMC.Name,
+		VMNameLabel:                virtualMachineBMC.Spec.VirtualMachineRef.Name,
+	}
+
+	if virtualMachineBMC.Spec.Service != nil && virtualMachineBMC.Spec.Service.Labels != nil {
+		for k, v := range virtualMachineBMC.Spec.Service.Labels {
+			labels[k] = v
+		}
+	}
+
+	svcType := corev1.ServiceTypeClusterIP
+	if virtualMachineBMC.Spec.Service != nil && virtualMachineBMC.Spec.Service.Type != "" {
+		svcType = virtualMachineBMC.Spec.Service.Type
+	}
+
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels: map[string]string{
-				VirtualMachineBMCNameLabel: virtualMachineBMC.Name,
-				VMNameLabel:                virtualMachineBMC.Spec.VirtualMachineRef.Name,
-			},
+			Labels:    labels,
 			Name:      name,
 			Namespace: virtualMachineBMC.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
+			Type: svcType,
 			Selector: map[string]string{
 				VirtualMachineBMCNameLabel: virtualMachineBMC.Name,
 			},

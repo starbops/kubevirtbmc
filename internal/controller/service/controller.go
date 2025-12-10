@@ -41,6 +41,46 @@ type ServiceReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+type ServiceStatus struct {
+	Ready   bool
+	Message string
+}
+
+func (s *ServiceReconciler) checkServiceReadiness(ctx context.Context, svc *corev1.Service, virtualMachineBMC *bmcv1.VirtualMachineBMC) ServiceStatus {
+	log := log.FromContext(ctx)
+	serviceType := virtualMachineBMC.Spec.Service.Type
+	if serviceType == "" {
+		serviceType = corev1.ServiceTypeClusterIP
+	}
+	var status ServiceStatus
+
+	switch serviceType {
+	case corev1.ServiceTypeLoadBalancer:
+		status.Ready = len(svc.Status.LoadBalancer.Ingress) > 0 && svc.Status.LoadBalancer.Ingress[0].IP != ""
+		if status.Ready {
+			virtualMachineBMC.Status.LoadBalancerIP = svc.Status.LoadBalancer.Ingress[0].IP
+		}
+		status.Message = "LoadBalancer IP assigned to the Service"
+	case corev1.ServiceTypeNodePort:
+		status.Ready = len(svc.Spec.Ports) > 0 && svc.Spec.Ports[0].NodePort >= 30000 && svc.Spec.Ports[0].NodePort <= 32767
+		status.Message = "NodePort assigned to the Service"
+
+	case corev1.ServiceTypeClusterIP:
+		status.Ready = svc.Spec.ClusterIP != ""
+		if status.Ready {
+			virtualMachineBMC.Status.ClusterIP = svc.Spec.ClusterIP
+		}
+		status.Message = "ClusterIP assigned to the Service"
+
+	default:
+		log.Error(fmt.Errorf("unsupported service type %s", serviceType), "unsupported Service type for VirtualMachineBMC", "serviceType", serviceType)
+		status.Ready = false
+		status.Message = fmt.Sprintf("unsupported service type: %s", serviceType)
+	}
+
+	return status
+}
+
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch
 //+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch
 //+kubebuilder:rbac:groups=virtualmachine.kubevirt.io,resources=virtualmachinebmcs/status,verbs=get;update;patch
@@ -54,7 +94,7 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			return ctrl.Result{}, nil
 		}
 		log.Error(err, "unable to fetch Service")
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return ctrl.Result{}, err
 	}
 
 	if svc.Labels == nil {
@@ -75,32 +115,24 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	// Update VirtualMachineBMC status
-	if svc.Spec.ClusterIP == "" {
-		return ctrl.Result{RequeueAfter: time.Second * 10}, fmt.Errorf("clusterIP is not ready yet")
+	status := s.checkServiceReadiness(ctx, &svc, &virtualMachineBMC)
+
+	if !status.Ready {
+		return ctrl.Result{RequeueAfter: time.Second * 10}, fmt.Errorf("%s is not ready yet", virtualMachineBMC.Spec.Service.Type)
 	}
+
 	if changed := meta.SetStatusCondition(
 		&virtualMachineBMC.Status.Conditions,
 		metav1.Condition{
 			Type:    bmcv1.ConditionReady,
 			Status:  metav1.ConditionTrue,
 			Reason:  "ServiceReady",
-			Message: "ClusterIP assigned to the Service",
+			Message: status.Message,
 		},
 	); changed {
-		if err := s.Status().Update(ctx, &virtualMachineBMC); err != nil {
-			return ctrl.Result{}, err
-		}
+		return ctrl.Result{}, s.Status().Update(ctx, &virtualMachineBMC)
 	}
-
-	virtualMachineBMC.Status.ClusterIP = svc.Spec.ClusterIP
-	if err := s.Status().Update(ctx, &virtualMachineBMC); err != nil {
-		log.Error(err, "unable to update VirtualMachineBMC status")
-		return ctrl.Result{}, err
-	}
-
 	log.V(1).Info("updated VirtualMachineBMC status for Service", "virtualMachineBMC", virtualMachineBMC)
-
 	return ctrl.Result{}, nil
 }
 

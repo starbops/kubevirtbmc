@@ -1,0 +1,62 @@
+apiVersion: v1
+data:
+  password: YmlzdGE=
+  username: YW5pc2g=
+kind: Secret
+metadata:
+  name: bmc-credentials-secret
+  namespace: dev-anish
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: testvm
+  namespace: dev-anish
+spec:
+  runStrategy: Always
+  template:
+    metadata:
+      labels:
+        kubevirt.io/size: small
+        kubevirt.io/domain: testvm
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: default
+            masquerade: {}
+        resources:
+          requests:
+            memory: 64M
+      networks:
+      - name: default
+        pod: {}
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/kubevirt/cirros-container-disk-demo
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userDataBase64: SGkuXG4=
+--- 
+apiVersion: bmc.kubevirt.io/v1beta1
+kind: VirtualMachineBMC
+metadata:
+  name: virtualmachinebmc-sample
+  namespace: dev-anish
+spec:
+  service: 
+    type: "LoadBalancer"
+    labels:
+      env: prod
+  authSecretRef:
+    name: bmc-credentials-secret
+  virtualMachineRef:
+    name: testvm
