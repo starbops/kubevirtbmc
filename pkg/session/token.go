@@ -9,6 +9,12 @@ import (
 	"sync"
 )
 
+type contextKey string
+
+const (
+	userContextKey contextKey = "user"
+)
+
 var ts TokenStore
 
 type TokenStore struct {
@@ -86,25 +92,34 @@ func AuthMiddleware(bmcUser, bmcPassword string) func(next http.Handler) http.Ha
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user, pass, ok := r.BasicAuth()
 
-			if !ok || user != bmcUser || pass != bmcPassword {
-				// Also check for X-Auth-Token for session-based authentication
-				token := r.Header.Get("X-Auth-Token")
-				if token != "" {
-					ts.rwMutex.RLock()
-					_, exists := ts.store[token]
-					ts.rwMutex.RUnlock()
-					if exists {
-						next.ServeHTTP(w, r)
-						return
-					}
+			if ok {
+				if user != bmcUser || pass != bmcPassword {
+					w.Header().Set("WWW-Authenticate", `Basic realm="Redfish"`)
+					http.Error(w, "Unauthorized", http.StatusUnauthorized)
+					return
 				}
+				ctx := context.WithValue(r.Context(), userContextKey, user)
+				r = r.WithContext(ctx)
+				next.ServeHTTP(w, r)
+				return
+			}
 
+			token := r.Header.Get("X-Auth-Token")
+			if token == "" {
 				w.Header().Set("WWW-Authenticate", `Basic realm="Redfish"`)
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
-			ctx := context.WithValue(r.Context(), "user", user)
-			r = r.WithContext(ctx)
+
+			ts.rwMutex.RLock()
+			_, exists := ts.store[token]
+			ts.rwMutex.RUnlock()
+
+			if !exists {
+				w.Header().Set("WWW-Authenticate", `Basic realm="Redfish"`)
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
 			next.ServeHTTP(w, r)
 		})
 	}
