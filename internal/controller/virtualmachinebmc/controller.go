@@ -393,22 +393,24 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	if !vmExists {
-		log.Info("VirtualMachine does not exist, skipping reconciliation")
-		return ctrl.Result{}, nil
-	}
-
-	if virtualMachineBMC.Spec.AuthSecretRef == nil {
-		log.Info("AuthSecretRef is not set, skipping pod creation")
-		return ctrl.Result{}, nil
-	}
 
 	secretExists, err := r.validateSecretExists(ctx, &virtualMachineBMC)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
-	if !secretExists {
-		log.Info("Secret does not exist, skipping reconciliation")
+
+	if !vmExists || !secretExists {
+		if err := r.deleteVirtBMCPod(ctx, &virtualMachineBMC); err != nil {
+			log.Error(err, "unable to delete virtBMC Pod")
+			return ctrl.Result{}, err
+		}
+	}
+
+	if virtualMachineBMC.Spec.VirtualMachineRef == nil || !vmExists || virtualMachineBMC.Spec.AuthSecretRef == nil || !secretExists {
+		log.Info("Prerequisites not met, skipping reconciling",
+			"vmExists", vmExists,
+			"secretExists", secretExists,
+			"authSecretRefSet", virtualMachineBMC.Spec.AuthSecretRef != nil)
 		return ctrl.Result{}, nil
 	}
 
