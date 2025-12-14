@@ -46,11 +46,11 @@ type ServiceStatus struct {
 	Message string
 }
 
-func (s *ServiceReconciler) checkServiceReadiness(ctx context.Context, svc *corev1.Service, virtualMachineBMC *bmcv1.VirtualMachineBMC) ServiceStatus {
+func (s *ServiceReconciler) checkServiceReadiness(ctx context.Context, svc *corev1.Service, virtualMachineBMC *bmcv1.VirtualMachineBMC) (ServiceStatus, corev1.ServiceType) {
 	log := log.FromContext(ctx)
-	serviceType := virtualMachineBMC.Spec.Service.Type
-	if serviceType == "" {
-		serviceType = corev1.ServiceTypeClusterIP
+	serviceType := corev1.ServiceTypeClusterIP
+	if virtualMachineBMC.Spec.Service != nil && virtualMachineBMC.Spec.Service.Type != "" {
+		serviceType = virtualMachineBMC.Spec.Service.Type
 	}
 	var status ServiceStatus
 
@@ -78,7 +78,7 @@ func (s *ServiceReconciler) checkServiceReadiness(ctx context.Context, svc *core
 		status.Message = fmt.Sprintf("unsupported service type: %s", serviceType)
 	}
 
-	return status
+	return status, serviceType
 }
 
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch
@@ -115,10 +115,13 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	status := s.checkServiceReadiness(ctx, &svc, &virtualMachineBMC)
+	status, svcType := s.checkServiceReadiness(ctx, &svc, &virtualMachineBMC)
 
 	if !status.Ready {
-		return ctrl.Result{RequeueAfter: time.Second * 10}, fmt.Errorf("%s is not ready yet", virtualMachineBMC.Spec.Service.Type)
+		log.V(1).Info(
+			"Service not ready yet", "serviceType", svcType, "service", svc.Name,
+		)
+		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
 	}
 
 	if changed := meta.SetStatusCondition(

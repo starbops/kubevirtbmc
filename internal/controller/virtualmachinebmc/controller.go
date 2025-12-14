@@ -283,6 +283,30 @@ func (r *VirtualMachineBMCReconciler) deleteVirtBMCPod(ctx context.Context, virt
 	return nil
 }
 
+func (r *VirtualMachineBMCReconciler) deleteVirtBMCService(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC) error {
+	log := log.FromContext(ctx)
+	serviceName := fmt.Sprintf("%s-virtbmc", virtualMachineBMC.Spec.VirtualMachineRef.Name)
+
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName,
+			Namespace: virtualMachineBMC.Namespace,
+		},
+	}
+
+	if err := r.Delete(ctx, service); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.V(1).Info("virtBMC Service already absent", "service", serviceName)
+			return nil
+		}
+
+		log.Error(err, "unable to delete virtBMC Service", "service", serviceName)
+		return err
+	}
+
+	return nil
+}
+
 func (r *VirtualMachineBMCReconciler) validateVirtualMachineExists(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC) (bool, error) {
 	log := log.FromContext(ctx)
 
@@ -373,6 +397,59 @@ func (r *VirtualMachineBMCReconciler) validateSecretExists(ctx context.Context, 
 	return true, nil
 }
 
+func (r *VirtualMachineBMCReconciler) desiredServiceType(vmbmc *bmcv1.VirtualMachineBMC) corev1.ServiceType {
+	if vmbmc.Spec.Service == nil {
+		return corev1.ServiceTypeClusterIP
+	}
+	if vmbmc.Spec.Service.Type == "" {
+		return corev1.ServiceTypeClusterIP
+	}
+	return vmbmc.Spec.Service.Type
+}
+
+func (r *VirtualMachineBMCReconciler) reconcileService(ctx context.Context, vmbmc *bmcv1.VirtualMachineBMC, svc *corev1.Service) (ctrl.Result, error) {
+	log := log.FromContext(ctx)
+
+	serviceName := fmt.Sprintf("%s-virtbmc", vmbmc.Spec.VirtualMachineRef.Name)
+	existingService := &corev1.Service{}
+
+	err := r.Get(ctx, client.ObjectKey{
+		Namespace: vmbmc.Namespace,
+		Name:      serviceName,
+	}, existingService)
+
+	desiredType := r.desiredServiceType(vmbmc)
+
+	switch {
+	case err == nil:
+		if existingService.Spec.Type != desiredType {
+			log.Info("Service type changed, deleting Service",
+				"oldType", existingService.Spec.Type,
+				"newType", desiredType,
+			)
+
+			if err := r.deleteVirtBMCService(ctx, vmbmc); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+	case apierrors.IsNotFound(err):
+		svc.Spec.Type = desiredType
+
+		if err := r.Create(ctx, svc); err != nil {
+			log.Error(err, "unable to create Service for VirtualMachineBMC")
+			return ctrl.Result{}, err
+		}
+		log.V(1).Info("created Service for VirtualMachineBMC", "type", desiredType)
+
+	default:
+		log.Error(err, "unable to fetch Service")
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{}, nil
+}
+
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch;update;patch
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachineinstances,verbs=get;list;watch;delete
 //+kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
@@ -433,33 +510,25 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// Prepare the virtBMC Pod
 	pod := r.constructPodFromVirtualMachineBMC(&virtualMachineBMC)
 	if err := ctrl.SetControllerReference(&virtualMachineBMC, pod, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// Create the virtBMC Pod on the cluster
 	if err := r.Create(ctx, pod); err != nil && !apierrors.IsAlreadyExists(err) {
 		log.Error(err, "unable to create Pod for VirtualMachineBMC", "pod", pod)
 		return ctrl.Result{}, err
 	}
-
 	log.V(1).Info("created Pod for VirtualMachineBMC", "pod", pod)
 
-	// Prepare the virtBMC Service
 	svc := r.constructServiceFromVirtualMachineBMC(&virtualMachineBMC)
 	if err := ctrl.SetControllerReference(&virtualMachineBMC, svc, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	// Create the virtBMC Service on the cluster
-	if err := r.Create(ctx, svc); err != nil && !apierrors.IsAlreadyExists(err) {
-		log.Error(err, "unable to create Service for VirtualMachineBMC", "svc", svc)
-		return ctrl.Result{}, err
+	if result, err := r.reconcileService(ctx, &virtualMachineBMC, svc); err != nil {
+		return result, err
 	}
-
-	log.V(1).Info("created Service for VirtualMachineBMC", "svc", svc)
 
 	return ctrl.Result{}, nil
 }
