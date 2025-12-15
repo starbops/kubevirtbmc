@@ -32,17 +32,17 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - args:
-        - --metrics-bind-address=:8443
-        - --leader-elect
-        - --health-probe-bind-address=:8081
+      - name: manager
+        args:
+          {{- range .Values.manager.args }}
+          - {{ . }}
+          {{- end }}
         command:
         - /manager
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         livenessProbe:
           {{- toYaml .Values.livenessProbe | nindent 12 }}
-        name: manager
         ports:
         - containerPort: 9443
           name: webhook-server
