@@ -49,6 +49,10 @@ type VirtualMachineBMCStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:shortName=vmbmc;vmbmcs
+// +kubebuilder:printcolumn:name="VIRTUALMACHINE",type="string",JSONPath=`.spec.virtualMachineRef.name`
+// +kubebuilder:printcolumn:name="SECRET",type="string",JSONPath=`.spec.authSecretRef.name`
+// +kubebuilder:printcolumn:name="CLUSTERIP",type="string",JSONPath=`.status.clusterIP`
+// +kubebuilder:printcolumn:name="READY",type="string",JSONPath=`.status.conditions[?(@.type=='Ready')].status`
 
 // VirtualMachineBMC is the Schema for the virtualmachinebmcs API
 type VirtualMachineBMC struct {
