@@ -17,7 +17,20 @@ spec:
     singular: virtualmachinebmc
   scope: Namespaced
   versions:
-  - name: v1beta1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.virtualMachineRef.name
+      name: VIRTUALMACHINE
+      type: string
+    - jsonPath: .spec.authSecretRef.name
+      name: SECRET
+      type: string
+    - jsonPath: .status.clusterIP
+      name: CLUSTERIP
+      type: string
+    - jsonPath: .status.conditions[?(@.type=='Ready')].status
+      name: READY
+      type: string
+    name: v1beta1
     schema:
       openAPIV3Schema:
         description: VirtualMachineBMC is the Schema for the virtualmachinebmcs API
