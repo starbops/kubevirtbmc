@@ -141,7 +141,8 @@ make docker-build
 make docker-buildx
 ```
 
-> **NOTE:** These images ought to be published in the personal registry you specified. And it is required to have access to pull the images from the working environment. Make sure you have the proper permission to the registry if the above commands don’t work.
+> [!NOTE]
+> These images ought to be published in the personal registry you specified. And it is required to have access to pull the images from the working environment. Make sure you have the proper permission to the registry if the above commands don’t work.
 
 **Install the CRDs into the cluster:**
 
@@ -158,7 +159,8 @@ make run
 
 **Generate the Redfish API and server stubs**
 
-> [!NOTE] This section is only necessary if you want to change the Redfish schema version.
+> [!NOTE]
+> This section is only necessary if you want to change the Redfish schema version.
 
 Download the Redfish schema from the DMTF website:
 
@@ -174,7 +176,8 @@ make generate-redfish-api
 
 The generated code will be placed in the `pkg/generated/redfish` directory.
 
-> [!NOTE] You might also need to adjust the adapter and handler code because they are coupled with the Redfish schema at some degree.
+> [!NOTE]
+> You might also need to adjust the adapter and handler code because they are coupled with the Redfish schema at some degree.
 
 ### Deploy
 
