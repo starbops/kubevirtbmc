@@ -27,8 +27,8 @@ spec:
     - jsonPath: .status.clusterIP
       name: CLUSTERIP
       type: string
-    - jsonPath: .status.conditions[?(@.type=='Ready')].status
-      name: READY
+    - jsonPath: .status.conditions[?(@.type=='ServiceReady')].status
+      name: SERVICEREADY
       type: string
     name: v1beta1
     schema:
@@ -75,11 +75,15 @@ spec:
                   labels:
                     additionalProperties:
                       type: string
-                    description: labels to apply to the service
+                    description: Additional labels to apply to the service
                     type: object
                   type:
-                    description: Type of service (LoadBalancer, NodePort, ClusterIP,
-                      etc)
+                    default: ClusterIP
+                    description: Type of service
+                    enum:
+                    - ClusterIP
+                    - NodePort
+                    - LoadBalancer
                     type: string
                 type: object
               virtualMachineRef:

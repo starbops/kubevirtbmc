@@ -23,7 +23,8 @@ import (
 
 // Condition type constant.
 const (
-	ConditionReady                   = "Ready"
+	ConditionReady                   = "ServiceReady"
+	ConditionNotReady                = "ServiceNotReady"
 	ConditionVirtualMachineAvailable = "VirtualMachineAvailable"
 	ConditionSecretAvailable         = "SecretAvailable"
 )
@@ -45,10 +46,12 @@ type VirtualMachineBMCSpec struct {
 
 // Service configuration for the BMC service.
 type BMCServiceSpec struct {
-	// Type of service (LoadBalancer, NodePort, ClusterIP, etc)
+	// Type of service
+	// +kubebuilder:default=ClusterIP
+	// +kubebuilder:validation:Enum=ClusterIP;NodePort;LoadBalancer
 	Type corev1.ServiceType `json:"type,omitempty"`
 
-	// labels to apply to the service
+	// Additional labels to apply to the service
 	Labels map[string]string `json:"labels,omitempty"`
 }
 
@@ -70,7 +73,7 @@ type VirtualMachineBMCStatus struct {
 // +kubebuilder:printcolumn:name="VIRTUALMACHINE",type="string",JSONPath=`.spec.virtualMachineRef.name`
 // +kubebuilder:printcolumn:name="SECRET",type="string",JSONPath=`.spec.authSecretRef.name`
 // +kubebuilder:printcolumn:name="CLUSTERIP",type="string",JSONPath=`.status.clusterIP`
-// +kubebuilder:printcolumn:name="READY",type="string",JSONPath=`.status.conditions[?(@.type=='Ready')].status`
+// +kubebuilder:printcolumn:name="SERVICEREADY",type="string",JSONPath=`.status.conditions[?(@.type=='ServiceReady')].status`
 
 // VirtualMachineBMC is the Schema for the virtualmachinebmcs API
 type VirtualMachineBMC struct {

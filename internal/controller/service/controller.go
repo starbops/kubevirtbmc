@@ -59,8 +59,11 @@ func (s *ServiceReconciler) checkServiceReadiness(ctx context.Context, svc *core
 		status.Ready = len(svc.Status.LoadBalancer.Ingress) > 0 && svc.Status.LoadBalancer.Ingress[0].IP != ""
 		if status.Ready {
 			virtualMachineBMC.Status.LoadBalancerIP = svc.Status.LoadBalancer.Ingress[0].IP
+			status.Message = "LoadBalancer IP assigned to the Service"
+
+		} else {
+			status.Message = "LoadBalancer IP not yet assigned to the Service"
 		}
-		status.Message = "LoadBalancer IP assigned to the Service"
 	case corev1.ServiceTypeNodePort:
 		status.Ready = len(svc.Spec.Ports) > 0 && svc.Spec.Ports[0].NodePort >= 30000 && svc.Spec.Ports[0].NodePort <= 32767
 		status.Message = "NodePort assigned to the Service"
@@ -69,8 +72,10 @@ func (s *ServiceReconciler) checkServiceReadiness(ctx context.Context, svc *core
 		status.Ready = svc.Spec.ClusterIP != ""
 		if status.Ready {
 			virtualMachineBMC.Status.ClusterIP = svc.Spec.ClusterIP
+			status.Message = "ClusterIP assigned to the Service"
+		} else {
+			status.Message = "ClusterIP not yet assigned to the Service"
 		}
-		status.Message = "ClusterIP assigned to the Service"
 
 	default:
 		log.Error(fmt.Errorf("unsupported service type %s", serviceType), "unsupported Service type for VirtualMachineBMC", "serviceType", serviceType)
@@ -117,21 +122,26 @@ func (s *ServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	status, svcType := s.checkServiceReadiness(ctx, &svc, &virtualMachineBMC)
 
+	condition := metav1.Condition{
+		Type:    bmcv1.ConditionReady,
+		Status:  metav1.ConditionFalse,
+		Reason:  bmcv1.ConditionNotReady,
+		Message: status.Message,
+	}
+
 	if !status.Ready {
 		log.V(1).Info(
 			"Service not ready yet", "serviceType", svcType, "service", svc.Name,
 		)
 		return ctrl.Result{RequeueAfter: 10 * time.Second}, nil
+	} else {
+		condition.Status = metav1.ConditionTrue
+		condition.Reason = bmcv1.ConditionReady
 	}
 
 	if changed := meta.SetStatusCondition(
 		&virtualMachineBMC.Status.Conditions,
-		metav1.Condition{
-			Type:    bmcv1.ConditionReady,
-			Status:  metav1.ConditionTrue,
-			Reason:  "ServiceReady",
-			Message: status.Message,
-		},
+		condition,
 	); changed {
 		return ctrl.Result{}, s.Status().Update(ctx, &virtualMachineBMC)
 	}

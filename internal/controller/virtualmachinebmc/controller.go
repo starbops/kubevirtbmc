@@ -410,43 +410,32 @@ func (r *VirtualMachineBMCReconciler) desiredServiceType(vmbmc *bmcv1.VirtualMac
 func (r *VirtualMachineBMCReconciler) reconcileService(ctx context.Context, vmbmc *bmcv1.VirtualMachineBMC, svc *corev1.Service) error {
 	log := log.FromContext(ctx)
 
+	desiredType := r.desiredServiceType(vmbmc)
 	serviceName := fmt.Sprintf("%s-virtbmc", vmbmc.Spec.VirtualMachineRef.Name)
 	existingService := &corev1.Service{}
-
-	err := r.Get(ctx, client.ObjectKey{
+	if err := r.Get(ctx, client.ObjectKey{
 		Namespace: vmbmc.Namespace,
 		Name:      serviceName,
-	}, existingService)
-
-	desiredType := r.desiredServiceType(vmbmc)
-
-	switch {
-	case err == nil:
-		if existingService.Spec.Type != desiredType {
-			log.Info("Service type changed, deleting Service",
-				"oldType", existingService.Spec.Type,
-				"newType", desiredType,
-			)
-
-			if err := r.deleteVirtBMCService(ctx, vmbmc); err != nil {
+	}, existingService); err != nil {
+		if apierrors.IsNotFound(err) {
+			svc.Spec.Type = desiredType
+			if err := r.Create(ctx, svc); err != nil {
+				log.Error(err, "unable to create Service for VirtualMachineBMC")
 				return err
 			}
+			log.V(1).Info("created Service for VirtualMachineBMC", "type", desiredType)
+			return nil
 		}
-
-	case apierrors.IsNotFound(err):
-		svc.Spec.Type = desiredType
-
-		if err := r.Create(ctx, svc); err != nil {
-			log.Error(err, "unable to create Service for VirtualMachineBMC")
-			return err
-		}
-		log.V(1).Info("created Service for VirtualMachineBMC", "type", desiredType)
-
-	default:
 		log.Error(err, "unable to fetch Service")
 		return err
 	}
-
+	if existingService.Spec.Type != desiredType {
+		log.Info("Service type changed, deleting Service",
+			"oldType", existingService.Spec.Type,
+			"newType", desiredType,
+		)
+		return r.deleteVirtBMCService(ctx, vmbmc)
+	}
 	return nil
 }
 

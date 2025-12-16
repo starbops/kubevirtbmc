@@ -97,7 +97,7 @@ Take a peek at the VirtualMachineBMC CRD (Custom Resource Definition):
 ```go
 // Condition type constant.
 const (
-	ConditionReady = "Ready"
+	ConditionReady = "ServiceReady"
 )
 
 // VirtualMachineBMCSpec defines the desired state of VirtualMachineBMC.
