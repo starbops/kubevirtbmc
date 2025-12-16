@@ -407,7 +407,7 @@ func (r *VirtualMachineBMCReconciler) desiredServiceType(vmbmc *bmcv1.VirtualMac
 	return vmbmc.Spec.Service.Type
 }
 
-func (r *VirtualMachineBMCReconciler) reconcileService(ctx context.Context, vmbmc *bmcv1.VirtualMachineBMC, svc *corev1.Service) (ctrl.Result, error) {
+func (r *VirtualMachineBMCReconciler) reconcileService(ctx context.Context, vmbmc *bmcv1.VirtualMachineBMC, svc *corev1.Service) error {
 	log := log.FromContext(ctx)
 
 	serviceName := fmt.Sprintf("%s-virtbmc", vmbmc.Spec.VirtualMachineRef.Name)
@@ -429,7 +429,7 @@ func (r *VirtualMachineBMCReconciler) reconcileService(ctx context.Context, vmbm
 			)
 
 			if err := r.deleteVirtBMCService(ctx, vmbmc); err != nil {
-				return ctrl.Result{}, err
+				return err
 			}
 		}
 
@@ -438,16 +438,16 @@ func (r *VirtualMachineBMCReconciler) reconcileService(ctx context.Context, vmbm
 
 		if err := r.Create(ctx, svc); err != nil {
 			log.Error(err, "unable to create Service for VirtualMachineBMC")
-			return ctrl.Result{}, err
+			return err
 		}
 		log.V(1).Info("created Service for VirtualMachineBMC", "type", desiredType)
 
 	default:
 		log.Error(err, "unable to fetch Service")
-		return ctrl.Result{}, err
+		return err
 	}
 
-	return ctrl.Result{}, nil
+	return nil
 }
 
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch;update;patch
@@ -526,8 +526,8 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	if result, err := r.reconcileService(ctx, &virtualMachineBMC, svc); err != nil {
-		return result, err
+	if err := r.reconcileService(ctx, &virtualMachineBMC, svc); err != nil {
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
