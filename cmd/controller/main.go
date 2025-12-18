@@ -76,8 +76,9 @@ func main() {
 	flag.BoolVar(&secureMetrics, "secure-metrics", true, "Enable secure (HTTPS) metrics endpoint.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false, "Enable HTTP/2 support (default: disabled for security).")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election for controller manager.")
-	flag.StringVar(&agentImageName, "agent-image-name", ctlvirtualmachinebmc.VirtBMCImageName, "The name of the agent image.")
-	flag.StringVar(&agentImageTag, "agent-image-tag", AppVersion, "The tag of the agent image.")
+	flag.StringVar(&agentImageName, "agent-image-name", "", "The name of the agent image (required).")
+	flag.StringVar(&agentImageTag, "agent-image-tag", "", "The tag of the agent image (required).")
+
 	showVersion := flag.Bool("version", false, "Show version.")
 
 	opts := zap.Options{
@@ -90,6 +91,16 @@ func main() {
 		fmt.Println("Version:", AppVersion)
 		fmt.Println("Git commit:", GitCommit)
 		os.Exit(0)
+	}
+	if agentImageName == "" {
+		fmt.Fprintf(os.Stderr, "Error: --agent-image-name is required\n")
+		flag.Usage()
+		os.Exit(1)
+	}
+	if agentImageTag == "" {
+		fmt.Fprintf(os.Stderr, "Error: --agent-image-tag is required\n")
+		flag.Usage()
+		os.Exit(1)
 	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
