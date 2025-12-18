@@ -63,6 +63,8 @@ spec:
         args:
           - --leader-elect
           - --health-probe-bind-address=:8081
+          - --agent-image-name=starbops/virtbmc
+          - --agent-image-tag=v0.7.0
         image: controller:latest
         name: manager
         ports: []
