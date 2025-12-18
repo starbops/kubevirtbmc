@@ -52,6 +52,8 @@ func (s *ServiceReconciler) checkServiceReadiness(ctx context.Context, svc *core
 	if virtualMachineBMC.Spec.Service != nil && virtualMachineBMC.Spec.Service.Type != "" {
 		serviceType = virtualMachineBMC.Spec.Service.Type
 	}
+	virtualMachineBMC.Status.LoadBalancerIP = ""
+
 	var status ServiceStatus
 
 	switch serviceType {
@@ -66,8 +68,13 @@ func (s *ServiceReconciler) checkServiceReadiness(ctx context.Context, svc *core
 		}
 	case corev1.ServiceTypeNodePort:
 		status.Ready = len(svc.Spec.Ports) > 0 && svc.Spec.Ports[0].NodePort >= 30000 && svc.Spec.Ports[0].NodePort <= 32767
-		status.Message = "NodePort assigned to the Service"
+		if status.Ready {
+			virtualMachineBMC.Status.ClusterIP = svc.Spec.ClusterIP
+			status.Message = "NodePort assigned to the Service"
 
+		} else {
+			status.Message = "NodePort not yet assigned to the Service"
+		}
 	case corev1.ServiceTypeClusterIP:
 		status.Ready = svc.Spec.ClusterIP != ""
 		if status.Ready {

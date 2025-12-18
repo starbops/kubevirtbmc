@@ -53,6 +53,9 @@ type BMCServiceSpec struct {
 
 	// Additional labels to apply to the service
 	Labels map[string]string `json:"labels,omitempty"`
+
+	// Annotations to apply to the service
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // VirtualMachineBMCStatus defines the observed state of VirtualMachineBMC.

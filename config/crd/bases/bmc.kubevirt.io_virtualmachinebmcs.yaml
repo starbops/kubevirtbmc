@@ -72,6 +72,11 @@ spec:
               service:
                 description: BMC Service configuration
                 properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    description: Annotations to apply to the service
+                    type: object
                   labels:
                     additionalProperties:
                       type: string

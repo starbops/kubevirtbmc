@@ -217,9 +217,19 @@ func (r *VirtualMachineBMCReconciler) constructServiceFromVirtualMachineBMC(virt
 		VMNameLabel:                virtualMachineBMC.Spec.VirtualMachineRef.Name,
 	}
 
-	if virtualMachineBMC.Spec.Service != nil && virtualMachineBMC.Spec.Service.Labels != nil {
-		for k, v := range virtualMachineBMC.Spec.Service.Labels {
-			labels[k] = v
+	annotations := map[string]string{}
+
+	if virtualMachineBMC.Spec.Service != nil {
+		if virtualMachineBMC.Spec.Service.Labels != nil {
+			for k, v := range virtualMachineBMC.Spec.Service.Labels {
+				labels[k] = v
+			}
+		}
+
+		if virtualMachineBMC.Spec.Service.Annotations != nil {
+			for k, v := range virtualMachineBMC.Spec.Service.Annotations {
+				annotations[k] = v
+			}
 		}
 	}
 
@@ -230,9 +240,10 @@ func (r *VirtualMachineBMCReconciler) constructServiceFromVirtualMachineBMC(virt
 
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels:    labels,
-			Name:      name,
-			Namespace: virtualMachineBMC.Namespace,
+			Labels:      labels,
+			Annotations: annotations,
+			Name:        name,
+			Namespace:   virtualMachineBMC.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
 			Type: svcType,
