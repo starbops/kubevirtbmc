@@ -359,6 +359,47 @@ func (r *VirtualMachineBMCReconciler) validateSecretExists(ctx context.Context, 
 	return true, nil
 }
 
+func (r *VirtualMachineBMCReconciler) handleImageUpdateRollout(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC, desiredPod *corev1.Pod) error {
+	log := log.FromContext(ctx)
+
+	existingPod := &corev1.Pod{}
+	podKey := client.ObjectKey{Name: desiredPod.Name, Namespace: desiredPod.Namespace}
+
+	err := r.Get(ctx, podKey, existingPod)
+	podExists := err == nil
+
+	if err != nil && !apierrors.IsNotFound(err) {
+		log.Error(err, "unable to fetch existing Pod", "pod", podKey)
+		return err
+	}
+
+	if podExists {
+		desiredImage := fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag)
+		existingImage := existingPod.Spec.Containers[0].Image
+
+		if existingImage != desiredImage {
+			log.Info("agent pod image mismatch detected, deleting pod for rollout",
+				"pod", podKey,
+				"existingImage", existingImage,
+				"desiredImage", desiredImage)
+
+			if err := r.deleteVirtBMCPod(ctx, virtualMachineBMC); err != nil {
+				log.Error(err, "unable to delete Pod", "pod", podKey)
+			}
+			return nil
+		}
+
+	} else {
+		if err := r.Create(ctx, desiredPod); err != nil {
+			log.Error(err, "unable to create Pod", "pod", desiredPod)
+			return err
+		}
+		log.V(1).Info("created Pod", "pod", desiredPod)
+	}
+
+	return nil
+}
+
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch;update;patch
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachineinstances,verbs=get;list;watch;delete
 //+kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
@@ -420,51 +461,13 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	// Prepare the virtBMC Pod
-	desiredPod := r.constructPodFromVirtualMachineBMC(&virtualMachineBMC)
+	pod := r.constructPodFromVirtualMachineBMC(&virtualMachineBMC)
 	if err := ctrl.SetControllerReference(&virtualMachineBMC, pod, r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	existingPod := &corev1.Pod{}
-	podKey := client.ObjectKey{Name: desiredPod.Name, Namespace: desiredPod.Namespace}
-
-	err := r.Get(ctx, podKey, existingPod)
-	podExists := err == nil
-
-	if err != nil && !apierrors.IsNotFound(err) {
-		log.Error(err, "unable to fetch existing Pod", "pod", podKey)
+	if err := r.handleImageUpdateRollout(ctx, &virtualMachineBMC, pod); err != nil {
 		return ctrl.Result{}, err
-	}
-
-	if podExists {
-		desiredImage := fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag)
-		existingImage := existingPod.Spec.Containers[0].Image
-
-		if existingImage != desiredImage {
-			log.Info("agent pod image mismatch detected, deleting pod for rollout",
-				"pod", podKey,
-				"existingImage", existingImage,
-				"desiredImage", desiredImage)
-
-			if err := r.Delete(ctx, existingPod); err != nil {
-				if apierrors.IsNotFound(err) {
-					log.Info("Pod already deleted by another reconcile, continuing", "pod", podKey)
-				} else {
-					log.Error(err, "unable to delete Pod", "pod", podKey)
-					return ctrl.Result{}, err
-				}
-			}
-			return ctrl.Result{Requeue: true}, nil
-		}
-
-		log.V(1).Info("Pod already exists with correct image", "pod", podKey)
-
-	} else {
-		if err := r.Create(ctx, desiredPod); err != nil {
-			log.Error(err, "unable to create Pod", "pod", desiredPod)
-			return ctrl.Result{}, err
-		}
-		log.V(1).Info("created Pod", "pod", desiredPod)
 	}
 	// Prepare the virtBMC Service
 	svc := r.constructServiceFromVirtualMachineBMC(&virtualMachineBMC)
