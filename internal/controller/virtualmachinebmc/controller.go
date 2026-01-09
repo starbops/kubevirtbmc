@@ -359,6 +359,47 @@ func (r *VirtualMachineBMCReconciler) validateSecretExists(ctx context.Context, 
 	return true, nil
 }
 
+func (r *VirtualMachineBMCReconciler) handleImageUpdateRollout(ctx context.Context, virtualMachineBMC *bmcv1.VirtualMachineBMC, desiredPod *corev1.Pod) error {
+	log := log.FromContext(ctx)
+
+	existingPod := &corev1.Pod{}
+	podKey := client.ObjectKey{Name: desiredPod.Name, Namespace: desiredPod.Namespace}
+
+	err := r.Get(ctx, podKey, existingPod)
+	podExists := err == nil
+
+	if err != nil && !apierrors.IsNotFound(err) {
+		log.Error(err, "unable to fetch existing Pod", "pod", podKey)
+		return err
+	}
+
+	if podExists {
+		desiredImage := fmt.Sprintf("%s:%s", r.AgentImageName, r.AgentImageTag)
+		existingImage := existingPod.Spec.Containers[0].Image
+
+		if existingImage != desiredImage {
+			log.Info("agent pod image mismatch detected, deleting pod for rollout",
+				"pod", podKey,
+				"existingImage", existingImage,
+				"desiredImage", desiredImage)
+
+			if err := r.deleteVirtBMCPod(ctx, virtualMachineBMC); err != nil {
+				log.Error(err, "unable to delete Pod", "pod", podKey)
+			}
+			return nil
+		}
+
+	} else {
+		if err := r.Create(ctx, desiredPod); err != nil {
+			log.Error(err, "unable to create Pod", "pod", desiredPod)
+			return err
+		}
+		log.V(1).Info("created Pod", "pod", desiredPod)
+	}
+
+	return nil
+}
+
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachines,verbs=get;list;watch;update;patch
 //+kubebuilder:rbac:groups=kubevirt.io,resources=virtualmachineinstances,verbs=get;list;watch;delete
 //+kubebuilder:rbac:groups=bmc.kubevirt.io,resources=virtualmachinebmcs,verbs=get;list;watch;create;update;patch;delete
@@ -425,14 +466,9 @@ func (r *VirtualMachineBMCReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
-	// Create the virtBMC Pod on the cluster
-	if err := r.Create(ctx, pod); err != nil && !apierrors.IsAlreadyExists(err) {
-		log.Error(err, "unable to create Pod for VirtualMachineBMC", "pod", pod)
+	if err := r.handleImageUpdateRollout(ctx, &virtualMachineBMC, pod); err != nil {
 		return ctrl.Result{}, err
 	}
-
-	log.V(1).Info("created Pod for VirtualMachineBMC", "pod", pod)
-
 	// Prepare the virtBMC Service
 	svc := r.constructServiceFromVirtualMachineBMC(&virtualMachineBMC)
 	if err := ctrl.SetControllerReference(&virtualMachineBMC, svc, r.Scheme); err != nil {
