@@ -1,9 +1,0 @@
-apiVersion: virtualmachine.kubevirt.io/v1alpha1
-kind: VirtualMachineBMC
-metadata:
-  labels:
-    app.kubernetes.io/name: kubevirtbmc
-    app.kubernetes.io/managed-by: kustomize
-  name: virtualmachinebmc-sample
-spec:
-  # TODO(user): Add fields here

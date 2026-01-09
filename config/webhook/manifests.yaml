@@ -10,14 +10,14 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /mutate-virtualmachine-kubevirt-io-v1alpha1-virtualmachinebmc
+      path: /mutate-bmc-kubevirt-io-v1beta1-virtualmachinebmc
   failurePolicy: Fail
-  name: mvirtualmachinebmc-v1alpha1.kb.io
+  name: mvirtualmachinebmc-v1beta1.kb.io
   rules:
   - apiGroups:
-    - virtualmachine.kubevirt.io
+    - bmc.kubevirt.io
     apiVersions:
-    - v1alpha1
+    - v1beta1
     operations:
     - CREATE
     - UPDATE
@@ -36,14 +36,14 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-virtualmachine-kubevirt-io-v1alpha1-virtualmachinebmc
+      path: /validate-bmc-kubevirt-io-v1beta1-virtualmachinebmc
   failurePolicy: Fail
-  name: vvirtualmachinebmc-v1alpha1.kb.io
+  name: vvirtualmachinebmc-v1beta1.kb.io
   rules:
   - apiGroups:
-    - virtualmachine.kubevirt.io
+    - bmc.kubevirt.io
     apiVersions:
-    - v1alpha1
+    - v1beta1
     operations:
     - CREATE
     - UPDATE

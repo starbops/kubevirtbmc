@@ -85,8 +85,7 @@ generate-kubevirt-crd: controller-gen ## Clone KubeVirt API and generate CustomR
 
 .PHONY: generate-mock
 generate-mock: mockgen ## Generate mocks for interfaces.
-	# $(MOCKGEN) -destination=mocks/mock_resourcemanager.go -package=mocks kubevirt.io/kubevirtbmc/pkg/resourcemanager ResourceManager
-	$(MOCKGEN) -source=pkg/resourcemanager/resource_manager.go -destination=pkg/resourcemanager/mock_resource_manager.go -package=resourcemanager
+	$(MOCKGEN) -source=pkg/resourcemanager/resourcemanager.go -destination=pkg/resourcemanager/mock_resourcemanager.go -package=resourcemanager
 
 REDFISH_SCHEMA_BUNDLE ?= DSP8010_2024.3
 .PHONY: download-redfish-schema
@@ -231,7 +230,7 @@ MOCKGEN ?= $(LOCALBIN)/mockgen
 KUSTOMIZE_VERSION ?= v5.2.1
 CONTROLLER_TOOLS_VERSION ?= v0.19.0
 KIND_VERSION ?= v0.29.0
-MOCKGEN_VERSION ?= v0.5.0
+MOCKGEN_VERSION ?= v0.6.0
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. If wrong version is installed, it will be removed before downloading.
@@ -262,4 +261,3 @@ $(KIND): $(LOCALBIN)
 mockgen: $(MOCKGEN) ## Download mockgen locally if necessary.
 $(MOCKGEN): $(LOCALBIN)
 	test -s $(LOCALBIN)/mockgen || GOBIN=$(LOCALBIN) go install go.uber.org/mock/mockgen@$(MOCKGEN_VERSION)
-

@@ -29,3 +29,13 @@ rules:
   - list
   - watch
   - delete
+- apiGroups:
+  - cdi.kubevirt.io
+  resources:
+  - datavolumes
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete

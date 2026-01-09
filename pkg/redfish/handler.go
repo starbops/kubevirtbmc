@@ -8,15 +8,21 @@ import (
 	"kubevirt.io/kubevirtbmc/pkg/generated/redfish/server"
 	"kubevirt.io/kubevirtbmc/pkg/resourcemanager"
 	"kubevirt.io/kubevirtbmc/pkg/session"
+	"kubevirt.io/kubevirtbmc/pkg/util"
 )
 
 type handler struct {
 	rm resourcemanager.ResourceManager
+
+	bmcUser     string
+	bmcPassword string
 }
 
-func NewHandler(resourceManager resourcemanager.ResourceManager) *handler {
+func NewHandler(bmcUser string, bmcPassword string, resourceManager resourcemanager.ResourceManager) *handler {
 	return &handler{
-		rm: resourceManager,
+		rm:          resourceManager,
+		bmcUser:     bmcUser,
+		bmcPassword: bmcPassword,
 	}
 }
 
@@ -26,7 +32,7 @@ func (h *handler) Authenticate(username, password *string) (string, string, erro
 		return id, token, fmt.Errorf("username and password must be provided")
 	}
 
-	if *username != defaultUserName || *password != defaultPassword {
+	if *username != h.bmcUser || *password != h.bmcPassword {
 		return id, token, fmt.Errorf("invalid username or password")
 	}
 
@@ -58,7 +64,7 @@ func (h *handler) GetServiceRoot() *server.ServiceRootV1161ServiceRoot {
 		Description:    "ServiceRoot",
 		Name:           "ServiceRoot",
 		RedfishVersion: "1.16.1",
-		UUID:           Ptr("00000000-0000-0000-0000-000000000000"),
+		UUID:           util.Ptr("00000000-0000-0000-0000-000000000000"),
 		Chassis: server.OdataV4IdRef{
 			OdataId: "/redfish/v1/Chassis",
 		},
@@ -125,11 +131,13 @@ func (h *handler) GetManager() (*server.ManagerV1190Manager, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	adapter, ok := manager.(*resourcemanager.ManagerAdapter)
 	if !ok {
-		return nil, fmt.Errorf("unexpected manager type: %T", manager)
+		return nil, fmt.Errorf("manager is not a *resourcemanager.ManagerAdapter (got %T)", manager)
 	}
-	return adapter.GetManager(), nil
+
+	return adapter.Manager(), nil
 }
 
 func (h *handler) GetVirtualMediaCollection() *server.VirtualMediaCollectionVirtualMediaCollection {
@@ -141,33 +149,33 @@ func (h *handler) GetVirtualMediaCollection() *server.VirtualMediaCollectionVirt
 		Name:         "Virtual Media Collection",
 		Members: []server.OdataV4IdRef{
 			{
-				OdataId: "/redfish/v1/Managers/BMC/VirtualMedia/1",
+				OdataId: "/redfish/v1/Managers/BMC/VirtualMedia/CD1",
 			},
 		},
+		MembersodataCount: 1,
 	}
 }
 
-func (h *handler) GetVirtualMedia() *server.VirtualMediaV163VirtualMedia {
-	return &server.VirtualMediaV163VirtualMedia{
-		OdataContext: "/redfish/v1/$metadata#VirtualMedia.VirtualMedia",
-		OdataId:      "/redfish/v1/Managers/BMC/VirtualMedia/1",
-		OdataType:    "#VirtualMedia.v1_6_3.VirtualMedia",
-		Description:  "Virtual Media",
-		Name:         "Virtual Media",
-		Id:           "1",
-		Image:        Ptr(""),
-		ImageName:    Ptr(""),
-		Inserted:     Ptr(false),
-		MediaTypes: []server.VirtualMediaV163MediaType{
-			"CD",
-			"DVD",
-			"USBStick",
-			"Floppy",
-			"ISO",
-			"OEM",
-		},
-		WriteProtected: Ptr(false),
+func (h *handler) GetVirtualMedia() (*server.VirtualMediaV163VirtualMedia, error) {
+	virtualMedia, err := h.rm.GetVirtualMedia()
+	if err != nil {
+		return nil, err
 	}
+
+	adapter, ok := virtualMedia.(*resourcemanager.VirtualMediaAdapter)
+	if !ok {
+		return nil, fmt.Errorf("virtualMedia is not a *resourcemanager.VirtualMediaAdapter (got %T)", virtualMedia)
+	}
+
+	return adapter.VirtualMedia(), nil
+}
+
+func (h *handler) VirtualMediaEject() error {
+	return h.rm.EjectMedia()
+}
+
+func (h *handler) VirtualMediaInsert(image string) error {
+	return h.rm.InsertMedia(image)
 }
 
 func (h *handler) GetComputerSystemCollection() *server.ComputerSystemCollectionComputerSystemCollection {
@@ -190,11 +198,13 @@ func (h *handler) GetComputerSystem() (*server.ComputerSystemV1220ComputerSystem
 	if err != nil {
 		return nil, err
 	}
+
 	adapter, ok := computerSystem.(*resourcemanager.ComputerSystemAdapter)
 	if !ok {
-		return nil, fmt.Errorf("unexpected computer system type: %T", computerSystem)
+		return nil, fmt.Errorf("computerSystem is not a *resourcemanager.ComputerSystemAdapter (got %T)", computerSystem)
 	}
-	return adapter.GetComputerSystem(), nil
+
+	return adapter.ComputerSystem(), nil
 }
 
 func (h *handler) PatchComputerSystem(computerSystemPatch *server.ComputerSystemV1220ComputerSystem) error {
@@ -243,8 +253,4 @@ func (h *handler) ComputerSystemSetDefaultBootOrder(bootDevices []string) error 
 		bootDevice = resourcemanager.BootDevice(bootDevices[0])
 	}
 	return h.rm.SetBootDevice(bootDevice)
-}
-
-func Ptr[T any](value T) *T {
-	return &value
 }

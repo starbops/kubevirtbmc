@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
+	cdiclient "kubevirt.io/client-go/containerizeddataimporter"
+	kvclient "kubevirt.io/client-go/kubevirt"
 
-	kubevirtv1 "kubevirt.io/kubevirtbmc/pkg/generated/clientset/versioned/typed/core/v1"
 	"kubevirt.io/kubevirtbmc/pkg/ipmi"
 	"kubevirt.io/kubevirtbmc/pkg/redfish"
 	"kubevirt.io/kubevirtbmc/pkg/resourcemanager"
@@ -21,11 +22,8 @@ type Options struct {
 	Address        string
 	IPMIPort       int
 	RedfishPort    int
-}
-
-type KubeVirtClientInterface interface {
-	VirtualMachines(namespace string) kubevirtv1.VirtualMachineInterface
-	VirtualMachineInstances(namespace string) kubevirtv1.VirtualMachineInstanceInterface
+	BMCUser        string
+	BMCPassword    string
 }
 
 type VirtBMC struct {
@@ -36,7 +34,8 @@ type VirtBMC struct {
 	vmNamespace string
 	vmName      string
 
-	kvClient KubeVirtClientInterface
+	virtClient kvclient.Interface
+	cdiClient  cdiclient.Interface
 
 	resourceManager *resourcemanager.VirtualMachineResourceManager
 
@@ -45,8 +44,9 @@ type VirtBMC struct {
 }
 
 func NewVirtBMC(ctx context.Context, options Options, inCluster bool) (*VirtBMC, error) {
-	kvClient := NewK8sClient(options)
-	resourceManager := resourcemanager.NewVirtualMachineResourceManager(ctx, kvClient)
+	virtClient := NewVirtClient(options)
+	cdiClient := NewCdiClient(options)
+	resourceManager := resourcemanager.NewVirtualMachineResourceManager(ctx, virtClient, cdiClient)
 	return &VirtBMC{
 		context:         ctx,
 		address:         options.Address,
@@ -54,10 +54,11 @@ func NewVirtBMC(ctx context.Context, options Options, inCluster bool) (*VirtBMC,
 		redfishPort:     options.RedfishPort,
 		vmNamespace:     ctx.Value(VMNamespaceKey{}).(string),
 		vmName:          ctx.Value(VMNameKey{}).(string),
-		kvClient:        kvClient,
+		virtClient:      virtClient,
+		cdiClient:       cdiClient,
 		resourceManager: resourceManager,
 		ipmiSimulator:   ipmi.NewSimulator(options.Address, options.IPMIPort, resourceManager),
-		redfishEmulator: redfish.NewEmulator(ctx, options.RedfishPort, resourceManager),
+		redfishEmulator: redfish.NewEmulator(ctx, options.RedfishPort, options.BMCUser, options.BMCPassword, resourceManager),
 	}, nil
 }
 

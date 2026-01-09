@@ -3,39 +3,46 @@ package virtbmc
 import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-
-	kubevirtv1type "kubevirt.io/kubevirtbmc/pkg/generated/clientset/versioned/typed/core/v1"
+	cdiclient "kubevirt.io/client-go/containerizeddataimporter"
+	kvclient "kubevirt.io/client-go/kubevirt"
 )
 
-func NewK8sClient(options Options) *kubevirtv1type.KubevirtV1Client {
-	var (
-		config *rest.Config
-		err    error
-	)
-
-	// creates the in-cluster config
-	config, err = rest.InClusterConfig()
+func NewVirtClient(options Options) kvclient.Interface {
+	// Build config
+	config, err := clientcmd.BuildConfigFromFlags("", options.KubeconfigPath)
 	if err != nil {
-		if err == rest.ErrNotInCluster {
-			goto localConfig
+		// Fallback to in-cluster config
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			panic(err)
 		}
-		panic(err.Error())
 	}
-	goto genClientset
 
-localConfig:
-	// uses the current context in kubeconfig
-	// path-to-kubeconfig -- for example, /root/.kube/config
-	config, err = clientcmd.BuildConfigFromFlags("", options.KubeconfigPath)
+	// KubeVirt client
+	virtClient, err := kvclient.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 
-genClientset:
-	clientset, err := kubevirtv1type.NewForConfig(config)
+	return virtClient
+}
+
+func NewCdiClient(options Options) *cdiclient.Clientset {
+	// Build config
+	config, err := clientcmd.BuildConfigFromFlags("", options.KubeconfigPath)
 	if err != nil {
-		panic(err.Error())
+		// Fallback to in-cluster config
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	return clientset
+	// CDI client
+	cdiClient, err := cdiclient.NewForConfig(config)
+	if err != nil {
+		panic(err)
+	}
+
+	return cdiClient
 }

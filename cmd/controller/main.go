@@ -36,11 +36,10 @@ import (
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	virtualmachinev1 "kubevirt.io/kubevirtbmc/api/v1alpha1"
+	bmcv1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 	ctlservice "kubevirt.io/kubevirtbmc/internal/controller/service"
-	ctlvirtualmachine "kubevirt.io/kubevirtbmc/internal/controller/virtualmachine"
 	ctlvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/controller/virtualmachinebmc"
-	webhookvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/webhook/v1alpha1"
+	webhookvirtualmachinebmc "kubevirt.io/kubevirtbmc/internal/webhook/bmc/v1beta1"
 
 	kubevirtv1 "kubevirt.io/api/core/v1"
 	//+kubebuilder:scaffold:imports
@@ -57,7 +56,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(kubevirtv1.AddToScheme(scheme))
-	utilruntime.Must(virtualmachinev1.AddToScheme(scheme))
+	utilruntime.Must(bmcv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -159,13 +158,6 @@ func main() {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Service")
-		os.Exit(1)
-	}
-	if err = (&ctlvirtualmachine.VirtualMachineReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "VirtualMachine")
 		os.Exit(1)
 	}
 	if err = webhookvirtualmachinebmc.SetupVirtualMachineBMCWebhookWithManager(mgr); err != nil {

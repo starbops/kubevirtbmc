@@ -11,12 +11,17 @@ import (
 	"kubevirt.io/kubevirtbmc/pkg/session"
 )
 
+const (
+	testUsername = "admin"
+	testPassword = "admin123"
+)
+
 func TestAuthenticate(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
 	mockRM := resourcemanager.NewMockResourceManager(ctl)
-	h := NewHandler(mockRM)
+	h := NewHandler(testUsername, testPassword, mockRM)
 
 	testCases := []struct {
 		username    string
@@ -25,8 +30,7 @@ func TestAuthenticate(t *testing.T) {
 	}{
 		{username: "", password: "", expectError: true},
 		{username: "invalid", password: "credentials", expectError: true},
-		// Assuming defaultUserName and defaultPassword are "admin" and "password" respectively
-		{username: "admin", password: "password", expectError: false},
+		{username: "admin", password: "admin123", expectError: false},
 	}
 
 	for _, tc := range testCases {
@@ -43,7 +47,7 @@ func TestGetSession(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	h := NewHandler(nil)
+	h := NewHandler(testUsername, testPassword, nil)
 
 	testCases := []struct {
 		name          string
@@ -59,7 +63,7 @@ func TestGetSession(t *testing.T) {
 				session.AddToken(tokenInfo)
 			},
 			sessionID:     "test-session-id",
-			username:      "admin",
+			username:      testUsername,
 			expectedError: false,
 		},
 		{
@@ -93,7 +97,7 @@ func TestDeleteSession(t *testing.T) {
 	ctl := gomock.NewController(t)
 	defer ctl.Finish()
 
-	h := NewHandler(nil)
+	h := NewHandler(testUsername, testPassword, nil)
 
 	testCases := []struct {
 		name      string
@@ -103,7 +107,7 @@ func TestDeleteSession(t *testing.T) {
 		{
 			name: "valid session",
 			setupFunc: func() {
-				tokenInfo := session.NewTokenInfo("test-session-id", "admin")
+				tokenInfo := session.NewTokenInfo("test-session-id", testUsername)
 				session.AddToken(tokenInfo)
 			},
 			sessionID: "test-session-id",
@@ -133,7 +137,7 @@ func TestPatchComputerSystem(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRM := resourcemanager.NewMockResourceManager(ctrl)
-	handler := NewHandler(mockRM)
+	handler := NewHandler(testUsername, testPassword, mockRM)
 
 	testCases := []struct {
 		name        string
@@ -257,7 +261,7 @@ func TestComputerSystemReset(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockRM := resourcemanager.NewMockResourceManager(ctrl)
-	handler := NewHandler(mockRM)
+	handler := NewHandler(testUsername, testPassword, mockRM)
 
 	testCases := []struct {
 		name          string

@@ -1,13 +1,15 @@
 apiVersion: v2
 name: kubevirtbmc
-version: 0.3.0
+version: 0.4.0
 description: A Helm chart for KubeVirtBMC
 type: application
 keywords:
-- Kubernetes
-- KubeVirt
-- IPMI
-- Redfish
+- kubevirt
+- cdi
+- vm
+- bmc
+- ipmi
+- redfish
 home: https://github.com/starbops/kubevirtbmc
 sources:
 - https://github.com/starbops/kubevirtbmc
@@ -15,4 +17,4 @@ maintainers:
 - name: starbops
   email: starbops@hey.com
   url: https://www.zespre.com
-appVersion: v0.6.0
+appVersion: v0.7.0
