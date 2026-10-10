@@ -10,6 +10,7 @@ KubeVirtBMC maintains a list of organizations and projects that use it in produc
 | --------------------------------- | ------- | --------------------------- | ---------------------------- |
 | CESTC                             | 202606  | https://www.cestc.cn/       | R&D Environment Management   |
 | SUSE                              | 202608  | https://www.suse.com/       | The Harvester team adopts KubeVirtBMC into their CI pipelines to increase resource density and speed up system bring-up. Developers also use it to ease development environment setup and accelerate iteration. |
+| CLASTIX                           | 202610  | https://clastix.io/         | CLASTIX builds kMetal, a platform for running Kubernetes directly on bare metal. It uses KubeVirtBMC in its product development pipeline. |
 | *Add your organization via a PR*  |         |                             |                              |
 
 *To add yourself: edit this file, add a row to the table above, and open a PR. We welcome all adopters.*
