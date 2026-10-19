@@ -36,6 +36,7 @@ const (
 	// NetworkAttachmentDefinitions used as NetworkRef values in e2e tests.
 	E2EMultusNetworkName        = "test-multus-network"
 	E2EMultusNetworkNameUpdated = "updated-multus-network"
+	E2EMultusNetworkNameMissing = "missing-multus-network"
 
 	// MultusNetworkStatusAnnotation is where Multus reports attached networks.
 	MultusNetworkStatusAnnotation = "k8s.v1.cni.cncf.io/network-status"
@@ -174,6 +175,30 @@ func PodMultusNetworkAttached(ctx context.Context, k8sClient client.Client, name
 			}
 		}
 		return false
+	}
+}
+
+type E2ETestNetwork struct {
+	Name, Bridge, Subnet string
+}
+
+var E2ETestNetworks = []E2ETestNetwork{
+	{Name: E2EMultusNetworkName, Bridge: "br-test", Subnet: "192.168.110.0/24"},
+	{Name: E2EMultusNetworkNameUpdated, Bridge: "br-test-updated", Subnet: "192.168.120.0/24"},
+}
+
+// BMCNetworkStatus returns status.network once nadName is attached with an IP.
+func BMCNetworkStatus(ctx context.Context, k8sClient client.Client, namespace, nadName string) func() *bmcv1.NetworkStatus {
+	return func() *bmcv1.NetworkStatus {
+		var bmc bmcv1.VirtualMachineBMC
+		if err := k8sClient.Get(ctx, BMCKey(namespace), &bmc); err != nil {
+			return nil
+		}
+		network := bmc.Status.Network
+		if network == nil || network.Name != namespace+"/"+nadName || len(network.IPs) == 0 {
+			return nil
+		}
+		return network
 	}
 }
 

@@ -290,17 +290,26 @@ func ensureBridgeCNIPlugin() error {
 	return nil
 }
 
-// CreateTestNetworkAttachmentDefinition creates a bridge NAD for NetworkRef
-// tests. Empty ipam means L2-only: attach the interface, no IP allocation.
-func CreateTestNetworkAttachmentDefinition(namespace, name string) error {
+func IsNetworkAttachmentDefinitionCRDInstalled() bool {
+	cmd := exec.Command("kubectl", "get", "crd", "network-attachment-definitions.k8s.cni.cncf.io",
+		"--no-headers", "-o", "name", "--ignore-not-found")
+	output, err := Run(cmd)
+	if err != nil {
+		return false
+	}
+	return strings.TrimSpace(output) != ""
+}
+
+// CreateTestNetworkAttachmentDefinition creates a bridge NAD with host-local IPAM.
+func CreateTestNetworkAttachmentDefinition(namespace, name, bridge, subnet string) error {
 	nadYAML := fmt.Sprintf(`apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
 metadata:
   name: %[1]s
   namespace: %[2]s
 spec:
-  config: '{"cniVersion":"0.3.1","name":"%[1]s","type":"bridge","bridge":"br-test","ipam":{}}'
-`, name, namespace)
+  config: '{"cniVersion":"0.3.1","name":"%[1]s","type":"bridge","bridge":"%[3]s","ipam":{"type":"host-local","subnet":"%[4]s"}}'
+`, name, namespace, bridge, subnet)
 
 	cmd := exec.Command("kubectl", "apply", "-f", "-")
 	cmd.Stdin = strings.NewReader(nadYAML)

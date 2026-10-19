@@ -27,9 +27,11 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	kubevirtv1 "kubevirt.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	bmcv1 "kubevirt.io/kubevirtbmc/api/bmc/v1beta1"
 )
@@ -804,25 +806,107 @@ var _ = Describe("VirtualMachineBMC Controller", func() {
 			}, timeout, interval).Should(Equal(networkRef))
 		})
 
-		It("Should pass a JSON-format NetworkRef through to the Pod template verbatim", func() {
+		It("Should reject a NetworkRef that is not a name or namespace/name", func() {
 			ctx := context.Background()
 
-			vmName := "testvm-networkref-json"
-			networkRef := fmt.Sprintf(`[{"name":"mynet","namespace":"%s","interface":"net1"}]`, testVirtualMachineBMCNamespace)
-			createNetworkRefTestResources(ctx, testVirtualMachineBMCNamespace, vmName, networkRef)
-
-			By("Verifying the Deployment Pod template has the JSON-format Multus annotation")
-			deploymentLookupKey := types.NamespacedName{
-				Name:      vmName + "-virtbmc",
-				Namespace: testVirtualMachineBMCNamespace,
+			for _, networkRef := range []string{
+				fmt.Sprintf(`[{"name":"mynet","namespace":"%s"}]`, testVirtualMachineBMCNamespace),
+				"a/b/c",
+				"My_Network",
+			} {
+				virtualMachineBMC := &bmcv1.VirtualMachineBMC{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "testvm-networkref-invalid-bmc",
+						Namespace: testVirtualMachineBMCNamespace,
+					},
+					Spec: bmcv1.VirtualMachineBMCSpec{
+						VirtualMachineRef: &corev1.LocalObjectReference{Name: "testvm-networkref-invalid"},
+						AuthSecretRef:     &corev1.LocalObjectReference{Name: "testvm-networkref-invalid-secret"},
+						NetworkRef:        networkRef,
+					},
+				}
+				err := k8sClient.Create(ctx, virtualMachineBMC)
+				Expect(errors.IsInvalid(err)).To(BeTrue(), "networkRef %q should be rejected, got %v", networkRef, err)
 			}
+		})
+
+		It("Should report MultusNotInstalled when the NetworkAttachmentDefinition CRD is absent", func() {
+			ctx := context.Background()
+
+			bmcLookupKey := createNetworkRefTestResources(ctx, testVirtualMachineBMCNamespace, "testvm-networkref-nomultus", "mynetwork")
+
 			Eventually(func() string {
-				var deployment appsv1.Deployment
-				if err := k8sClient.Get(ctx, deploymentLookupKey, &deployment); err != nil {
+				var bmc bmcv1.VirtualMachineBMC
+				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
 					return ""
 				}
-				return deployment.Spec.Template.Annotations[MultusNetworksAnnotation]
-			}, timeout, interval).Should(Equal(networkRef))
+				cond := meta.FindStatusCondition(bmc.Status.Conditions, bmcv1.ConditionNetworkAttached)
+				if cond == nil || cond.Status != metav1.ConditionFalse {
+					return ""
+				}
+				return cond.Reason
+			}, timeout, interval).Should(Equal(reasonMultusMissing))
+		})
+
+		It("Should report the attached network from the virtBMC Pod and clear it when NetworkRef is removed", func() {
+			ctx := context.Background()
+
+			vmName := "testvm-networkref-status"
+			networkRef := "attach-net"
+			bmcLookupKey := createNetworkRefTestResources(ctx, testVirtualMachineBMCNamespace, vmName, networkRef)
+
+			By("Creating a virtBMC Pod that Multus reported the network attached to")
+			pod := &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      vmName + "-virtbmc-pod",
+					Namespace: testVirtualMachineBMCNamespace,
+					Labels: map[string]string{
+						bmcv1.VirtualMachineBMCNameLabel: bmcLookupKey.Name,
+						bmcv1.VMNameLabel:                vmName,
+					},
+					Annotations: map[string]string{
+						MultusNetworksAnnotation: networkRef,
+						MultusNetworkStatusAnnotation: fmt.Sprintf(`[{"name":"kindnet","interface":"eth0","ips":["10.244.0.5"],"default":true},`+
+							`{"name":"%s/%s","interface":"net1","ips":["192.168.100.2"],"mac":"36:9c:52:96:83:e9"}]`,
+							testVirtualMachineBMCNamespace, networkRef),
+					},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{Name: "virtbmc", Image: "virtbmc"}},
+				},
+			}
+			Expect(k8sClient.Create(ctx, pod)).To(Succeed())
+			DeferCleanup(func() {
+				Expect(client.IgnoreNotFound(k8sClient.Delete(ctx, pod))).To(Succeed())
+			})
+
+			By("Verifying status.network and the NetworkAttached condition")
+			var bmc bmcv1.VirtualMachineBMC
+			Eventually(func() *bmcv1.NetworkStatus {
+				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
+					return nil
+				}
+				return bmc.Status.Network
+			}, timeout, interval).Should(Equal(&bmcv1.NetworkStatus{
+				Name:      testVirtualMachineBMCNamespace + "/" + networkRef,
+				Interface: "net1",
+				IPs:       []string{"192.168.100.2"},
+				MAC:       "36:9c:52:96:83:e9",
+			}))
+			Expect(meta.IsStatusConditionTrue(bmc.Status.Conditions, bmcv1.ConditionNetworkAttached)).To(BeTrue())
+
+			By("Removing the NetworkRef")
+			bmc.Spec.NetworkRef = ""
+			Expect(k8sClient.Update(ctx, &bmc)).To(Succeed())
+
+			By("Verifying status.network and the NetworkAttached condition are cleared")
+			Eventually(func() bool {
+				if err := k8sClient.Get(ctx, bmcLookupKey, &bmc); err != nil {
+					return false
+				}
+				return bmc.Status.Network == nil &&
+					meta.FindStatusCondition(bmc.Status.Conditions, bmcv1.ConditionNetworkAttached) == nil
+			}, timeout, interval).Should(BeTrue())
 		})
 
 		It("Should update the Deployment in place when NetworkRef is changed and removed", func() {

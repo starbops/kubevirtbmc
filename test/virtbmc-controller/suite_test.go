@@ -37,6 +37,8 @@ var (
 	skipCertManagerInstall        = os.Getenv("CERT_MANAGER_INSTALL_SKIP") == envTrueValue
 	isCertManagerAlreadyInstalled = false
 	skipMultusInstall             = os.Getenv("MULTUS_INSTALL_SKIP") == envTrueValue
+	// Set in BeforeSuite; NetworkRef specs are skipped without the NAD CRD.
+	multusAvailable = false
 
 	repo = func() string {
 		if r := os.Getenv("REPO"); r != "" {
@@ -110,10 +112,15 @@ var _ = BeforeSuite(func() {
 		}
 	}
 
-	By("creating test NetworkAttachmentDefinitions")
-	for _, nad := range []string{util.E2EMultusNetworkName, util.E2EMultusNetworkNameUpdated} {
-		err = util.CreateTestNetworkAttachmentDefinition(util.E2ENamespace, nad)
-		Expect(err).ToNot(HaveOccurred())
+	multusAvailable = util.IsNetworkAttachmentDefinitionCRDInstalled()
+	if multusAvailable {
+		By("creating test NetworkAttachmentDefinitions")
+		for _, nad := range util.E2ETestNetworks {
+			err = util.CreateTestNetworkAttachmentDefinition(util.E2ENamespace, nad.Name, nad.Bridge, nad.Subnet)
+			Expect(err).ToNot(HaveOccurred())
+		}
+	} else {
+		_, _ = fmt.Fprintf(GinkgoWriter, "WARNING: NetworkAttachmentDefinition CRD not found. NetworkRef specs will be skipped...\n")
 	}
 
 	By("deploying the controller-manager")
@@ -155,9 +162,11 @@ var _ = AfterSuite(func() {
 			return apierrors.IsNotFound(k8sClient.Get(ctx, client.ObjectKey{Namespace: util.E2ENamespace, Name: util.E2EBMCName}, &bmc))
 		}, timeout, interval).Should(BeTrue(), "VirtualMachineBMC %s/%s should be deleted", util.E2ENamespace, util.E2EBMCName)
 	}
-	By("cleaning up the test NetworkAttachmentDefinitions")
-	for _, nad := range []string{util.E2EMultusNetworkName, util.E2EMultusNetworkNameUpdated} {
-		Expect(util.DeleteTestNetworkAttachmentDefinition(util.E2ENamespace, nad)).To(Succeed())
+	if multusAvailable {
+		By("cleaning up the test NetworkAttachmentDefinitions")
+		for _, nad := range util.E2ETestNetworks {
+			Expect(util.DeleteTestNetworkAttachmentDefinition(util.E2ENamespace, nad.Name)).To(Succeed())
+		}
 	}
 
 	By("undeploying the controller-manager")
