@@ -629,10 +629,15 @@ var _ = Describe("KubeVirtBMC controller manager", Ordered, func() {
 			}
 			Expect(redfishPort).NotTo(BeZero(), "agent container should expose the redfish port")
 
+			// Earlier specs rotate the password, so read the current one.
+			var secret corev1.Secret
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: util.E2ESecretName, Namespace: util.E2ENamespace}, &secret)).To(Succeed())
+			creds := string(secret.Data["username"]) + ":" + string(secret.Data["password"])
+
 			url := fmt.Sprintf("http://%s:%d/redfish/v1/Systems", ip, redfishPort)
 			out, err := util.RunCurlOverMultusNetwork(ctx, config, util.E2ENamespace, nadName, pod.Spec.NodeName,
 				"-s", "-o", "/dev/null", "-w", "%{http_code}", "--connect-timeout", "5", "--max-time", "15",
-				"-u", "admin:password", url)
+				"-u", creds, url)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(out).To(Equal("200"), "Redfish should answer at %s over network %s", url, nadName)
 		}
